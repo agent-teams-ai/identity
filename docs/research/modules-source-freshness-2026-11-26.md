@@ -121,3 +121,98 @@ The architecture, inward dependency rule, account/session contracts, product
 credential ownership and implementation phases remain unchanged. This refresh
 updates provenance and governance wording only; it does not qualify a runtime,
 deploy a service, change protections or merge either planning PR.
+
+## Deep-review source refresh
+
+Observed on 2026-11-26 at 15:16–15:23 Europe/Kyiv (13:16–13:23 UTC).
+This observation supersedes earlier package-availability and Foundation-head
+statements for the new planning review. The dated evidence above remains intact;
+no prior consumer qualification is inferred for a new package version.
+
+Engineering Foundation main is now
+[`da1868240b96113582b508b0c15341c477d6334b`](https://github.com/agent-teams-ai/engineering-foundation/commit/da1868240b96113582b508b0c15341c477d6334b).
+The [delta from `fac0392`](https://github.com/agent-teams-ai/engineering-foundation/compare/fac03920e50ebde038ae415edeb7aa9e3d610ada...da1868240b96113582b508b0c15341c477d6334b)
+contains [#477's managed Node 26 pin preservation](https://github.com/agent-teams-ai/engineering-foundation/pull/477)
+through the retained-generation upgrade, the initial
+[#478 version wave](https://github.com/agent-teams-ai/engineering-foundation/pull/478),
+and [#479](https://github.com/agent-teams-ai/engineering-foundation/pull/479)/[#480](https://github.com/agent-teams-ai/engineering-foundation/pull/480)'s
+coordinated forward publication recovery. The initial wave was incomplete.
+Current main [CI](https://github.com/agent-teams-ai/engineering-foundation/actions/runs/45816094797)
+and [Release](https://github.com/agent-teams-ai/engineering-foundation/actions/runs/45816094753)
+were observed with completed `success` conclusions; no fresh consumer execution
+or signature/provenance verification is claimed.
+
+Direct registry reads at 13:17:49 UTC observed Foundation **4.0.2**, FMS **0.4.3**,
+Document Authoring **0.3.9**, Repository Mutation **0.5.2**, Docs Protocol **0.6.9**,
+Docs Agent Teams **0.7.1** and Docs MCP **0.2.12**. Stack **0.3.1**, CI Input Proof
+**0.1.3** and Release Checks **0.1.0** were unchanged. Exact registry links and
+adoption limits are maintained in [BOOTSTRAP](../../BOOTSTRAP.md#2-exact-observed-availability-and-its-limits).
+Archive inspection completed at 13:22:57 UTC for Foundation 4.0.2, FMS 0.4.3 and
+Stack 0.3.1; their SHA-512 values matched registry `dist.integrity`. The artifacts
+retain root configuration v3 with all 14 declared capabilities, strict quality
+coverage v5, format coverage v1, FMS's public `./quality-topology` export and
+Stack's literal-format marker. These observations establish the inspected files
+and exports, not an installed or qualified Identity development graph.
+
+Central main remains
+[`7ad5abbf5a8dade79f91f3e6f06481070b966a9e`](https://github.com/agent-teams-ai/.github/commit/7ad5abbf5a8dade79f91f3e6f06481070b966a9e).
+Its [checker](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/scripts/check-repository-admission.ts)
+still recognizes exact Stack 0.1.1 and the obsolete `featureProfilePath` and
+`compilerProjects` fields. The [cohort registry](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/governance/docs-qualified-cohorts.json)
+still recommends only `docs-2026-10-03-stable31`. Both bootstrap prerequisites
+remain real; newer publication neither resolves them nor creates an exemption.
+The existing author-policy scope and empty default bypass list are unchanged.
+
+Get Modular remains at `a5f41853200aed26d692e89d768185013d629a12`, Extension
+Foundation at `312782a7a74515682a324dc0d89f43394ea1618d` and LMU at
+`b5b54d7958022ecc4e631e538bd2eb2fe707a8af`. Core/Assembly **0.8.0**, Resources
+**0.2.2**, Conformance **0.5.2**, Observation **0.2.1** and Effect **0.1.1** remain
+the observed public versions. The lifecycle-kernel latest endpoint still returns
+HTTP 404. The [current CMS document](https://github.com/agent-teams-ai/get-modular/blob/a5f41853200aed26d692e89d768185013d629a12/docs/architecture/common-assembly.md)
+has unchanged whole-document SHA-256
+`ef5044eef1da7a01f3ca40323cd17d9f2597fc22b5abb905c7c77e5318b408d7`.
+EF's catalog remains empty and LMU's inspected manifests remain private
+fixtures, as linked in the earlier refresh. P7 still requires actual public
+contracts and consumer qualification; these updates authorize no fixture import,
+runtime implementation or protection change.
+
+## ReviewRouter and authentication-source refresh for the deep review
+
+At 13:15–13:35 UTC (15:15–15:35 Europe/Kyiv), ReviewRouter main was
+[`f20a75edbc7eff11be4f2423fb2e723f6e484223`](https://github.com/777genius/review-router-ai/tree/f20a75edbc7eff11be4f2423fb2e723f6e484223).
+#998 and #959 are merged. The [delta from the prior delivered source snapshot](https://github.com/777genius/review-router-ai/compare/521b8956b8d415bc66c292a5216c658289ff14b9...f20a75edbc7eff11be4f2423fb2e723f6e484223)
+has 283 changed paths, with no change in `apps/web/src/auth` or
+`packages/features/auth/src`. This is a targeted source-delta review, not
+qualification of every changed runtime path.
+
+The current [root manifest](https://github.com/777genius/review-router-ai/blob/f20a75edbc7eff11be4f2423fb2e723f6e484223/package.json)
+and [web manifest](https://github.com/777genius/review-router-ai/blob/f20a75edbc7eff11be4f2423fb2e723f6e484223/apps/web/package.json)
+use exact Prisma/client/PG adapter 7.9.0. NextAuth 4.24.15, Next.js 16.4.6,
+TypeScript 7.0.2, RR Foundation 3.1.0, Stack 0.3.1 and GM 0.8.0 remain.
+New real `check:changed`, `check:fast` and `check` routes and the current
+[AGENTS new-feature rules](https://github.com/777genius/review-router-ai/blob/f20a75edbc7eff11be4f2423fb2e723f6e484223/AGENTS.md)
+are implementation inputs. ReviewRouter's already qualified adoption is not
+silently replaced with Identity's newer Foundation tuple.
+
+[#1007](https://github.com/777genius/review-router-ai/pull/1007) remains open at
+`223402e3edb8c91746dc6659a6e8242d9b45eb59`; its latest GitLab SSR hydration and
+cache-fixture changes do not make candidate custody/SQL migration merged-main
+behavior. The new model-provider `nativeConnection` field in main is unrelated
+to social identity/SCM ownership.
+
+The security review also inspected pinned Keycloak 26.8.2
+[authentication-time handling](https://github.com/keycloak/keycloak/blob/26.8.2/services/src/main/java/org/keycloak/services/managers/AuthenticationManager.java),
+[OIDC broker age forwarding](https://github.com/keycloak/keycloak/blob/26.8.2/services/src/main/java/org/keycloak/broker/oidc/OIDCIdentityProvider.java),
+and [GitHub profile lookup](https://github.com/keycloak/keycloak/blob/26.8.2/services/src/main/java/org/keycloak/social/github/GitHubIdentityProvider.java),
+alongside [GitHub's authorization parameters](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app).
+A new broker/OAuth flow is evidence of session control, not automatically
+recent factor use. Both plans now distinguish those proof classes and the
+ordinary-migration versus compromise-recovery policies. This source observation
+does not qualify a future provider registration, deployed flow or native account.
+
+Other sampled source heads remain: Platform
+`76fc9734f6128b78c7a8b1bc858859fb1cbe835a`, Orchestrator
+`b622026a082a0cccc5ec44eebf12d3f88eef6359`, the actual
+`777genius/get-tok` fork `287d1751564de571a35ec847634a62cb47dd21d7`,
+and Discord Meeting Assistant `8fb3d273f4d51eb149e9c310b7edefbee1c72052`.
+Their original source audit remains the detailed evidence.

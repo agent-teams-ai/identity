@@ -17,37 +17,40 @@ materializing source. A planning PR is not a production bootstrap pass.
 
 | Subject | Reviewed source | Maintained navigation |
 | --- | --- | --- |
-| New repository policy | [Repository admission at `755c851`](https://github.com/agent-teams-ai/.github/blob/755c8515a5d106402a7e9e2cff621fb1fdc855cf/docs/repository-admission.md#new-repository-bootstrap) | [Current guide](https://github.com/agent-teams-ai/.github/blob/main/docs/repository-admission.md#new-repository-bootstrap) |
-| Common engineering practices | [Quality standard at `755c851`](https://github.com/agent-teams-ai/.github/blob/755c8515a5d106402a7e9e2cff621fb1fdc855cf/docs/engineering-quality-standard.md) | [Current standard](https://github.com/agent-teams-ai/.github/blob/main/docs/engineering-quality-standard.md) |
-| Shared ownership and library direction | [Ecosystem vision at `755c851`](https://github.com/agent-teams-ai/.github/blob/755c8515a5d106402a7e9e2cff621fb1fdc855cf/docs/architecture/ecosystem-vision.md) | [Current vision](https://github.com/agent-teams-ai/.github/blob/main/docs/architecture/ecosystem-vision.md) |
-| Runtime technology responsibilities | [Backend stack at `755c851`](https://github.com/agent-teams-ai/.github/blob/755c8515a5d106402a7e9e2cff621fb1fdc855cf/docs/backend-stack.md) | [Current stack](https://github.com/agent-teams-ai/.github/blob/main/docs/backend-stack.md) |
-| Tool discovery | [Development catalog at `755c851`](https://github.com/agent-teams-ai/.github/blob/755c8515a5d106402a7e9e2cff621fb1fdc855cf/docs/development-tools.md) | [Current catalog](https://github.com/agent-teams-ai/.github/blob/main/docs/development-tools.md) |
-| Foundation adoption | [Consumer adoption at `fac0392`](https://github.com/agent-teams-ai/engineering-foundation/blob/fac03920e50ebde038ae415edeb7aa9e3d610ada/docs/development/consumer-adoption.md) | [Current guide](https://github.com/agent-teams-ai/engineering-foundation/blob/main/docs/development/consumer-adoption.md) |
+| New repository policy | [Repository admission at `7ad5abb`](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/docs/repository-admission.md#new-repository-bootstrap) | [Current guide](https://github.com/agent-teams-ai/.github/blob/main/docs/repository-admission.md#new-repository-bootstrap) |
+| Common engineering practices | [Quality standard at `7ad5abb`](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/docs/engineering-quality-standard.md) | [Current standard](https://github.com/agent-teams-ai/.github/blob/main/docs/engineering-quality-standard.md) |
+| Shared ownership and library direction | [Ecosystem vision at `7ad5abb`](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/docs/architecture/ecosystem-vision.md) | [Current vision](https://github.com/agent-teams-ai/.github/blob/main/docs/architecture/ecosystem-vision.md) |
+| Runtime technology responsibilities | [Backend stack at `7ad5abb`](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/docs/backend-stack.md) | [Current stack](https://github.com/agent-teams-ai/.github/blob/main/docs/backend-stack.md) |
+| Tool discovery | [Development catalog at `7ad5abb`](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/docs/development-tools.md) | [Current catalog](https://github.com/agent-teams-ai/.github/blob/main/docs/development-tools.md) |
+| Foundation adoption | [Consumer adoption at `da18682`](https://github.com/agent-teams-ai/engineering-foundation/blob/da1868240b96113582b508b0c15341c477d6334b/docs/development/consumer-adoption.md) | [Current guide](https://github.com/agent-teams-ai/engineering-foundation/blob/main/docs/development/consumer-adoption.md) |
 
 Read current changes for freshness; adopt exact reviewed revisions for durable
 contracts. A newer navigation target cannot silently change an accepted
-standard, release baseline or consumer pin. The [final source refresh](docs/research/modules-source-freshness-2026-11-26.md)
-records the later central governance changes at `7ad5abb` and their limited
-applicability to Identity; the original reviewed snapshot above is retained.
+standard, release baseline or consumer pin. The table reflects the deep review
+on 2026-11-26 at 15:16–15:23 Europe/Kyiv (13:16–13:23 UTC). The
+[source freshness record](docs/research/modules-source-freshness-2026-11-26.md)
+preserves the earlier dated snapshots and records the Foundation release delta;
+central policy remains at `7ad5abb`, with its limited applicability to Identity.
 
 ## 2. Exact observed availability and its limits
 
-Public npm metadata was read on 2026-11-26. The Foundation, Stack and FMS
-tarballs were also inspected, with SHA-512 matching their registry integrity.
+Public npm metadata was read on 2026-11-26 at 13:17:49 UTC. Archive inspection
+completed at 13:22:57 UTC for Foundation 4.0.2, Stack 0.3.1 and FMS 0.4.3;
+each tarball's SHA-512 matched its registry `dist.integrity`.
 This establishes artifact availability and the named packaged files/exports.
 It is not a fresh consumer install, signature/provenance verification, full
 package qualification or a production-admission result.
 
 | Development package | Exact release observed | Relevant packaged contract |
 | --- | --- | --- |
-| `@agent-teams/engineering-foundation` | [4.0.0](https://registry.npmjs.org/@agent-teams%2fengineering-foundation/4.0.0) | Quality coverage v5 and root configuration schemas; development only |
+| `@agent-teams/engineering-foundation` | [4.0.2](https://registry.npmjs.org/@agent-teams%2fengineering-foundation/4.0.2) | Quality coverage v5, format coverage v1 and root configuration schema v3; development only |
 | `stack-toolchain` | [0.3.1](https://registry.npmjs.org/stack-toolchain/0.3.1) | Technical presets, installed tool manifest and literal-format contract marker |
-| `@agent-teams/feature-module-standard` | [0.4.1](https://registry.npmjs.org/@agent-teams%2ffeature-module-standard/0.4.1) | FMS checks and public `./quality-topology` projection |
-| `@agent-teams/document-authoring` | [0.3.7](https://registry.npmjs.org/@agent-teams%2fdocument-authoring/0.3.7) | Portable document authoring; metadata observation only |
-| `@agent-teams/repository-mutation` | [0.5.0](https://registry.npmjs.org/@agent-teams%2frepository-mutation/0.5.0) | Shared mutation/recovery owner; metadata observation only |
-| `@agent-teams/docs-protocol` | [0.6.7](https://registry.npmjs.org/@agent-teams%2fdocs-protocol/0.6.7) | Portable Docs package; metadata observation only |
-| `@agent-teams/docs-protocol-agent-teams` | [0.6.2](https://registry.npmjs.org/@agent-teams%2fdocs-protocol-agent-teams/0.6.2) | Organization-managed integration; publication alone does not admit a cohort |
-| `@agent-teams/docs-protocol-mcp` | [0.2.10](https://registry.npmjs.org/@agent-teams%2fdocs-protocol-mcp/0.2.10) | Optional admitted authoring transport; metadata observation only |
+| `@agent-teams/feature-module-standard` | [0.4.3](https://registry.npmjs.org/@agent-teams%2ffeature-module-standard/0.4.3) | FMS checks and public `./quality-topology` projection |
+| `@agent-teams/document-authoring` | [0.3.9](https://registry.npmjs.org/@agent-teams%2fdocument-authoring/0.3.9) | Portable document authoring; metadata observation only |
+| `@agent-teams/repository-mutation` | [0.5.2](https://registry.npmjs.org/@agent-teams%2frepository-mutation/0.5.2) | Shared mutation/recovery owner; metadata observation only |
+| `@agent-teams/docs-protocol` | [0.6.9](https://registry.npmjs.org/@agent-teams%2fdocs-protocol/0.6.9) | Portable Docs package; metadata observation only |
+| `@agent-teams/docs-protocol-agent-teams` | [0.7.1](https://registry.npmjs.org/@agent-teams%2fdocs-protocol-agent-teams/0.7.1) | Organization-managed integration; publication alone does not admit a cohort |
+| `@agent-teams/docs-protocol-mcp` | [0.2.12](https://registry.npmjs.org/@agent-teams%2fdocs-protocol-mcp/0.2.12) | Optional admitted authoring transport; metadata observation only |
 | `@agent-teams/ci-input-proof` | [0.1.3](https://registry.npmjs.org/@agent-teams%2fci-input-proof/0.1.3) | Pure development/CI inventory comparison; metadata observation only |
 | `@agent-teams/release-checks` | [0.1.0](https://registry.npmjs.org/@agent-teams%2frelease-checks/0.1.0) | Pure release-candidate comparison; metadata observation only |
 
@@ -75,11 +78,11 @@ lock, deployment data and local adoption record. Do not substitute moving
 ### 3.1 New-repository checker versus current quality tooling
 
 The current
-[central checker](https://github.com/agent-teams-ai/.github/blob/755c8515a5d106402a7e9e2cff621fb1fdc855cf/scripts/check-repository-admission.ts)
+[central checker](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/scripts/check-repository-admission.ts)
 recognizes Stack presets only for the exact root development pin **0.1.1**.
 It reads `featureProfilePath` and `compilerProjects` from the coverage profile.
 The current
-[Foundation 4 migration](https://github.com/agent-teams-ai/engineering-foundation/blob/fac03920e50ebde038ae415edeb7aa9e3d610ada/docs/development/quality-v5-migration.md)
+[Foundation 4 migration](https://github.com/agent-teams-ai/engineering-foundation/blob/da1868240b96113582b508b0c15341c477d6334b/docs/development/quality-v5-migration.md)
 executes v5 only: `topologyPath` replaces the FMS-specific path, and
 `toolchainConfigPath` points to the sole compiler-project authority,
 `typecheck.projects`. Its strict schema rejects obsolete extra fields.
@@ -96,7 +99,7 @@ the requested Markdown planning and review checkpoint.
 ### 3.2 Managed Docs versus independently published packages
 
 At the reviewed central source, the only current `RECOMMENDED` entry in the
-[cohort registry](https://github.com/agent-teams-ai/.github/blob/755c8515a5d106402a7e9e2cff621fb1fdc855cf/governance/docs-qualified-cohorts.json)
+[cohort registry](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/governance/docs-qualified-cohorts.json)
 is `docs-2026-10-03-stable31`. Its tuple includes Foundation 1.7.2, Docs
 Protocol 0.6.2, Docs Agent Teams 0.3.2, Document Authoring 0.3.2 and Repository
 Mutation 0.2.2. This differs from the current public releases above.
@@ -104,7 +107,7 @@ Mutation 0.2.2. This differs from the current public releases above.
 [Central #425](https://github.com/agent-teams-ai/.github/pull/425) records newer
 preparation and a source-admission prerequisite. It does not activate stable32
 or enroll Identity. Follow the
-[registration guidance](https://github.com/agent-teams-ai/.github/blob/755c8515a5d106402a7e9e2cff621fb1fdc855cf/docs/repository-registration.md):
+[registration guidance](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/docs/repository-registration.md):
 retain pending managed admission until an eligible coherent graph is qualified.
 Do not select independent npm tags as a managed cohort, downgrade current
 quality tooling to fit an older cohort, or invent an exemption.
@@ -119,7 +122,7 @@ recovery evidence instead of hand-editing it.
 
 The central development catalog is dated 2026-10-25 and describes Stack 0.1.1.
 The producer's format-coverage reference still labels the feature unpublished,
-but the inspected public Foundation 4.0.0 archive contains
+but the inspected public Foundation 4.0.2 archive contains
 `quality-format-coverage/v1` and root schema v3; public Stack 0.3.1 exposes the
 literal-format marker. Therefore verify the exact public API, executable
 behavior and applicable consumer evidence before activation. Do not infer
@@ -155,8 +158,8 @@ subject exists; they are not permission to omit applicable protections.
 | `package.public-api-compatibility` | First public TypeScript SDK/package | Curated surface and release-owned baselines; no invented public contract for private implementation |
 | Release Checks | First supported SDK/package release workflow | Exact installed public checker, independent candidate observations and shared conformance cases; Changesets remains the version/dependency engine |
 | `quality.executable-specifications` | First critical independently specified contract | Real identity/binding/revocation invariant and executable gate; reuse focused fixtures, not a new generic modeling engine |
-| `quality.format-coverage` | After exact public contract and consumer qualification | Actual complete maintained-input census, literal Stack execution and real validators for retained/generated/native inputs |
-| Deterministic scaffolding | Materialization of each eligible real package/module | Owned target, saved reviewed Plan, digest-bound create-only apply, receipt and exact-build recovery |
+| `quality.format-coverage` | First actual tooling/source setup, with exact-contract and consumer qualification | Complete maintained-input census, literal Stack execution and real retained/generated/native validators; bad-input and no-op-substitution rejection for every authority |
+| Deterministic scaffolding | Materialization of an eligible real package boundary | Qualified released recipe, owned target, saved reviewed Plan, digest-bound create-only apply, receipt and exact-build recovery; no assumed product/DDD recipe |
 | Document Authoring / managed Docs | Eligible coherent admission route | Owned profile/templates/relations, exact package cohort, genuine integration and hosted evidence |
 | CI Input Proof | Only when adopting a justified affected-check or evidence-reuse policy | Complete independently collected input closure and authenticated prior results; inventory compatibility cannot grant a PASS or permission to skip; independent FULL fallback remains executable |
 | `quality.findings-baseline` | Only after a real approved debt/admission need | No manufactured greenfield debt; current capability catalog does not mark this mechanism released or declarable in root config |
@@ -164,8 +167,8 @@ subject exists; they are not permission to omit applicable protections.
 
 Release Checks and CI Input Proof are public development-only leaf libraries,
 not extra Identity modules or authorities to publish, merge or omit a check.
-Use their [release contract](https://github.com/agent-teams-ai/engineering-foundation/blob/fac03920e50ebde038ae415edeb7aa9e3d610ada/packages/release-checks/README.md)
-and [CI comparison contract](https://github.com/agent-teams-ai/engineering-foundation/blob/fac03920e50ebde038ae415edeb7aa9e3d610ada/packages/ci-input-proof/README.md)
+Use their [release contract](https://github.com/agent-teams-ai/engineering-foundation/blob/da1868240b96113582b508b0c15341c477d6334b/packages/release-checks/README.md)
+and [CI comparison contract](https://github.com/agent-teams-ai/engineering-foundation/blob/da1868240b96113582b508b0c15341c477d6334b/packages/ci-input-proof/README.md)
 at the real seam if the corresponding workflow exists. The incubated Agent
 Architecture Standard is not applicable merely because the organization builds
 agent products; reassess only if Identity itself acquires an agent architecture.
@@ -175,6 +178,21 @@ The schema-specific topology projection is the public
 strict tooling and preserve its `derivedFrom` digest bindings when committing
 generated topology. Keep the separate FMS semantic gate; a fresh projection is
 not proof that the architecture conforms.
+
+During the first tooling/source setup, qualify the complete
+[format-coverage route](https://github.com/agent-teams-ai/engineering-foundation/blob/da1868240b96113582b508b0c15341c477d6334b/docs/reference/quality-format-coverage.md)
+against the actual maintained inputs and required gate. If a safe native,
+support-file, lock or generated-output validator is missing, record that
+specific authority and its owned next action as an open bootstrap prerequisite.
+A narrow Stack format command does not establish complete coverage; the full
+check must not invoke generators or substitute a no-op validator to pass.
+
+The released generic Node TypeScript library
+[scaffolding recipe](https://github.com/agent-teams-ai/engineering-foundation/blob/da1868240b96113582b508b0c15341c477d6334b/docs/development/consumer-adoption.md#deterministic-scaffolding)
+creates a package boundary only. Author Identity's features, use cases,
+composition and FMS/CMS facts through ordinary reviewed source changes unless
+an actual qualified released recipe covers that exact work. Do not make an
+invented Identity architecture generator a prerequisite.
 
 ## 5. Implementation sequence and evidence
 
@@ -187,7 +205,7 @@ not proof that the architecture conforms.
    v1.1 through an owned ADR/profile. Use standard ID
    `agent-teams.feature-module-standard`, canonical version path and SHA-256
    `cfa088ef7396139554fe5e3bcc839271b23299c6b60c569a3a7f1cd7c9f0bc6c`
-   from the [immutable registry](https://github.com/agent-teams-ai/.github/blob/755c8515a5d106402a7e9e2cff621fb1fdc855cf/governance/feature-module-standard.json).
+   from the [immutable registry](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/governance/feature-module-standard.json).
    Bind a reviewed nonzero source revision; the npm FMS package version is a
    different identity from standard version v1.1.
    Separately adopt the Get Modular Consumer Module Standard through an accepting
@@ -198,15 +216,18 @@ not proof that the architecture conforms.
    descriptors/modules/groups; package composition wires public top-level
    groups. Restrict GM imports to composition/tests and align real FMS/CMS
    scope without inventing a second resolver or empty conformance targets.
-3. **Bootstrap with substantive source.** Materialize only real module targets
-   through their eligible Foundation Plan/Apply path. Land their ownership,
-   tests and gates together. Do not reserve empty packages, fake compiler
-   projects or no-op commands for future features.
+3. **Bootstrap with substantive source.** Use Foundation Plan/Apply/Receipt only
+   for real package boundaries covered by an eligible released recipe. Author
+   the first account feature, composition and FMS/CMS facts as reviewed source;
+   land ownership, essential tests and gates together. Do not reserve empty
+   packages, fake compiler projects or no-op commands for future features.
 4. **Wire all applicable checks.** Install consumer-owned capability data and
    exact dev dependencies. Keep `check` as the full native route; changed/fast
    feedback cannot replace full FMS, coverage, strict compilation, essential
    tests, Foundation, registry/dev-only and contract checks. Avoid duplicate
    full test runs when existing evidence covers the changed risk.
+   Activate complete format coverage during this setup, with the actual
+   authority qualification above; report any missing safe validator explicitly.
 5. **Install immutable callers.** Render the current reviewed central admission
    caller and the separately accepted commit-identity caller. The initially
    inspected policy recognized implementation

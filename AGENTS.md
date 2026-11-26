@@ -27,8 +27,9 @@ resolution route; never work around them by weakening checks or pretending an
 unqualified package graph is admitted.
 
 Adopt full FMS v1.1 and the separately reviewed Get Modular CMS with the first
-substantive production modules. Materialize only real features through applicable
-Foundation scaffolding. Feature-owned composition publishes its group; outer
+substantive production modules. Use applicable Foundation scaffolding for eligible real
+package boundaries; author feature/composition sources and FMS/CMS facts under
+the actual gates without assuming a generic recipe generates DDD features. Feature-owned composition publishes its group; outer
 composition assembles public groups and Host entries. Domain/application and
 semantic ports remain independent of HTTP, ORM, Keycloak and modular frameworks.
 Keep credentials and product authorization with their actual owners.

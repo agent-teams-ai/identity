@@ -52,8 +52,11 @@ cloud service is never an unconditional local dependency.
 
 ## 2. Source baseline and freshness
 
-Research was performed on 2026-11-26 Europe/Kyiv. Source identities are audit
-inputs, not dependency adoption or a claim that a mutable main cannot advance.
+Research and a later deep review were performed on 2026-11-26 Europe/Kyiv.
+The table preserves the original inspected revisions. The [dated source refresh](../research/modules-source-freshness-2026-11-26.md)
+and current BOOTSTRAP record later source/package changes, including Foundation
+4.0.2 and FMS 0.4.3. Source identities are audit inputs, not dependency adoption
+or a claim that a mutable main cannot advance.
 
 | Owner | Reviewed main | Meaning |
 | --- | --- | --- |
@@ -145,7 +148,11 @@ The arrows from inbound adapters are call/dependency direction; outbound adapter
 implement application-owned ports. Domain/application do not import Fastify,
 Connect, generated Protobuf models, Drizzle, Keycloak SDKs, Get Modular or an
 extension runtime. Technical adapters can expose their own technical APIs to
-outer composition. Do not manufacture identical DTO copies at every function.
+outer composition. Under the adopted CMS, domain/application also do not import
+public `contracts/`, including their own feature's public contract surface.
+Use-case dependencies belong in application-owned ports; composition maps the
+public contract to that semantic boundary. Re-export an owned type where suitable
+instead of manufacturing identical DTO copies at every function.
 
 ### Proposed source responsibilities
 
@@ -224,11 +231,11 @@ proposal, not a previously accepted organization-wide ID rule.
 | --- | --- |
 | Account | Immutable ID; active/suspended/closed eligibility; monotonic account revision; separate monotonic security epoch and authentication cutoff; timestamps |
 | Authority binding | AccountId plus configured authority, exact verified issuer, case-sensitive subject, source incarnation and binding revision; active/retired status |
-| Consumer attachment | Minimal admitted consumer-to-account relation derived from verified user context; incarnation, revision and lifecycle; authorizes only status/event delivery, never product membership |
+| Consumer attachment | Minimal consumer-to-account relation derived from verified user context; ordinary revision, non-reusable admission generation and reattachment cutoff; authorizes only scoped status/delivery, never product membership; retained history also identifies possible closure participants |
 | Proof/operation receipt | One-use operation identity, actor, exact target/intended change, expected revisions, bounded expiry and result; hashed opaque proof where applicable |
 | Account-owned outbox | Transition and recipient/contract identity committed with the transition; delivery state is separate |
 | Security audit | Minimal actor/subject/action/outcome/revision and evidence references; raw credentials excluded |
-| Erasure obligation/tombstone | Bounded process progress and minimal approved non-reusable historical reference, separate from eligibility |
+| Erasure obligation/tombstone | Existing account-owned operation with a bounded participant manifest, own- and product-reported outcomes, idempotent receipts and retained non-reusable references; separate from eligibility |
 
 OIDC identifies a subject in its issuer namespace; email, display name and login
 are attributes, not unique identity keys [S1]. Preserve issuer semantics and
@@ -311,6 +318,36 @@ subject and the admitted signup policy. It neither creates tenant memberships
 nor claims that a legacy product user with the same email is that account.
 Unauthenticated directory lookup and caller-selected issuer discovery are absent.
 
+### Evidence strength: flow control and factor authentication
+
+A new OAuth callback and a verified immutable native user ID establish current
+control of the selected provider session in that bounded transaction. They do
+not, by themselves, establish when a password, passkey or MFA factor was used.
+Keep two application-level evidence classes with verified provenance and the
+selected policy version; these are normalized verifier results, not new tokens:
+
+| Evidence class | Established fact | Permitted first-profile use |
+| --- | --- | --- |
+| Provider/session control | A fresh purpose-bound OAuth/broker round trip or an existing admitted session within its explicitly accepted policy; exact authority/subject, transaction and expiry are verified | Ordinary social login; a new explicit login after ordinary logout; the explicitly accepted ordinary legacy-migration profile in D6 |
+| Fresh factor authentication | The method, assurance and age of a previously admitted factor are actually proven by the qualified Keycloak flow or upstream assertion | Compromise recovery, privileged root/recovery changes and any operation whose policy promises factor freshness |
+
+A `prompt`/`acr_values` request, an account picker, a token's new `iat`,
+or an unclassified broker `auth_time` is not proof of the second class.
+Keycloak can record the time of broker login when upstream authentication age
+is unavailable. Importing upstream OIDC authentication age is configuration-
+and provider-dependent; an OAuth social adapter is not automatically that
+profile [S11]. The pinned flow must qualify the provenance of its actual
+method/age claims. Unknown evidence cannot be upgraded by a caller label.
+A factor enrolled after a weak proof does not retroactively prove earlier
+ownership of a legacy account.
+
+P0/R0 select the admitted evidence class, maximum age and transaction lifetime
+for each sensitive operation. Ordinary GitHub/GitLab login does not acquire a
+universal MFA requirement from this distinction. Recovery after a compromise
+cannot be downgraded to ordinary social SSO merely to make it convenient.
+If a required stronger proof is unavailable, use the separately authorized
+recovery path or reject the action; do not invent a recent-auth claim.
+
 ### Review Router-specific contract
 
 Keycloak authenticates; Review Router owns the GitHub App/user authorization or
@@ -321,15 +358,24 @@ ordinary OAuth `repo` scopes are not an accurate substitute [S3]. GitLab
 product consent [S4]. Identity stores neither product token.
 
 Preserve Review Router's existing `User.id`, memberships and installations.
-Require recent proof of both the legacy user and the central account, with an
-explicit intent to bind those exact owners. An existing local session satisfies
-the legacy side only if its actual authentication age/assurance meets that policy;
-an old cookie plus fresh central login is insufficient. Otherwise a product-owned
-OAuth continuation proves the old exact provider identity. Bind both proofs to
-one bounded browser/session-generation intent and consume it once. Do
-not infer upstream numeric identity from `kc_idp_hint`, email, username, or a
-broker session-note username. Different provider accounts need an explicit
-choice, never an implicit merge. Already-owned bindings cause a typed conflict.
+Ordinary legacy migration applies only to a local user that has never held a
+central binding. Require fresh purpose-bound proof of control of both exact
+owners, explicit confirmation and one consumed browser/session-generation
+intent. An old local cookie plus the attacker's new central login is insufficient.
+For a GitHub-only legacy user, a new product-owned OAuth continuation can supply
+provider-session control of the old immutable identity; it cannot certify recent
+factor use. D6 makes that residual-risk choice explicit. A cached existing
+session can substitute only if its provenance/age actually satisfy the selected
+policy; otherwise require the new flow or the stronger admitted proof.
+
+Never infer the native identity from `kc_idp_hint`, email, username or a broker
+session-note username. A historical retired/closed binding is not an unbound
+legacy account. A new central AccountId with the same GitHub/GitLab identity
+cannot overwrite that ownership or recover its retained assets through ordinary
+migration. Return a typed repair/transfer-required conflict; separately
+authorized transfer/recovery is outside this first migration. Retain the minimal
+local ownership restriction for the declared horizon; do not promise indefinite
+anti-reuse after all relevant evidence has been purged.
 
 Account linking and repository connection remain independent: disconnecting
 GitHub repositories does not delete the global login root; removing a login
@@ -347,16 +393,21 @@ bounded spike proves the required contract cannot be met through supported
 configuration/APIs. Such a finding changes the phase estimate explicitly.
 
 Adding/removing authentication roots, changing recovery material, migrating an
-authority binding, closure and administrative containment require fresh appropriate
-authentication and explicit intent. Use authenticated `auth_time` and admitted
-assurance evidence; a freshly refreshed token's `iat` is not fresh user proof.
-Require phishing-resistant MFA for privileged operators. Offer passkeys and
-recovery mechanisms appropriate to the chosen account profile; NIST is guidance
-for the threat model, not a compliance certification [S6].
+authority binding, closure and administrative containment require explicit
+purpose-bound intent and the evidence class assigned to that operation. Sensitive
+root/recovery changes and incident recovery require proven factor/assurance
+from the qualified flow or the separately authorized recovery procedure.
+A freshly refreshed token's `iat` and a broker's new flow timestamp do not
+satisfy that requirement by themselves. Require phishing-resistant MFA for
+privileged operators. Offer passkeys and recovery appropriate to the selected
+profile; enrolling a factor in a newly authenticated session is an enrollment
+decision, not retrospective proof of legacy ownership. NIST is guidance for the
+threat model, not a compliance certification [S6].
 
 Do not automatically link matching email addresses, even when both providers
-report them verified. Prove ownership of both sides, consume that proof once,
-and reject concurrent competing binding changes. Unlink must preserve an admitted
+report them verified. Prove control of both exact sides at the operation's
+admitted evidence strength, consume that proof once, and reject concurrent
+competing binding changes. Unlink must preserve an admitted
 way to regain access, or enter an explicit recovery/closure flow; two concurrent
 unlinks must not remove the final usable authentication root. The adapter must
 prove the real Keycloak operation and read-back semantics; a local count alone
@@ -400,22 +451,33 @@ sessions. Identity does not implement its own refresh-token minting system or
 duplicate all Keycloak sessions. An account security epoch is eligibility/version
 state, not an OAuth session database.
 
-Every issued product session stores an immutable `issuedSecurityEpoch`, the
-authority incarnation and its admitted authentication proof. Revocation events
+Every issued product session stores immutable `issuedSecurityEpoch` and
+`issuedAttachmentGeneration`, the authority incarnation, and the admitted proof
+class/provenance. The account epoch and consumer generation are separate scopes. Revocation events
 (including suspend, compromise containment and global logout) advance the
 account epoch and an authoritative authentication cutoff; ordinary profile
 changes advance account revision without needlessly revoking every session.
-At each protected admission, a session must match current-enough account epoch
-and incarnation. Refreshing a token or status lease never advances the session's
+At each protected admission, a session must match current-enough account epoch,
+consumer attachment generation and authority incarnation. Refreshing a token or status lease never advances the session's
 issued epoch. Re-enablement keeps the increased epoch. A final active snapshot
 after missed suspend and enable events therefore cannot revive an old session.
 
-New session issuance after a cutoff requires an admitted fresh authentication
-after that cutoff, using actual `auth_time`/assurance, not token `iat` or a still
-live Keycloak SSO/refresh token. Qualify explicit reauthentication and the pinned
-provider's timestamp granularity/skew; an indistinguishable boundary proof is
-rejected. This requirement also covers the interval before asynchronous provider
-logout has settled. It does not create another refresh-token authority.
+A session pins the epoch/generation of the authoritative snapshot actually
+accepted at issuance. There is no atomic transaction spanning an Identity read
+and a BFF session commit: a still-valid pre-cutoff snapshot can issue only an
+old-generation session within the stated stale-admission bound. A newer known
+epoch/generation wins immediately, and expiry ends that older admission even
+if delivery was lost. A response arriving late cannot extend its deadline.
+
+Once the newer cutoff is known, a new session at that generation requires the
+operation's admitted proof after the cutoff; refreshing an old token or lease
+cannot upgrade an already issued session. For ordinary global logout, a new
+explicit social login may use still-live upstream SSO: it is a new session-
+control flow, not proof of new factor use. Compromise/recovery restrictions
+require the stronger evidence specified in section 6 and cannot be cleared by
+that ordinary flow. Qualify timestamp provenance, granularity and skew;
+ambiguous boundary evidence is rejected. Do not promise immediate cross-product
+revocation or global logout of GitHub/GitLab's own upstream sessions.
 
 Browsers get protected opaque session cookies; tokens remain server-side.
 Use Secure, HttpOnly, a narrow host cookie, an admitted SameSite setting,
@@ -436,8 +498,9 @@ and account-disable policy with their owners.
 
 Events accelerate revocation; **event receipt alone never proves freshness**.
 For protected new admissions, each consumer keeps bounded account-status evidence
-from Identity with account, authority incarnation, lifecycle/security revision,
-observation time and a strict validity deadline. Proposed initial maximum stale
+from Identity with account, consumer, authority incarnation, account revision/
+security epoch, attachment generation/cutoff, observation time and a strict
+validity deadline. Proposed initial maximum stale
 acceptance is **60 seconds including clock-skew allowance**, pending the phase-0
 operational decision and real measurement. A cache may shorten, never extend it.
 Expired, missing, contradictory or unavailable required evidence fails closed.
@@ -449,8 +512,10 @@ delayed response or replayed event arrives. The client also records monotonic
 request-start time and bounds its usable deadline conservatively by that start
 plus the admitted maximum, source expiry, applicable credential expiry and skew.
 Response transit consumes the budget. Reject evidence already expired on arrival
-or older than a known account revision. Uncertain clock conversion closes
-admission. These are authenticated API response facts, not a new token format.
+or older than a known account revision or attachment generation. Cache and
+late-response fences include the exact authority/account/consumer/generation;
+a status value for another consumer or an older attachment is not reusable.
+Uncertain clock conversion closes admission. These are authenticated API response facts, not a new token format.
 
 Fresh evidence is obtained at login and refreshed on demand, with deduplication,
 or in authorized bounded batches for active accounts. The authorization contract
@@ -483,13 +548,27 @@ non-enumerating denial for unowned references. Events use the same recipient
 scope. The live-attachment predicate also applies to self-status refresh: a
 detached consumer receives a typed reattachment-required/denied result and no
 usable active lease, even with a still valid old self token. Consumer detachment
-is versioned; reattachment requires renewed user-bound
-authorization after its cutoff. Ordinary self-status refresh cannot reactivate
-a detached relation; preserve that tombstone and require an explicit fresh
-attachment intent. Closure retains only the bounded final-status/tombstone delivery
+retires the current attachment admission generation and records a reattachment
+cutoff. Explicit reattachment creates a new non-reusable generation after the
+required user-bound proof; ordinary self refresh cannot reactivate it.
+
+Every session pins `issuedAttachmentGeneration`. Protected admission compares
+it with the generation of current-enough status evidence in addition to the
+account epoch. A new active attachment therefore cannot revive an old session
+that missed both detach and reattach. Neither self nor workload refresh may
+change a session's issued generation. A pre-cutoff self token cannot obtain
+new-generation session admission merely because another flow reattached the
+consumer. Only the newly qualified attach/login flow creates a new session.
+Use this consumer-local generation rather than logging the user out of all
+other products through an unnecessary global account-epoch increment.
+
+Closure retains only the bounded final-status/tombstone delivery
 needed by previously attached consumers under the selected retention policy.
-P1 specifies exact wire names and P4 qualifies cross-consumer, detached-relation
-through both self and batch, expired-credential and self-token-to-batch rejection.
+P1 specifies candidate wire names and P4 qualifies cross-consumer access,
+detach/reattach with both events lost, delayed old-generation replies, expired
+credentials and self-token-to-batch rejection. Closure uses the separate
+terminal-purpose receipt scope in section 9, never restored ordinary status
+rights for a detached product.
 A generic service credential
 never grants a global account directory.
 
@@ -541,8 +620,8 @@ intent and current provider state before retry or replacement. Idempotence of
 one provider endpoint does not prove ordering of conflicting operations.
 
 Proposed event envelope: event ID, producer/authority incarnation, contract name
-and version, opaque account reference, monotonic account revision, occurrence
-time and minimal transition facts. Events do not carry bearer tokens, secrets,
+and version, opaque account reference, monotonic account revision, recipient
+consumer/attachment generation, occurrence time and minimal transition facts. Events do not carry bearer tokens, secrets,
 full user profiles or product memberships. Trace/correlation IDs never authorize
 an action. The owning wire schema defines numeric/encoding limits across TS/Go.
 
@@ -562,23 +641,66 @@ advance a security checkpoint. Unbounded retries, amplification or permanent
 full-account scans are not acceptable. The receiver owns its product effects;
 the SDK is not another grant ledger or dispatch authority.
 
-Closure first blocks new account use. Erasure then tracks Keycloak profile/
-credential cleanup, Identity PII and product-owned obligations with separate
-receipts. A legal/retention decision must name which minimum data remains and
-why; a hashed issuer/subject is still potentially identifying data. No promise
-of complete cross-product erasure before every applicable owner confirms it.
-Keep non-reusable reference semantics without retaining unnecessary raw PII.
+### Closure participants, receipts and late writes
+
+Closure is terminal for its AccountId and first blocks new account use under
+the declared admission bound. Erasure is a separately reported outcome. At the
+closure transaction, the existing account-owned operation freezes a bounded
+participant manifest from known integrated consumers and retained attachment
+history, including previously detached relations. This is a list of possible
+data owners, not proof that each product provisioned a user. It does not discover
+unknown external systems or authorize arbitrary cross-product deletion.
+
+Record separate Identity, Keycloak and per-product outcomes:
+`pending`, `not-provisioned`, `erased`, `retained-by-policy` or `repair-required`.
+Each participant receipt identifies this operation, account/authority incarnation,
+consumer, manifest version and the scoped participant generation. Its dedicated
+workload permission can report only that participant's result, idempotently;
+it cannot read a global directory, erase another product, alter membership or
+revive ordinary access. Detached consumers receive only the bounded terminal
+cleanup obligation/reporting scope required by this manifest. Ordinary live
+status/feed authorization remains denied. P1/R0 agree the schema; P3 owns the
+operation; P4 owns reliable transport; P5/R5 qualify actual product handlers.
+
+Before reporting `not-provisioned` or `erased`, a product commits a local
+closed-account fence/tombstone and reconciles work that could still recreate data.
+Its existing binding/provisioning/inbox transaction owner checks that fence for
+all late callbacks and queued user-authorized effects. If provisioning wins
+first, cleanup follows before the receipt; if the fence wins first, a delayed
+successful `ResolveSelf` callback cannot recreate data after completion.
+Unsettled external effects remain pending/repair-required. No shared transaction
+or generic distributed workflow engine is introduced.
+
+Report eligibility closed, central cleanup, and the declared cross-product
+cleanup outcome separately. Missing participants/receipts do not mean erased.
+A `retained-by-policy` result names the permitted data class, obligation and
+owner; it is not full erasure. The selected retention/restore policy determines
+the minimum ownership and anti-resurrection evidence kept. A hashed issuer/
+subject may still be identifying data; do not retain raw PII unnecessarily or
+claim complete erasure before all applicable obligations are accounted for.
+
+### Progress authority after closure
+
+The first proposed profile returns a coarse accepted/closed acknowledgement
+to the already-authorized caller; detailed post-close progress is operator-only
+under a narrow audited permission. Normal user sessions/tokens do not remain
+usable just to poll `GetOperation`, and an operation UUID is not authorization.
+Product workload callers can report/read only their own manifest item.
+A bounded read-only closure receipt for self-service tracking is the explicit
+alternative in D7, not an implicit exception to account closure.
 
 ## 10. SDK, external API and scaling without premature distribution
 
 Start the public contract with self-resolution/current-account status and the
 explicit account-management operations actually implemented. Separate user-facing
-and operator methods. Administrative arbitrary-account lookup must never be
+and operator methods, and the terminal-purpose participant receipt operations. Administrative arbitrary-account lookup must never be
 reachable through a self-only token. Names such as `ResolveSelf`, `SuspendAccount`
 and `GetOperation` are prospective; phase 1 records the exact public schema.
 
-The contract defines success, denied, conflict, expired proof, unsupported,
-unavailable and outcome-unknown separately. Commands carry an idempotency key
+The contract defines success, denied, conflict, repair/transfer-required,
+expired or insufficient proof, unsupported, unavailable and outcome-unknown
+separately. Account and attachment admission generations, accepted evidence
+class, and closure receipt states have one reviewed schema across consumers. Commands carry an idempotency key
 and expected revision when needed. SDK retries only a demonstrably safe read or
 the same idempotent command; an ambiguous effect keeps its original operation
 identity. Deadlines stop waiting, not already committed effects.
@@ -609,8 +731,14 @@ Use actual public Core/Assembly contracts now: descriptors and implementations
 live in composition, while features expose ordinary semantic ports. Qualify the
 selected pinned static graph before product reliance. Resources manages owned
 process/worker/DB handles at the outer boundary. Borrowed handles are never
-closed by a feature that did not acquire them. Startup failure closes all acquired
+closed by a feature that did not acquire them. Startup failure closes readiness/admission and starts cleanup of acquired
 resources; shutdown stops ingress, settles owned work, then releases dependencies.
+Public Resources reports callback completion, not proof of physical release.
+Abandoning one wait does not cancel the original cleanup flight or transfer its
+custody. Retain observation and cleanup debt for failed/late disposers; borrowed
+resources remain with their owner. Use the real host/resource contract rather
+than inventing a second supervisor, and do not report readiness or clean shutdown
+while the declared completion condition is unresolved.
 
 Only import declared package public roots. Keep emitted declarations free of
 optional frameworks. Apply the current CMS function-property port conventions
@@ -683,11 +811,11 @@ introduced solely to defer architecture.
 | Phase | Concrete steps | Exit evidence and dependencies |
 | --- | --- | --- |
 | P0 — authority and bootstrap decisions | Record account/product/Keycloak owners, login-root and freshness policy, API exposure, retention/restore targets. Resolve the central Stack/coverage/admission deltas through their owners. Select exact compatible tooling and FMS/CMS cohort. | Accepted scoped decisions, current artifacts, real admission route. Planning can finish before these production gates; no empty source to fake coverage. |
-| P1 — contracts and first account slice | Materialize one account feature and its real source topology with Foundation Plan/Apply. Implement immutable ID, unique issuer/subject resolve and atomic receipt/audit/outbox. Define the initial Protobuf/Connect self contract and local consumer mapping. | Real PostgreSQL concurrent registration and replay produce one account/binding; outsider subject and wrong audience fail. Source/strict TS/CMS gates actually execute. |
-| P2 — Keycloak and direct social login | Pin Keycloak/container/config/theme; register product/environment clients, exact callbacks/scopes; configure GitHub/GitLab brokering and bounded signup. Implement supported verifier/management adapters and BFF transaction boundary. | Real Keycloak/browser flow without Google; two clients, cookie isolation, state/nonce/PKCE rejection and replay. Provider-native proof is separately recorded. |
-| P3 — linking, factors and lifecycle | Implement proof-based link/migrate, concurrent unlink/last-root protection, privileged step-up, suspend/enable/close/erase intents, provider-effect reconciliation and recovery limits. | Competing link/unlink, proof replay, provider timeout-after-effect and suspend/enable reordering cannot grant unintended access. No silent account merge. |
-| P4 — durable consumers and sessions | Deliver outbox/feed, bounded status freshness, idempotent consumers, BFF two-replica refresh/logout/back-channel behavior and consumer repair. | Stop/delay/reorder delivery, revoke during refresh, restart with stale evidence; selected maximum stale-admission bound is measured and enforced. |
-| P5 — SDK and product integration | Pack schema/TS client; exercise Go binding; implement GetTok's local account adapter and reviewed RR plan in their repositories. Reuse landed RR custody/provisioning work. | GetTok balance/API-key/history preserved; RR direct login + repository connection, legacy binding, disconnect and mismatch recovery work against actual owned APIs. |
+| P1 — candidate contracts and first account slice | Scaffold an eligible package boundary through the real Foundation recipe; author the account feature/composition/FMS facts explicitly. Implement ID/binding invariants and atomic receipt/audit/outbox. Define the versioned self/status, attachment-generation and closure-receipt schema plus a packed TEST candidate for consumer spikes. | Real PostgreSQL concurrency/replay produces one owner; application rejects unauthorized caller-selected identities. Contract/vector and source/strict TS/CMS checks execute. Actual Keycloak-issued token and broker-flow qualification belongs to P2; no published SDK or runtime admission is claimed yet. |
+| P2 — Keycloak and direct social login | Pin Keycloak/container/config/theme; configure exact human/workload clients, callbacks, scopes and bounded signup. Qualify issued-token validation, actual flow/factor provenance, supported root-changing channels and the BFF transaction boundary; resolve the provider enforcement gate before dependent lifecycle capability ships. | Real Keycloak/browser flow without Google; wrong issuer/audience/client/token kind, state/nonce/PKCE downgrade and replay fail. Ordinary broker control is distinguished from proven factor freshness. Native-provider and fixture evidence remain separate. |
+| P3 — linking, factors and lifecycle | Implement the admitted proof profiles, link/migrate and last-root policy, separate account/attachment revocation generations, suspend/enable/close, bounded closure manifest/receipts and provider reconciliation. | Competing changes, insufficient proof, unknown effects and detach/reattach cannot restore old authority. Closed owners do not enter ordinary legacy migration. Own cleanup and participant-reported outcomes remain distinct; actual consumer erasure is not yet qualified. |
+| P4 — durable consumers and sessions | Deliver recipient-scoped outbox/feed, bounded status evidence, terminal-purpose cleanup delivery/reporting and idempotent receipt handling; qualify BFF two-replica refresh/logout and repair. | Lost/reordered delivery across both account and attachment generations cannot revive old sessions. Source/request-start expiry bounds stale admission; an event or late response does not mint a new window. |
+| P5 — consumer qualification and contract publication | Integrate consumers against the exact reviewed packed candidate, exercise TS/Go bindings, then publish the compatible contract/SDK artifact for production adoption. Implement GetTok and RR adapters in their own repositories; reuse accepted RR custody. | Local IDs/assets remain owned locally. Real consumer sessions, binding conflicts, detach/reattach and closure fences/receipts work. Publish only the candidate actually exercised; a TEST candidate is not an undeclared runtime dependency. |
 | P6 — operations and release qualification | Complete runbooks, backup/restore drill, key rotation, incomplete HTTP shutdown, bounded load and outage probes; inspect artifacts and required CI on actual release candidate. | Defined deployment profile with observed limits and recoverability; no secrets in evidence; exact production/tooling pins and no outstanding critical review findings. |
 | P7 — qualified extensions/update adoption | After real public release and profile evidence, implement one useful audit/notification adapter using actual EF/LMU public contracts, not private references. | Denied effects, unsupported contract, held work, late disposer and failed/unknown update cases observed through the real mechanisms. Separate support claim from P6. |
 
@@ -696,6 +824,20 @@ can proceed independently where unresolved production admission does not apply.
 P5 consumes P3/P4 security semantics; enabling a login button before those controls
 exist is not a completed rollout. If a shared owner primitive is missing, name
 that owner and affected exit instead of hiding a new subsystem in adapter LOC.
+
+### Cross-repository dependency order
+
+| Identity prerequisite | ReviewRouter work it enables | Evidence boundary |
+| --- | --- | --- |
+| P0 profile decisions and P1 versioned schema/packed candidate | R0 protocol/session spike and R1 local-principal seam | TEST interoperability against pinned actual schema; no dependency on a moving branch or claim of a released SDK |
+| P2 real token/flow profile, P3 lifecycle and P4 status/delivery semantics | R2–R5 persistence, login, migration, generations and cleanup handlers | Fixtures can support development; actual authority/consumer behavior must pass before release |
+| P5 combined consumer qualification and publication | R6 exact published-artifact/compatible-rollout qualification | Production imports require the released artifact whose bytes/contract match tested evidence |
+| P6 operational qualification plus consumer R6 | Declared service/product cutover | Real release gates, provider registrations, recovery and retained-data outcomes; P7 remains separate |
+
+R0 does not wait for an SDK publication that itself requires the R0–R5 consumer
+work. P1 negative application/contract cases do not stand in for P2's real
+Keycloak token/client evidence. Any optional early provider spike is labeled
+with its exact environment and proves only that bounded hypothesis.
 
 ### Suggested coherent implementation PR boundaries
 
@@ -719,13 +861,13 @@ pending; do not replace it with a mock PASS.
 | --- | --- | --- |
 | T1 — authenticated resolution | Valid direct login; wrong issuer/audience/client/token kind; nonce/state/PKCE failure and callback replay; cross-consumer/expired/detached status access and self token used for batch | Actual session/account mapping, no unintended account, directory access or token exposure |
 | T2 — identity ownership | Parallel create, link conflicts, equal email/different identities, same native GitLab ID/different instances | Unique database ownership and unchanged losing account |
-| T3 — lifecycle races | Competing Account Console/broker/admin final-root changes; stale proof; delayed opposing Keycloak mutations after timeout/failover; close versus fresh login | Enforced common root policy, unresolved-effect gate and no successor access from obsolete work |
+| T3 — lifecycle races | Competing root channels; OAuth flow timestamp presented as fresh-factor proof; delayed opposing Keycloak effects; close versus login | Actual admitted proof class, common root policy and unresolved-effect gate; ordinary SSO cannot clear compromise restrictions |
 | T4 — session custody | Two replicas refresh, logout/disable/disconnect during refresh, back-channel replay | Revoked state wins; late tokens do not reopen a session/connection |
-| T5 — effects and delivery | Lost provider reply, DB rollback, publish-before-ack crash, duplicate/reordered/gapped events | Exact receipts/projections; no duplicated ownership or falsely completed revoke |
-| T6 — freshness and outage | Paused delivery, delayed active response, unavailable status API, cache expiry, restart/clock regression; missed suspend then enable or global logout with old session/SSO/refresh token | Denial by source-bound expiry and epoch/cutoff; response receipt cannot extend authority; fresh proof required |
-| T7 — product migration | Existing GetTok user with balance and keys; RR legacy user/memberships; old cookie plus attacker's fresh central login; conflicting old/new binding; connection cancellation | Recent proof of both owners, same local IDs/business data and explicit repair state |
+| T5 — effects and delivery | Lost provider reply, DB rollback, publish-before-ack crash, recipient/generation mismatch; detached historical participant; late provision after not-provisioned/erased receipt | Scoped idempotent receipts and local closure fence; no duplicated ownership, cross-consumer acknowledgement or false complete erasure |
+| T6 — freshness and outage | Paused delivery across suspend/enable and detach/reattach; delayed pre-cutoff response across local session commit; unavailable status, expiry, restart/clock regression | Session pins both issued generations; newer known state wins, old evidence expires by its original bound. New explicit ordinary login and stronger incident recovery obey different proof policies; refresh never upgrades old sessions |
+| T7 — product migration | Existing local assets; old cookie plus attacker's central login; fresh dual-control flow versus required stronger proof; close/erase then same native identity with a new AccountId; late callback; connection cancellation | Correct admitted proof, never-bound legacy predicate, retained local ownership and typed repair/transfer conflict; no automatic resurrection or asset move |
 | T8 — recovery and keys | Signing-key rotation, unknown kid storm, backup restore with stale binding/revoke, lost continuity | Bounded fetches, correct signatures and closed admission until repair |
-| T9 — architecture and lifetime | Declared forbidden inward import, public package consumer, partial startup, held worker and incomplete HTTP body | Real boundary rejection and owned-resource cleanup; borrowed resource survives |
+| T9 — architecture and lifetime | Forbidden framework or own-public-contract import; public consumer; partial startup, held work, incomplete HTTP body, failed/late disposer and abandoned waiter | Boundary rejection, closed readiness/admission, retained original cleanup flight/debt and correct custody; borrowed resource survives, waiting termination is not physical release |
 | T10 — bounded load | Selected two-replica workload, status refresh at expiry, provider/DB outage | Measured limits, bounded queues/pools and recoverable overload |
 
 These are scenario families, not a claim that ten tests prove all security.
@@ -760,8 +902,11 @@ Sizing confidence is **3/10** until P0 and the first real Keycloak/PostgreSQL
 slice. Direction fit **9/10**, expected reliability **8/10 within the qualified
 profile**, implementation/maintenance complexity **8/10**. These are ordinal
 judgments, not measured availability or a guarantee of no future refactoring.
-Native provider limitations, admin API race semantics or custom provider code
-can exceed the range. Record that finding instead of weakening an invariant.
+The ranges include the two admission-generation scopes, proof classification
+and a bounded closure manifest/receipt flow using existing owned operations;
+they do not imply a generic workflow engine. Optional receipt-only self-service
+tracking and provider-side extensions are separate decisions. Native provider
+limitations, admin API race semantics or custom provider code can exceed the range. Record that finding instead of weakening an invariant.
 
 ## 16. Decisions to resolve before dependent implementation
 
@@ -805,7 +950,7 @@ credible only for a profile whose explicitly accepted expiry delay is sufficient
 
 | Option | Migration effect and falsifying experiment |
 | --- | --- |
-| A | Add minimal consumer attachments, status leases, session epochs and recipient-scoped delivery to existing product session guards. Pause delivery across suspend and enable; reject the design if an old session receives renewed admission from the final active snapshot. |
+| A | Add minimal consumer attachments, status leases, immutable account/attachment generations and recipient-scoped delivery to existing guards. Pause delivery across suspend/enable and detach/reattach; reject if an old session receives renewed admission from either final active snapshot. |
 | B | Add a synchronous authoritative check to every declared protected path and revise product outage/latency expectations. Disconnect Identity during an admission: any fallback allow beyond the promised boundary falsifies the profile. |
 | C | Change resource issuers and consumer session/token lifetimes, then expire old long-lived credentials before cutover. Suspend just after issuance and attempt refresh/reissue; reject if new credentials are issued or old ones outlive the accepted bound. |
 
@@ -844,6 +989,52 @@ is no technically sound alternative based on importing TEST/private contracts
 or implementing a second coordinator. P7 records a support profile, exact public
 dependencies and owner evidence when they exist. P1–P6 stay statically composed.
 
+### D6. Proof strength and legacy migration
+
+The design separates current session control from proven fresh-factor use.
+P0/R0 must record the accepted ordinary-migration profile and its residual risk;
+this document proposes A for ordinary unambiguous legacy users, B for operations
+that require stronger assurance, and C for cases neither can safely admit.
+This does not reopen direct GitHub/GitLab login or mandate MFA for every login.
+
+| Option | Benefit, limit and recommendation | Incremental scope / qualification |
+| --- | --- | --- |
+| A. Explicit dual session-control migration | Practical default for GitHub-only legacy users: fresh exact-native OAuth proof plus the central owner's proof, one intent, confirmation and audit. A stolen live upstream SSO session is a residual risk; no fresh-factor guarantee is claimed. | Within the migration estimate; prove an old cookie alone, wrong native identity and mismatched intent cannot bind. P0/R0 explicitly accept the strength/age policy before enabling it. |
+| B. Require a previously admitted stronger proof | Use for privileged root changes, compromise recovery and a high-assurance migration profile. Some legacy users have no such evidence. A newly enrolled factor after weak login cannot establish historical ownership. | Qualify real Keycloak-local or upstream method/age provenance, including forwarding/claim configuration; unsupported users cannot be silently downgraded. Additional provider-specific work may exceed the estimate. |
+| C. Separate audited recovery/transfer or leave unbound | Correct fallback for incident, ambiguous ownership or unavailable required assurance; greater support cost. | A separately authorized procedure with independent evidence; no name/email heuristic, no automatic account merge and no operator bypass invented by the SDK. |
+
+Ordinary global logout retires current product sessions and requests the declared
+provider-session cleanup. A new explicit broker login may use upstream SSO;
+compromise recovery remains restricted until the stronger procedure succeeds.
+
+### D7. Progress after account closure
+
+| Option | First-scope recommendation and tradeoff |
+| --- | --- |
+| A. Accepted acknowledgement; detailed progress only for authorized operators | Recommended first. Closure immediately follows its denial contract; no new anonymous credential or ordinary-session exception. Products report only their own cleanup item. |
+| B. Bounded read-only closure receipt for the initiating person | Add if self-service tracking is a release requirement. Reuse opaque operation-receipt custody with purpose/audience, expiry, revocation, secure delivery and coarse non-PII status. An operation UUID alone never suffices. |
+
+B is roughly 150–350 additional handwritten integration LOC plus 100–200 focused
+test/fixture LOC, 2–4 engineer-days at confidence 3/10; these are planning bounds,
+not a commitment or an independent authentication system. Choose before P3/R5
+UI/contract freeze. Neither option delays access closure until erasure finishes.
+
+### D8. Keycloak enforcement feasibility
+
+P2 must prove the actual root-changing channels and provider-effect settlement
+assumptions before dependent P3 capabilities can ship. The bounded alternatives
+are: restrict the exposed profile to supported channels that demonstrably enforce
+the invariants, or qualify a narrowly scoped provider-side extension behind the
+same outer adapter. Hiding UI controls is insufficient. An extension is not
+assumed to fence ordinary admin APIs merely because it receives their events.
+
+Prefer the supported restricted profile if it meets the selected capability
+scope. If full unlink/recovery/ordering needs custom provider code, record its
+separate estimate, support/upgrade burden and real competing-channel evidence
+before accepting it. If neither profile can prove the invariant, that capability
+remains unavailable and the declared release scope must reflect it. Domain and
+product owners stay unchanged; building a replacement IdP is outside this plan.
+
 ## 17. Definition of completion
 
 The planning task is complete when both owning Draft PRs contain detailed source-
@@ -874,3 +1065,5 @@ not certify this unimplemented service.
 - **S8:** [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700.html) and [RFC 8725](https://www.rfc-editor.org/rfc/rfc8725.html), OAuth/JWT security practice.
 - **S9:** [Keycloak hostname](https://www.keycloak.org/server/hostname) and [reverse proxy](https://www.keycloak.org/server/reverseproxy) boundaries.
 - **S10:** [Keycloak realm import/export limitations](https://www.keycloak.org/server/importExport).
+
+- **S11:** [Keycloak 26.8.2 authentication time handling](https://github.com/keycloak/keycloak/blob/26.8.2/services/src/main/java/org/keycloak/services/managers/AuthenticationManager.java), [OIDC broker age forwarding](https://github.com/keycloak/keycloak/blob/26.8.2/services/src/main/java/org/keycloak/broker/oidc/OIDCIdentityProvider.java), and [GitHub social identity lookup](https://github.com/keycloak/keycloak/blob/26.8.2/services/src/main/java/org/keycloak/social/github/GitHubIdentityProvider.java); source inspection distinguishes broker-flow time from upstream factor age. S3 documents GitHub's account-selection parameter; neither is runtime qualification of our profile.

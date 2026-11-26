@@ -22,6 +22,11 @@ domain and application independent of Fastify, storage, Keycloak and module
 frameworks. It identifies the currently released shared contracts and the
 upstream bootstrap work needed before claiming production qualification.
 
+The deep-review decision section makes the remaining material choices explicit:
+ordinary legacy proof versus stronger recovery evidence (D6), post-closure
+progress (D7), and supported Keycloak enforcement versus a bounded extension
+(D8). Each has a recommendation, limitations and a phase gate.
+
 There is no service implementation, production deployment, installed native
 toolchain or completed runtime qualification in this planning checkpoint.
 Implementation begins with the plan's P0/P1 gates and substantive source.
