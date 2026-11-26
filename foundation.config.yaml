@@ -12,6 +12,8 @@ capabilities:
     configPath: architecture/foundation/quality-format-coverage.yaml
   quality.gate-runner:
     configPath: architecture/foundation/quality-gate-runner.yaml
+  quality.executable-specifications:
+    configPath: architecture/foundation/executable-specifications.yaml
   repository.agent-workflow:
     configPath: architecture/foundation/repository-agent-workflow.yaml
   workspace.dependency-declarations:

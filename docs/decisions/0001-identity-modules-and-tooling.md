@@ -3,7 +3,8 @@ id: ADR-0001
 status: accepted
 date: 2026-11-26
 ---
-# Identity modules and initial tooling
+
+# ADR-0001: Identity modules and initial tooling
 
 ## Context
 

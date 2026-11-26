@@ -3,7 +3,8 @@ id: ADR-0002
 status: accepted
 date: 2026-11-26
 ---
-# Native PostgreSQL for the first account slice
+
+# ADR-0002: Native PostgreSQL for the first account slice
 
 ## Context
 

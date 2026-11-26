@@ -8,11 +8,11 @@ it does not retroactively adopt new runtime contracts.
 
 ## Newly merged source
 
-| Owner | Merged change | Current main at this observation | Relevant result |
-| --- | --- | --- | --- |
-| Get Modular | [#256](https://github.com/agent-teams-ai/get-modular/pull/256) | `a5f41853200aed26d692e89d768185013d629a12` | Two authoring/quickstart guides link to the portable qualification reference; public packages and CMS document are unchanged |
-| Extension Foundation | [#68](https://github.com/agent-teams-ai/extension-foundation/pull/68) | `312782a7a74515682a324dc0d89f43394ea1618d` | TEST matcher, source qualification and documentation; no released public SPI or production Host |
-| Live Module Updates | [#4](https://github.com/agent-teams-ai/live-module-updates/pull/4) | `dd8de63651e79e4737e1a0e412d2c74e79e0b646` | Private portable authoring reference, packed consumer probes and Node/browser Host fixtures; no public update coordinator |
+| Owner                | Merged change                                                         | Current main at this observation           | Relevant result                                                                                                              |
+| -------------------- | --------------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| Get Modular          | [#256](https://github.com/agent-teams-ai/get-modular/pull/256)        | `a5f41853200aed26d692e89d768185013d629a12` | Two authoring/quickstart guides link to the portable qualification reference; public packages and CMS document are unchanged |
+| Extension Foundation | [#68](https://github.com/agent-teams-ai/extension-foundation/pull/68) | `312782a7a74515682a324dc0d89f43394ea1618d` | TEST matcher, source qualification and documentation; no released public SPI or production Host                              |
+| Live Module Updates  | [#4](https://github.com/agent-teams-ai/live-module-updates/pull/4)    | `dd8de63651e79e4737e1a0e412d2c74e79e0b646` | Private portable authoring reference, packed consumer probes and Node/browser Host fixtures; no public update coordinator    |
 
 The independent source refresh inspected the relevant changed paths. The
 Extension Foundation [package catalog](https://github.com/agent-teams-ai/extension-foundation/blob/312782a7a74515682a324dc0d89f43394ea1618d/architecture/package-catalog.json)
@@ -60,15 +60,15 @@ states where stated. Immutable earlier snapshots remain the evidence for their
 original audits. Three separate reviewers inspected only the new deltas and
 the relevant current authority, package or consumer records.
 
-| Source | Current revision at this observation | Material effect |
-| --- | --- | --- |
-| Organization `.github` | [`7ad5abbf5a8dade79f91f3e6f06481070b966a9e`](https://github.com/agent-teams-ai/.github/commit/7ad5abbf5a8dade79f91f3e6f06481070b966a9e) | #423 and #428 merged; scoped author-policy compatibility and a runtime-admission caller/install record |
-| Engineering Foundation | `fac03920e50ebde038ae415edeb7aa9e3d610ada` | Main unchanged |
-| Get Modular | `a5f41853200aed26d692e89d768185013d629a12` | Main unchanged |
-| Extension Foundation | `312782a7a74515682a324dc0d89f43394ea1618d` | Main unchanged; the current package catalog remains empty |
-| Live Module Updates | [`b5b54d7958022ecc4e631e538bd2eb2fe707a8af`](https://github.com/agent-teams-ai/live-module-updates/commit/b5b54d7958022ecc4e631e538bd2eb2fe707a8af) | One further TEST/reference commit; no public runtime or adapter release |
-| ReviewRouter main | [`521b8956b8d415bc66c292a5216c658289ff14b9`](https://github.com/777genius/review-router-ai/commit/521b8956b8d415bc66c292a5216c658289ff14b9) | #1003 merged; review observation retry/idempotency and absolute publication-deadline handling |
-| ReviewRouter #1007 | [`ada687c041128d9ff24ffd45865a82e348c69bd3`](https://github.com/777genius/review-router-ai/pull/1007) | Still open; integrates main and adds narrow dashboard/fixture/migration-checkout admission fixes |
+| Source                 | Current revision at this observation                                                                                                                | Material effect                                                                                        |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Organization `.github` | [`7ad5abbf5a8dade79f91f3e6f06481070b966a9e`](https://github.com/agent-teams-ai/.github/commit/7ad5abbf5a8dade79f91f3e6f06481070b966a9e)             | #423 and #428 merged; scoped author-policy compatibility and a runtime-admission caller/install record |
+| Engineering Foundation | `fac03920e50ebde038ae415edeb7aa9e3d610ada`                                                                                                          | Main unchanged                                                                                         |
+| Get Modular            | `a5f41853200aed26d692e89d768185013d629a12`                                                                                                          | Main unchanged                                                                                         |
+| Extension Foundation   | `312782a7a74515682a324dc0d89f43394ea1618d`                                                                                                          | Main unchanged; the current package catalog remains empty                                              |
+| Live Module Updates    | [`b5b54d7958022ecc4e631e538bd2eb2fe707a8af`](https://github.com/agent-teams-ai/live-module-updates/commit/b5b54d7958022ecc4e631e538bd2eb2fe707a8af) | One further TEST/reference commit; no public runtime or adapter release                                |
+| ReviewRouter main      | [`521b8956b8d415bc66c292a5216c658289ff14b9`](https://github.com/777genius/review-router-ai/commit/521b8956b8d415bc66c292a5216c658289ff14b9)         | #1003 merged; review observation retry/idempotency and absolute publication-deadline handling          |
+| ReviewRouter #1007     | [`ada687c041128d9ff24ffd45865a82e348c69bd3`](https://github.com/777genius/review-router-ai/pull/1007)                                               | Still open; integrates main and adds narrow dashboard/fixture/migration-checkout admission fixes       |
 
 ### Governance applicability
 

@@ -103,6 +103,7 @@ boundaries:
         - "@get-modular/assembly"
         - "@get-modular/core"
         - "@get-modular/resources"
+        - pg
       builtins: []
       runtimeReferences: []
   - id: identity.api
@@ -197,6 +198,8 @@ boundaries:
         - "@connectrpc/connect-fastify"
         - "@connectrpc/connect-node"
         - "@bufbuild/protobuf"
+        - "@agent-teams/identity-core"
+        - "@agent-teams/identity-contracts"
       builtins:
         - node:crypto
       runtimeReferences: []
@@ -245,6 +248,7 @@ boundaries:
         - "@get-modular/assembly"
         - "@get-modular/core"
         - "@get-modular/resources"
+        - "@agent-teams/identity-core"
       builtins:
         - node:fs/promises
         - node:process
@@ -316,14 +320,18 @@ boundaries:
         - "@bufbuild/protobuf"
         - pg
         - uuid
+        - "@agent-teams/identity-core"
+        - "@agent-teams/identity-contracts"
       builtins:
         - node:assert/strict
+        - node:child_process
         - node:test
         - node:http
         - node:crypto
         - node:fs/promises
         - node:path
         - node:url
+        - node:util
       runtimeReferences: []
   - id: repository-tools
     roots:

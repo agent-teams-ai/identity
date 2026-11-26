@@ -2,13 +2,8 @@
   "name": "@agent-teams/identity-workspace",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "description": "Identity service and versioned contracts for independent product consumers.",
-  "packageManager": "pnpm@11.20.0",
-  "engines": {
-    "node": ">=26.11.1 <27",
-    "pnpm": "11.20.0"
-  },
+  "type": "module",
   "scripts": {
     "foundation:check": "agent-teams-foundation check --consumer .",
     "foundation:status": "agent-teams-foundation status --consumer .",
@@ -27,10 +22,11 @@
     "format:scope": "agent-teams-foundation quality format --consumer . --scope-only",
     "format:support:check": "node scripts/check-format-inputs.ts --check",
     "contracts:check": "node tools/check-contracts.ts",
+    "specifications:mutation": "node tools/check-account-mutations.ts",
     "build": "node tools/clean-build.ts && stack-toolchain compile --build tsconfig.build.json && stack-toolchain compile --project tsconfig.tests.json && node tools/record-build-evidence.ts",
     "test": "node tools/run-tests.ts",
-    "check:static": "pnpm toolchain:doctor && pnpm foundation:assert-dev-only && pnpm foundation:assert-registry && pnpm topology:check && pnpm architecture:check && pnpm quality:coverage:scope && pnpm typecheck && pnpm lint:typed && pnpm quality:coverage && pnpm foundation:check && pnpm format:check",
-    "check": "pnpm build && pnpm check:static && pnpm contracts:check && pnpm test",
+    "check:static": "pnpm toolchain:doctor && pnpm foundation:assert-dev-only && pnpm foundation:assert-registry && pnpm topology:check && pnpm architecture:check && pnpm quality:coverage:scope && pnpm typecheck && pnpm lint:typed && pnpm quality:coverage && pnpm foundation:check",
+    "check": "pnpm build && pnpm check:static && pnpm contracts:check && pnpm specifications:mutation && pnpm test && pnpm format:check",
     "check:fast": "pnpm check",
     "check:changed": "agent-teams-foundation agent-workflow check-changed --consumer .",
     "check:changed:repository": "pnpm check"
@@ -38,13 +34,18 @@
   "devDependencies": {
     "@agent-teams/engineering-foundation": "4.0.2",
     "@agent-teams/feature-module-standard": "0.4.3",
-    "stack-toolchain": "0.3.1",
     "@bufbuild/buf": "catalog:",
     "@bufbuild/protoc-gen-es": "catalog:",
     "@get-modular/conformance": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "eslint": "catalog:",
+    "stack-toolchain": "0.3.1",
     "yaml": "catalog:"
-  }
+  },
+  "engines": {
+    "node": ">=26.11.1 <27",
+    "pnpm": "11.20.0"
+  },
+  "packageManager": "pnpm@11.20.0"
 }

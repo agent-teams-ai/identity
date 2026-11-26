@@ -1,8 +1,11 @@
-import type { VerifiedActor } from '../../domain/authority.js';
-export type { VerifiedActor, VerifiedHuman, VerifiedWorkload } from '../../domain/authority.js';
+import type { VerifiedActor } from "../../domain/authority.js";
+export type { VerifiedActor, VerifiedHuman, VerifiedWorkload } from "../../domain/authority.js";
 
 export class AuthenticationFailure extends Error {
-  constructor(readonly reason: 'UNAUTHENTICATED' | 'UNAVAILABLE') { super(reason); this.name = 'AuthenticationFailure'; }
+  constructor(readonly reason: "UNAUTHENTICATED" | "UNAVAILABLE") {
+    super(reason);
+    this.name = "AuthenticationFailure";
+  }
 }
 
 export interface AuthenticationPort {

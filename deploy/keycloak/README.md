@@ -31,22 +31,47 @@ mapper permits `identity-api`; the separate workload client receives only
 `sub` and `auth_time`; importing a custom scope list must not accidentally
 omit these default mappers.
 
-Provide nonempty disposable `IDENTITY_TEST_CLIENT_SECRET`,
-`IDENTITY_TEST_WORKLOAD_SECRET`, `IDENTITY_TEST_USER_PASSWORD` during realm
-import, and `IDENTITY_TEST_ISSUER` to the fixture. Build the repository, start
-the pinned provider with the imported realm and PostgreSQL, then run:
+The pinned archive metadata is in `runtime.json`. The Temurin JDK checksum
+was checked against both the official GitHub release digest and the
+downloaded vendor checksum file, then against the actual downloaded archive.
+The native launcher does not download or substitute runtime artifacts.
+
+The mandatory CI command is:
 
 ```sh
-node .test-build/packages/identity/tests/features/account/keycloak-profile.native.js
+node tools/check-native-keycloak.ts
 ```
+
+Before running it, install and verify the exact Keycloak/JDK archives and
+build the repository. Set `KEYCLOAK_HOME`, `JAVA_HOME`, optional `PSQL_BIN`,
+and distinct fresh loopback PostgreSQL URLs in
+`KEYCLOAK_TEST_DATABASE_URL` (database `keycloak_test`) and
+`IDENTITY_TEST_DATABASE_URL` (database `identity_test`). Provide nonempty
+disposable `IDENTITY_TEST_CLIENT_SECRET`, `IDENTITY_TEST_WORKLOAD_SECRET`,
+`IDENTITY_TEST_USER_PASSWORD`, and set `IDENTITY_TEST_ISSUER` to
+`http://127.0.0.1:18080/realms/identity-test`.
+
+The launcher rejects existing user tables instead of truncating a database.
+It verifies actual JVM/provider/database versions, applies the real Identity
+migration, imports the realm, bounds readiness, and runs both
+`keycloak-profile.native.js` and `keycloak-service.native.js` from the
+compiled test graph. Provider cleanup is mandatory; a cleanup failure fails
+the command. A fresh CI job is required after a completed lifecycle test,
+which deliberately closes the native fixture subject.
 
 The fixture performs actual form login, code exchange, PKCE failure/replay,
 nonce and JWT checks through the production verifier, plus separate workload
 authentication and disabled alternate grants. It emits coarse results only;
-no code, token, password or client secret is logged. Missing configuration
+no token, password or client secret is logged by the fixture. Missing configuration
 fails rather than skips. The fixture uses a disposable local password to
 exercise the OIDC boundary; GitHub/GitLab broker login and GetTok's actual BFF
 callback require their own complete integration checks.
+
+The human client also admits the exact GetTok TEST callback
+`http://127.0.0.1:18182/api/v1/auth/central/callback`. Its assigned default
+scopes keep `identity.resolve:self` when the BFF explicitly requests
+`openid email profile`. The synthetic user's verified contact email is
+provided for GetTok's registration policy; it is not an account-linking key.
 
 `sid` is the provider session, not a local product session. This initial
 ordinary profile remains bounded by the original access-token expiry, at

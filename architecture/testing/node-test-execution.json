@@ -3,37 +3,27 @@
   "required": [
     {
       "file": ".test-build/packages/contracts/tests/features/protocol/wire.test.js",
-      "names": [
-        "identity v1 wire preserves 64-bit revisions and timestamp precision"
-      ],
+      "names": ["identity v1 wire preserves 64-bit revisions and timestamp precision"],
       "kind": "test"
     },
     {
       "file": ".test-build/packages/contracts/tests/features/protocol/wire.test.js",
-      "names": [
-        "identity v1 unknown and absent evidence remains non-authoritative"
-      ],
+      "names": ["identity v1 unknown and absent evidence remains non-authoritative"],
       "kind": "test"
     },
     {
       "file": ".test-build/packages/identity/tests/features/account/keycloak-authentication.test.js",
-      "names": [
-        "Keycloak token boundary rejects wrong authority kind scope and age"
-      ],
+      "names": ["Keycloak token boundary rejects wrong authority kind scope and age"],
       "kind": "test"
     },
     {
       "file": ".test-build/packages/identity/tests/features/account/keycloak-authentication.test.js",
-      "names": [
-        "Keycloak proof stays ordinary and expires with its original human credential"
-      ],
+      "names": ["Keycloak proof stays ordinary and expires with its original human credential"],
       "kind": "test"
     },
     {
       "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
-      "names": [
-        "two replicas racing first admission commit exactly one account and attachment"
-      ],
+      "names": ["two replicas racing first admission commit exactly one account and attachment"],
       "kind": "test"
     },
     {
@@ -59,9 +49,7 @@
     },
     {
       "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
-      "names": [
-        "suspend and enable preserve revocation even when a consumer missed every event"
-      ],
+      "names": ["suspend and enable preserve revocation even when a consumer missed every event"],
       "kind": "test"
     },
     {
@@ -94,9 +82,7 @@
     },
     {
       "file": ".test-build/packages/identity/tests/features/account/domain-admission.test.js",
-      "names": [
-        "re-entry requires proof strictly newer than each cutoff including uncertainty"
-      ],
+      "names": ["re-entry requires proof strictly newer than each cutoff including uncertainty"],
       "kind": "test"
     },
     {
@@ -115,9 +101,7 @@
     },
     {
       "file": ".test-build/apps/server/tests/features/http/connect-http.test.js",
-      "names": [
-        "transport exposes stable denial details and conceals internal failure data"
-      ],
+      "names": ["transport exposes stable denial details and conceals internal failure data"],
       "kind": "test"
     },
     {

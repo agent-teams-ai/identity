@@ -1,9 +1,9 @@
-import type { ProofProfile } from './admission.js';
-import type { AuthoritySubject } from './model.js';
+import type { ProofProfile } from "./admission.js";
+import type { AuthoritySubject } from "./model.js";
 
 /** Qualified observations, never claims accepted directly from a caller. */
 export interface VerifiedHuman extends AuthoritySubject {
-  readonly kind: 'human';
+  readonly kind: "human";
   readonly clientId: string;
   readonly consumerId: string;
   readonly authoritySessionId: string;
@@ -19,7 +19,7 @@ export interface VerifiedHuman extends AuthoritySubject {
 }
 
 export interface VerifiedWorkload {
-  readonly kind: 'workload';
+  readonly kind: "workload";
   readonly clientId: string;
   readonly consumerId: string;
   readonly credentialExpiresAtMs: number;

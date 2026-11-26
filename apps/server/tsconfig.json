@@ -8,15 +8,9 @@
     "outDir": "dist",
     "rootDir": "src",
     "tsBuildInfoFile": ".cache/tsconfig.tsbuildinfo",
-    "lib": [
-      "ES2024",
-      "DOM",
-      "DOM.Iterable"
-    ]
+    "lib": ["ES2024", "DOM", "DOM.Iterable"]
   },
-  "include": [
-    "src/**/*.ts"
-  ],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../../packages/contracts"

@@ -1,0 +1,28 @@
+import assert from "node:assert/strict";
+import {
+  authorize,
+  exchangeCode,
+  nativeConfiguration,
+  requiredToken,
+  tokenRequest,
+  WORKLOAD_CLIENT,
+} from "./keycloak-browser-fixture.js";
+
+// This test-only process returns credentials exclusively over a captured pipe.
+// The orchestrating fixture must never inherit this stdout or log its contents.
+const configuration = nativeConfiguration();
+const human = await exchangeCode(configuration, await authorize(configuration));
+assert.equal(human.status, 200, "Native human code exchange succeeds");
+const humanBody: unknown = await human.json();
+const workload = await tokenRequest(configuration, WORKLOAD_CLIENT, configuration.workloadSecret, {
+  grant_type: "client_credentials",
+  scope: "identity.status:read",
+});
+assert.equal(workload.status, 200, "Native workload grant succeeds");
+const workloadBody: unknown = await workload.json();
+process.stdout.write(
+  JSON.stringify({
+    accessToken: requiredToken(humanBody, "access_token"),
+    workloadToken: requiredToken(workloadBody, "access_token"),
+  }),
+);

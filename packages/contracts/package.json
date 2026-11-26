@@ -2,27 +2,27 @@
   "name": "@agent-teams/identity-contracts",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "pnpm -w build",
-    "typecheck": "pnpm -w typecheck",
-    "check": "pnpm -w check",
-    "test": "pnpm -w test"
-  },
-  "agentTeamsArchitecture": {
-    "role": "contracts",
-    "ownerDocument": "ADR-0001"
-  },
   "files": [
     "dist"
   ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
+  "scripts": {
+    "build": "pnpm -w build",
+    "typecheck": "pnpm -w typecheck",
+    "check": "pnpm -w check",
+    "test": "pnpm -w test"
+  },
   "dependencies": {
     "@bufbuild/protobuf": "catalog:"
+  },
+  "agentTeamsArchitecture": {
+    "role": "contracts",
+    "ownerDocument": "ADR-0001"
   }
 }

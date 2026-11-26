@@ -14,11 +14,11 @@ lookalike DTOs. The initial schema SHA-256 is
 
 ## Actor and operation boundary
 
-| RPC | Authenticated caller | Effect and limit |
-| --- | --- | --- |
-| `ResolveSelf` | Admitted human client, `identity.resolve:self` | Resolve the server-derived authority subject and atomically create its first consumer attachment; return status and an immutable session admission receipt. |
-| `GetSelfStatus` | Same admitted human permission | Observe an existing live attachment. Never create or reattach an account. |
-| `GetAccountStatus` | Separately admitted workload client, `identity.status:read` | Observe only an account already attached to that workload's configured consumer. Never obtain or renew human proof. |
+| RPC                | Authenticated caller                                        | Effect and limit                                                                                                                                            |
+| ------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ResolveSelf`      | Admitted human client, `identity.resolve:self`              | Resolve the server-derived authority subject and atomically create its first consumer attachment; return status and an immutable session admission receipt. |
+| `GetSelfStatus`    | Same admitted human permission                              | Observe an existing live attachment. Never create or reattach an account.                                                                                   |
+| `GetAccountStatus` | Separately admitted workload client, `identity.status:read` | Observe only an account already attached to that workload's configured consumer. Never obtain or renew human proof.                                         |
 
 Authentication is Bearer transport metadata. The verifier requires the exact
 configured issuer and `identity-api` audience, then derives the actor kind and

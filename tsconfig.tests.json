@@ -4,11 +4,7 @@
     "rootDir": ".",
     "outDir": ".test-build",
     "noEmit": false,
-    "lib": [
-      "ES2024",
-      "DOM",
-      "DOM.Iterable"
-    ]
+    "lib": ["ES2024", "DOM", "DOM.Iterable"]
   },
   "include": [
     "packages/*/src/**/*.ts",

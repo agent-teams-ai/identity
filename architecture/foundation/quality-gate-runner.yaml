@@ -1,6 +1,6 @@
 schemaVersion: 2
 profiles:
-  - id: full
+  - id: implementation
     packageManager: pnpm
     concurrency: 1
     tasks:
@@ -14,9 +14,13 @@ profiles:
         needs:
           - check:static
         timeoutMs: 180000
-      - id: test
+      - id: specifications:mutation
         needs:
           - contracts:check
+        timeoutMs: 90000
+      - id: test
+        needs:
+          - specifications:mutation
         timeoutMs: 180000
   - id: format-authorities
     packageManager: pnpm

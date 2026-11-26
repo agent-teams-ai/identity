@@ -9,14 +9,14 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
-    "@agent-teams/identity-core": "workspace:*",
     "@agent-teams/identity-contracts": "workspace:*",
+    "@agent-teams/identity-core": "workspace:*",
     "@bufbuild/protobuf": "catalog:",
     "@connectrpc/connect": "catalog:",
     "@connectrpc/connect-fastify": "catalog:",
     "@connectrpc/connect-node": "catalog:",
-    "@get-modular/core": "catalog:",
     "@get-modular/assembly": "catalog:",
+    "@get-modular/core": "catalog:",
     "@get-modular/resources": "catalog:",
     "fastify": "catalog:",
     "pg": "catalog:",

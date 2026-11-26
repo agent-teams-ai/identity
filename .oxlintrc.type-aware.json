@@ -1,8 +1,5 @@
 {
-  "extends": [
-    "./.oxlintrc.json",
-    "./node_modules/stack-toolchain/presets/oxlint/type-aware.json"
-  ],
+  "extends": ["./.oxlintrc.json", "./node_modules/stack-toolchain/presets/oxlint/type-aware.json"],
   "options": {
     "respectEslintDisableDirectives": false,
     "reportUnusedDisableDirectives": "error"

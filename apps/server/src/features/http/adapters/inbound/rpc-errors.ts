@@ -1,6 +1,6 @@
-import { Code, ConnectError } from '@connectrpc/connect';
-import { IdentityErrorDetailSchema, IdentityErrorReason } from '@agent-teams/identity-contracts';
-import { isAccountFailure, type FailureReason } from '@agent-teams/identity-core';
+import { Code, ConnectError } from "@connectrpc/connect";
+import { IdentityErrorDetailSchema, IdentityErrorReason } from "@agent-teams/identity-contracts";
+import { isAccountFailure, type FailureReason } from "@agent-teams/identity-core";
 
 const reasons: Partial<Record<FailureReason, IdentityErrorReason>> = {
   ACCOUNT_SUSPENDED: IdentityErrorReason.ACCOUNT_SUSPENDED,
@@ -16,20 +16,41 @@ const reasons: Partial<Record<FailureReason, IdentityErrorReason>> = {
 
 function codeOf(reason: FailureReason): Code {
   switch (reason) {
-    case 'UNAUTHENTICATED': return Code.Unauthenticated;
-    case 'UNAVAILABLE': return Code.Unavailable;
-    case 'PERMISSION_DENIED': return Code.PermissionDenied;
-    case 'INVALID_ARGUMENT': return Code.InvalidArgument;
-    case 'CONFLICT': return Code.Aborted;
-    default: return Code.FailedPrecondition;
+    case "UNAUTHENTICATED":
+      return Code.Unauthenticated;
+    case "UNAVAILABLE":
+      return Code.Unavailable;
+    case "PERMISSION_DENIED":
+      return Code.PermissionDenied;
+    case "INVALID_ARGUMENT":
+      return Code.InvalidArgument;
+    case "CONFLICT":
+      return Code.Aborted;
+    case "ACCOUNT_CLOSED":
+    case "ACCOUNT_SUSPENDED":
+    case "ADMISSION_EXPIRED":
+    case "AUTHENTICATION_REQUIRED_AFTER_CUTOFF":
+    case "INSUFFICIENT_PROOF":
+    case "REATTACHMENT_REQUIRED":
+    case "RECOVERY_REQUIRED":
+    case "REPAIR_REQUIRED":
+      return Code.FailedPrecondition;
   }
 }
 
 /** Public failures never carry provider responses, SQL or credentials. */
 export function rpcError(error: unknown): ConnectError {
-  if (error instanceof ConnectError) return error;
-  if (!isAccountFailure(error)) return new ConnectError('Identity is unavailable', Code.Unavailable);
+  if (error instanceof ConnectError) {
+    return error;
+  }
+  if (!isAccountFailure(error)) {
+    return new ConnectError("Identity is unavailable", Code.Unavailable);
+  }
   const reason = reasons[error.reason];
-  return new ConnectError(error.reason, codeOf(error.reason), undefined,
-    reason === undefined ? undefined : [{ desc: IdentityErrorDetailSchema, value: { reason } }]);
+  return new ConnectError(
+    error.reason,
+    codeOf(error.reason),
+    undefined,
+    reason === undefined ? undefined : [{ desc: IdentityErrorDetailSchema, value: { reason } }],
+  );
 }

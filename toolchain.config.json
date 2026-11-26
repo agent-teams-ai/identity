@@ -2,17 +2,17 @@
   "schemaVersion": 1,
   "profile": "typescript-node",
   "typecheck": {
-    "projects": [
-      "tsconfig.quality.json"
-    ]
+    "projects": ["tsconfig.quality.json"]
   },
   "lint": {
     "config": ".oxlintrc.type-aware.json",
     "paths": [
-      "packages/*/src",
-      "packages/*/tests",
-      "apps/*/src",
-      "apps/*/tests",
+      "packages/identity/src",
+      "packages/identity/tests",
+      "packages/contracts/src",
+      "packages/contracts/tests",
+      "apps/server/src",
+      "apps/server/tests",
       "tools",
       "scripts"
     ]

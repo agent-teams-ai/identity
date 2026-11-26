@@ -1,15 +1,13 @@
 {
   "extends": [
-    "./node_modules/stack-toolchain/presets/oxlint/node.json"
+    "./node_modules/stack-toolchain/presets/oxlint/node.json",
+    "./node_modules/stack-toolchain/presets/oxlint/maintainability.json"
   ],
   "options": {
     "respectEslintDisableDirectives": false,
     "reportUnusedDisableDirectives": "error"
   },
   "rules": {
-    "typescript/method-signature-style": [
-      "error",
-      "property"
-    ]
+    "typescript/method-signature-style": ["error", "property"]
   }
 }

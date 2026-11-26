@@ -1,9 +1,7 @@
 {
   "extends": "stack-toolchain/presets/typescript/node.json",
   "compilerOptions": {
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "verbatimModuleSyntax": true,
     "forceConsistentCasingInFileNames": true
   }

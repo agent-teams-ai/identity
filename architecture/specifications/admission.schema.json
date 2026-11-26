@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agent-teams.ai/identity/admission-specification/v1",
+  "title": "Identity ordinary-admission invariant corpus",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "policy",
+    "observedAtMs",
+    "credentialLifetimesMs",
+    "accountCutoffsMs",
+    "reattachmentCutoffsMs",
+    "cutoffOffsetsMs",
+    "transitionEpochs",
+    "transitionCutoffsMs"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statusBudgetMs", "maximumClockSkewMs"],
+      "properties": {
+        "statusBudgetMs": {
+          "const": 60000
+        },
+        "maximumClockSkewMs": {
+          "const": 5000
+        }
+      }
+    },
+    "observedAtMs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      }
+    },
+    "credentialLifetimesMs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      }
+    },
+    "accountCutoffsMs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      }
+    },
+    "reattachmentCutoffsMs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      }
+    },
+    "cutoffOffsetsMs": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "enum": [-1, 0, 1]
+      }
+    },
+    "transitionEpochs": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(?:0|[1-9][0-9]{0,18})$"
+      }
+    },
+    "transitionCutoffsMs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      }
+    }
+  }
+}

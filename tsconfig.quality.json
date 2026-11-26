@@ -4,11 +4,7 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
-    "lib": [
-      "ES2024",
-      "DOM",
-      "DOM.Iterable"
-    ]
+    "lib": ["ES2024", "DOM", "DOM.Iterable"]
   },
   "include": [
     "packages/*/src/**/*.ts",

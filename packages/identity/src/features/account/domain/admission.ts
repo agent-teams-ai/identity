@@ -1,11 +1,11 @@
-import type { Account, AccountReference } from './model.js';
+import type { Account, AccountReference } from "./model.js";
 
-export type ProofProfile = 'provider-session-control-v1' | 'independent-continuity-v1';
+export type ProofProfile = "provider-session-control-v1" | "independent-continuity-v1";
 
 export interface StatusEvidence {
   readonly account: AccountReference;
   readonly consumerId: string;
-  readonly eligibility: Account['eligibility'];
+  readonly eligibility: Account["eligibility"];
   readonly accountRevision: bigint;
   readonly securityEpoch: bigint;
   readonly authenticationCutoffMs: number;

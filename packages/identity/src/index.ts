@@ -1,5 +1,5 @@
-export { createIdentity } from './composition/identity.root.js';
-export { isAccountFailure } from './features/account/contracts/account.js';
+export { createIdentity } from "./composition/identity.root.js";
+export { isAccountFailure } from "./features/account/contracts/account.js";
 export type {
   AccountApi,
   AccountAuthentication,
@@ -9,4 +9,4 @@ export type {
   FailureReason,
   HumanAuthority,
   WorkloadAuthority,
-} from './features/account/contracts/account.js';
+} from "./features/account/contracts/account.js";

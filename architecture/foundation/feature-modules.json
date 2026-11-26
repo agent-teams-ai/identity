@@ -10,18 +10,10 @@
     "digest": "sha256:cfa088ef7396139554fe5e3bcc839271b23299c6b60c569a3a7f1cd7c9f0bc6c"
   },
   "architectureDocument": "docs/architecture/module-adoption.md",
-  "decisionRecords": [
-    "docs/decisions/0001-identity-modules-and-tooling.md"
-  ],
-  "productionRoots": [
-    "packages",
-    "apps"
-  ],
+  "decisionRecords": ["docs/decisions/0001-identity-modules-and-tooling.md"],
+  "productionRoots": ["packages", "apps"],
   "applicationRoots": [],
-  "excludedRoots": [
-    "tools",
-    "scripts"
-  ],
+  "excludedRoots": ["tools", "scripts"],
   "extensions": [],
   "deviations": [],
   "topology": {
@@ -33,9 +25,7 @@
       "role": "service-core",
       "root": "packages/identity",
       "sourceRoot": "packages/identity/src",
-      "testRoots": [
-        "packages/identity/tests"
-      ],
+      "testRoots": ["packages/identity/tests"],
       "testFeaturesRoot": "packages/identity/tests/features",
       "features": [
         {
@@ -66,9 +56,7 @@
         }
       ],
       "surfaces": {
-        "public": [
-          "packages/identity/src/features/account/contracts/account.ts"
-        ],
+        "public": ["packages/identity/src/features/account/contracts/account.ts"],
         "compositionContract": [
           "packages/identity/src/features/account/composition/account.contracts.ts"
         ],
@@ -76,10 +64,7 @@
           "packages/identity/src/features/account/composition/account.group.ts"
         ]
       },
-      "moduleAssembly": [
-        "packages/identity/src/index.ts",
-        "packages/identity/src/composition"
-      ],
+      "moduleAssembly": ["packages/identity/src/index.ts", "packages/identity/src/composition"],
       "generatedRoots": []
     },
     {
@@ -87,9 +72,7 @@
       "role": "contracts",
       "root": "packages/contracts",
       "sourceRoot": "packages/contracts/src",
-      "testRoots": [
-        "packages/contracts/tests"
-      ],
+      "testRoots": ["packages/contracts/tests"],
       "testFeaturesRoot": "packages/contracts/tests/features",
       "features": [
         {
@@ -108,9 +91,7 @@
           "packages/contracts/src/features/protocol/contracts/gen/identity/v1/identity_pb.ts"
         ]
       },
-      "moduleAssembly": [
-        "packages/contracts/src/index.ts"
-      ],
+      "moduleAssembly": ["packages/contracts/src/index.ts"],
       "generatedRoots": []
     },
     {
@@ -118,9 +99,7 @@
       "role": "application-host",
       "root": "apps/server",
       "sourceRoot": "apps/server/src",
-      "testRoots": [
-        "apps/server/tests"
-      ],
+      "testRoots": ["apps/server/tests"],
       "testFeaturesRoot": "apps/server/tests/features",
       "features": [
         {
@@ -143,20 +122,11 @@
         }
       ],
       "surfaces": {
-        "public": [
-          "apps/server/src/features/http/contracts/http.ts"
-        ],
-        "compositionContract": [
-          "apps/server/src/features/http/composition/http.contracts.ts"
-        ],
-        "compositionSurface": [
-          "apps/server/src/features/http/composition/http.group.ts"
-        ]
+        "public": ["apps/server/src/features/http/contracts/http.ts"],
+        "compositionContract": ["apps/server/src/features/http/composition/http.contracts.ts"],
+        "compositionSurface": ["apps/server/src/features/http/composition/http.group.ts"]
       },
-      "moduleAssembly": [
-        "apps/server/src/main.ts",
-        "apps/server/src/composition"
-      ],
+      "moduleAssembly": ["apps/server/src/main.ts", "apps/server/src/composition"],
       "generatedRoots": []
     }
   ],
