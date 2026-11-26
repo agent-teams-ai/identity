@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
 import { execFile, spawn, type ChildProcess } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendFile, copyFile, mkdir, mkdtemp, open, readFile } from "node:fs/promises";
+import {
+  appendFile,
+  copyFile,
+  lstat,
+  mkdir,
+  mkdtemp,
+  open,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve as pathResolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -10,6 +20,17 @@ import { readKeycloakRuntime } from "./keycloak-runtime.ts";
 import { prepareTestRuntime } from "./test-runtime.ts";
 
 const execute = promisify(execFile);
+assert.ok(
+  process.argv.length === 2 ||
+    (process.argv.length === 3 && process.argv[2] === "--consumer=gettok"),
+  "Native qualification accepts only the optional --consumer=gettok selector",
+);
+const withGetTok = process.argv[2] === "--consumer=gettok";
+assert.equal(
+  process.env.PRIVATE_GETTOK_NATIVE_TEST_BINARY,
+  undefined,
+  "The native consumer binary must be built by this launcher, never supplied externally",
+);
 const runtime = await readKeycloakRuntime();
 const interruption = new AbortController();
 const interrupt = (): void => {
@@ -45,6 +66,18 @@ assert.ok(
 );
 const identityDatabase = database("IDENTITY_TEST_DATABASE_URL", "identity_test");
 const keycloakDatabase = database("KEYCLOAK_TEST_DATABASE_URL", "keycloak_test");
+const gettokDatabase = withGetTok
+  ? database("GETTOK_NATIVE_DATABASE_URL", "gettok_identity_test")
+  : undefined;
+if (withGetTok) {
+  for (const name of [
+    "GETTOK_NATIVE_REPOSITORY",
+    "GETTOK_NATIVE_GO",
+    "GETTOK_NATIVE_BROWSER_COMMAND",
+  ]) {
+    required(name);
+  }
+}
 for (const secret of [
   "IDENTITY_TEST_CLIENT_SECRET",
   "IDENTITY_TEST_WORKLOAD_SECRET",
@@ -53,6 +86,7 @@ for (const secret of [
   required(secret);
 }
 const logs = await mkdtemp(join(tmpdir(), "identity-keycloak-native-"));
+const gettokBinary = withGetTok ? join(logs, "gettok-native.test") : undefined;
 const environment = {
   ...process.env,
   JAVA_OPTS:
@@ -72,15 +106,64 @@ const run = async (
   command: string,
   args: readonly string[],
   extra: Readonly<Record<string, string>> = {},
+  timeout = 180_000,
+  cwd = process.cwd(),
 ) =>
   execute(command, [...args], {
-    cwd: process.cwd(),
+    cwd,
     env: { ...environment, ...extra },
     encoding: "utf8",
-    timeout: 180_000,
+    timeout,
     maxBuffer: 1_048_576,
     signal: interruption.signal,
   });
+
+const prepareGetTok = async (): Promise<void> => {
+  if (gettokBinary === undefined) {
+    return;
+  }
+  const go = required("GETTOK_NATIVE_GO");
+  const version = await run(go, ["version"], { GOTOOLCHAIN: "local", GOWORK: "off" });
+  assert.ok(version.stdout.startsWith("go version go1.27.3 "), "Native GetTok Go version differs");
+  let compiled = false;
+  try {
+    const result = await run(
+      go,
+      [
+        "test",
+        "-c",
+        "-mod=readonly",
+        "-p=1",
+        "-tags=integration,native_identity,embed",
+        "-o",
+        gettokBinary,
+        "./internal/app",
+      ],
+      { GOTOOLCHAIN: "local", GOWORK: "off" },
+      300_000,
+      pathResolve(required("GETTOK_NATIVE_REPOSITORY"), "backend"),
+    );
+    await writeFile(join(logs, "consumer-build.log"), result.stdout + result.stderr, {
+      mode: 0o600,
+    });
+    compiled = true;
+  } catch (error) {
+    const stderr =
+      typeof error === "object" &&
+      error !== null &&
+      "stderr" in error &&
+      typeof error.stderr === "string"
+        ? error.stderr
+        : "Native compiler failed before captured diagnostics.";
+    await writeFile(join(logs, "consumer-build.log"), stderr, { mode: 0o600 });
+  }
+  assert.ok(compiled, `Native GetTok compilation failed; private diagnostics: ${logs}`);
+  const state = await lstat(gettokBinary);
+  assert.ok(
+    state.isFile() && !state.isSymbolicLink() && (state.mode & 0o111) !== 0,
+    "Native Go compiler must produce an owned regular executable",
+  );
+};
 
 const sql = async (url: URL, args: readonly string[]): Promise<string> => {
   const result = await run(
@@ -99,7 +182,11 @@ const sql = async (url: URL, args: readonly string[]): Promise<string> => {
 };
 
 const prepareDatabases = async (): Promise<void> => {
-  for (const url of [identityDatabase, keycloakDatabase]) {
+  for (const url of [
+    identityDatabase,
+    keycloakDatabase,
+    ...(gettokDatabase ? [gettokDatabase] : []),
+  ]) {
     assert.equal(
       await sql(url, ["-c", "SHOW server_version_num"]),
       runtime.postgresql.versionNumber,
@@ -216,39 +303,55 @@ const stop = async (process: Tracked): Promise<void> => {
   assert.equal(completion.error, undefined, "Native provider process failed to launch");
 };
 
-await prepareDatabases();
-await prepareProvider();
-await prepareTestRuntime();
-const log = await open(join(logs, "provider.log"), "w");
-const provider = track(
-  spawn(join(keycloak, "bin/kc.sh"), ["start", "--optimized", "--import-realm"], {
-    cwd: keycloak,
-    env: environment,
-    stdio: ["ignore", log.fd, log.fd],
-  }),
-);
 try {
-  await awaitReady(provider);
-  for (const entry of [
-    "packages/identity/tests/features/account/keycloak-profile.native.js",
-    "apps/server/tests/features/http/keycloak-service.native.js",
-  ]) {
-    const result = await run(process.execPath, [pathResolve(".test-build", entry)]);
-    process.stdout.write(result.stdout);
-    assert.equal(provider.child.exitCode, null, "Provider exited during native qualification");
+  await prepareDatabases();
+  await prepareGetTok();
+  await prepareProvider();
+  await prepareTestRuntime();
+  const log = await open(join(logs, "provider.log"), "w");
+  const provider = track(
+    spawn(join(keycloak, "bin/kc.sh"), ["start", "--optimized", "--import-realm"], {
+      cwd: keycloak,
+      env: environment,
+      stdio: ["ignore", log.fd, log.fd],
+    }),
+  );
+  try {
+    await awaitReady(provider);
+    for (const entry of [
+      "packages/identity/tests/features/account/keycloak-profile.native.js",
+      "apps/server/tests/features/http/keycloak-service.native.js",
+      ...(withGetTok ? ["apps/server/tests/features/http/gettok-consumer.native.js"] : []),
+    ]) {
+      const result = await run(
+        process.execPath,
+        [pathResolve(".test-build", entry)],
+        entry.endsWith("gettok-consumer.native.js") && gettokBinary !== undefined
+          ? { PRIVATE_GETTOK_NATIVE_TEST_BINARY: gettokBinary, GOTOOLCHAIN: "local", GOWORK: "off" }
+          : {},
+        entry.endsWith("gettok-consumer.native.js") ? 360_000 : 180_000,
+      );
+      process.stdout.write(result.stdout);
+      assert.equal(provider.child.exitCode, null, "Provider exited during native qualification");
+    }
+  } finally {
+    try {
+      await stop(provider);
+    } finally {
+      await log.close();
+    }
   }
 } finally {
-  try {
-    await stop(provider);
-  } finally {
-    await log.close();
-    process.removeListener("SIGINT", interrupt);
-    process.removeListener("SIGTERM", interrupt);
+  if (gettokBinary !== undefined) {
+    await rm(gettokBinary, { force: true });
   }
+  process.removeListener("SIGINT", interrupt);
+  process.removeListener("SIGTERM", interrupt);
 }
 process.stdout.write(
   `${JSON.stringify({
     nativeKeycloakAndIdentity: "passed",
+    ...(withGetTok ? { nativeGetTok: "passed" } : {}),
     providerVersion: runtime.keycloak.version,
     postgresVersion: runtime.postgresql.version,
     javaVersion: runtime.java.version,

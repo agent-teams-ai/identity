@@ -62,7 +62,10 @@ async function acquireHost(scope: Scope, configuration: ServerConfiguration) {
   if (prepared.status !== "prepared") {
     throw new Error(`Server composition rejected: ${prepared.error.code}`, { cause: prepared });
   }
-  const result = await prepared.prepared.run({ scope: scope.resources, signal: scope.resources.signal });
+  const result = await prepared.prepared.run({
+    scope: scope.resources,
+    signal: scope.resources.signal,
+  });
   if (result.status !== "succeeded") {
     throw new Error(`Server composition did not start: ${result.status}`, { cause: result });
   }

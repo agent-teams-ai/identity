@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
 const record = (value: unknown): Record<string, unknown> => {
-  assert.ok(
-    typeof value === "object" && value !== null && !Array.isArray(value),
-    "Invalid native runtime record",
-  );
+  assert.ok(isRecord(value), "Invalid native runtime record");
   return value;
 };
 const text = (value: unknown): string => {

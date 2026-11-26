@@ -1,4 +1,5 @@
-import { rm } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import { buildInputsPath, captureBuildInputs } from "./build-evidence.ts";
 
 for (const path of [
   ".test-build",
@@ -11,3 +12,7 @@ for (const path of [
 ]) {
   await rm(path, { recursive: true, force: true });
 }
+await mkdir(".test-build");
+await writeFile(buildInputsPath, JSON.stringify(await captureBuildInputs(), null, 2) + "\n", {
+  flag: "wx",
+});

@@ -362,6 +362,7 @@ boundaries:
         - node:os
         - node:path
         - node:process
+        - node:timers/promises
         - node:url
         - node:util
         - node:zlib

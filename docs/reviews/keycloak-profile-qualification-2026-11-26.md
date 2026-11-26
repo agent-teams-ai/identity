@@ -121,13 +121,13 @@ ran both compiled fixtures, and emitted its final PASS only after graceful
 provider cleanup. The enclosing test process also stopped its owned
 PostgreSQL cluster. Exit status was zero.
 
-| Observed component | Executed value |
-| --- | --- |
-| Keycloak | 26.8.2, official archive SHA-256 `dd124787283918bc597628887168333465ee2a811a389e0003569e52be7e487f` |
-| JVM | Actual Eclipse Temurin 21.0.13.1+2-LTS; downloaded archive SHA-256 `bb8a93f9ae6e7a693b2b721e85dbeff26ae1a77447985a8d7afcdd9c7cf6222e` |
-| Database | Actual PostgreSQL 18.7 (`18.7-1.pgdg13+5` native package) |
-| Realm bytes | SHA-256 `ee0e578a19533aff0bd78e72be1d58bc6628f8e8d4bd85d08e2c78020e8ba419` |
-| Source state | Working-tree implementation based on `63142e164669823f38f0db0c42a5789f711e2d7c`; this is a local executed result, not a fabricated CI result for that commit. |
+| Observed component | Executed value                                                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Keycloak           | 26.8.2, official archive SHA-256 `dd124787283918bc597628887168333465ee2a811a389e0003569e52be7e487f`                                                           |
+| JVM                | Actual Eclipse Temurin 21.0.13.1+2-LTS; downloaded archive SHA-256 `bb8a93f9ae6e7a693b2b721e85dbeff26ae1a77447985a8d7afcdd9c7cf6222e`                         |
+| Database           | Actual PostgreSQL 18.7 (`18.7-1.pgdg13+5` native package)                                                                                                     |
+| Realm bytes        | SHA-256 `ee0e578a19533aff0bd78e72be1d58bc6628f8e8d4bd85d08e2c78020e8ba419`                                                                                    |
+| Source state       | Working-tree implementation based on `63142e164669823f38f0db0c42a5789f711e2d7c`; this is a local executed result, not a fabricated CI result for that commit. |
 
 The provider fixture passed real Authorization Code with S256 PKCE, nonce,
 signature/issuer/audience verification through the production adapter,

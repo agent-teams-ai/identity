@@ -1,15 +1,7 @@
 {
   "schemaVersion": 1,
-  "censusRoots": [
-    "apps",
-    "packages"
-  ],
-  "packageRoots": [
-    ".",
-    "apps/server",
-    "packages/contracts",
-    "packages/identity"
-  ],
+  "censusRoots": ["apps", "packages"],
+  "packageRoots": [".", "apps/server", "packages/contracts", "packages/identity"],
   "sourceRoots": [
     "apps/server/src",
     "packages/contracts/proto/identity/v1",
@@ -17,15 +9,8 @@
     "packages/identity/src",
     "packages/identity/src/features/account/adapters/outbound/migrations"
   ],
-  "testRoots": [
-    "apps/server/tests",
-    "packages/contracts/tests",
-    "packages/identity/tests"
-  ],
-  "excludedRoots": [
-    "scripts",
-    "tools"
-  ],
+  "testRoots": ["apps/server/tests", "packages/contracts/tests", "packages/identity/tests"],
+  "excludedRoots": ["scripts", "tools"],
   "toolingFiles": [],
   "derivedFrom": [
     {

@@ -53,23 +53,28 @@ Run `pnpm install --frozen-lockfile --ignore-scripts`. Native contract checks al
 require Go 1.27.3, protoc-gen-go 1.36.12 and protoc-gen-connect-go 1.21.1.
 The required routes are:
 
-| Command                   | Subject                                                                                                       |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `pnpm build`              | Clean owned artifacts, compile actual packages and tests with Stack, record complete build inputs and outputs |
-| `pnpm typecheck`          | Strict aggregate TypeScript program                                                                           |
-| `pnpm lint:typed`         | Actual literal source, test and tool roots; protected semantic and maintainability rules                      |
-| `pnpm architecture:check` | Actual FMS/CMS source graph and published conformance fixtures                                                |
-| `pnpm check:static`       | Stack, registry/development-only, topology, architecture, coverage and configured Foundation capabilities     |
-| `pnpm format:check`       | Complete physical formatting census and read-only native authorities after a real build                       |
-| `pnpm contracts:check`    | Buf validation, isolated deterministic regeneration and native Go wire vectors                                |
-| `pnpm test`               | Mandatory named Node tests, including real PostgreSQL and TCP transport                                       |
-| `pnpm check`              | Complete native route; every constituent must succeed                                                         |
-| `pnpm check:fast`         | Current complete route; no unqualified affected-test shortcut                                                 |
-| `pnpm check:changed`      | Foundation's changed-work dispatcher; the selected repository scope reaches the complete route                |
+| Command                           | Subject                                                                                                       |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `pnpm build`                      | Clean owned artifacts, compile actual packages and tests with Stack, record complete build inputs and outputs |
+| `pnpm typecheck`                  | Strict aggregate TypeScript program                                                                           |
+| `pnpm lint:typed`                 | Actual literal source, test and tool roots; protected semantic and maintainability rules                      |
+| `pnpm architecture:check`         | Actual FMS/CMS source graph and published conformance fixtures                                                |
+| `pnpm check:static`               | Stack, registry/development-only, topology, architecture, coverage and configured Foundation capabilities     |
+| `pnpm format:check`               | Complete physical formatting census and read-only native authorities after a real build                       |
+| `pnpm format:qualify`             | Positive and independent rejecting controls for the native format authority and build input custody           |
+| `pnpm contracts:check`            | Buf validation, isolated deterministic regeneration and native Go wire vectors                                |
+| `pnpm specifications:mutation`    | Actual bounded account invariant properties and targeted production mutations                                 |
+| `pnpm test`                       | Mandatory named Node tests, including real PostgreSQL and TCP transport                                       |
+| `pnpm test:native-authentication` | Real pinned Keycloak and production Identity service with fresh disposable PostgreSQL databases               |
+| `pnpm check`                      | Complete native route; every constituent must succeed                                                         |
+| `pnpm check:fast`                 | Current complete route; no unqualified affected-test shortcut                                                 |
+| `pnpm check:changed`              | Foundation's changed-work dispatcher; the selected repository scope reaches the complete route                |
 
 Use `check:fast` after a coherent local change. Use `check:changed` for the
 current diff before publication and `check` for the required full qualification.
 A changed-work observation does not replace hosted full checks.
+The separate hosted `native-authentication` job is also required; the ordinary
+`check` route does not claim to execute that real provider qualification.
 
 PostgreSQL tests require an actual disposable database named identity_test in
 IDENTITY_TEST_DATABASE_URL. Missing prerequisites must fail, not skip. Provider

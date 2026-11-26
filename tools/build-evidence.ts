@@ -5,6 +5,7 @@ import { join } from "node:path";
 
 const modules = ["packages/contracts", "packages/identity", "apps/server"];
 export const evidencePath = ".test-build/build-evidence.json";
+export const buildInputsPath = ".test-build/build-inputs.json";
 
 export async function filesBelow(root: string): Promise<string[]> {
   const found: string[] = [];
@@ -36,7 +37,7 @@ async function digestFiles(paths: readonly string[]) {
   );
 }
 
-export async function captureBuildEvidence() {
+export async function captureBuildInputs() {
   const inputs = [
     "package.json",
     "pnpm-lock.yaml",
@@ -45,11 +46,23 @@ export async function captureBuildEvidence() {
     "tsconfig.base.json",
     "tsconfig.build.json",
     "tsconfig.tests.json",
+    "tsconfig.json",
+    "tsconfig.quality.json",
+    "tools/build-evidence.ts",
+    "tools/clean-build.ts",
+    "tools/record-build-evidence.ts",
   ];
-  const outputs: string[] = [];
   for (const module of modules) {
     inputs.push(module + "/package.json", module + "/tsconfig.json");
     inputs.push(...(await filesBelow(module + "/src")), ...(await filesBelow(module + "/tests")));
+  }
+  return digestFiles(inputs);
+}
+
+export async function captureBuildEvidence() {
+  const inputs = await captureBuildInputs();
+  const outputs: string[] = [];
+  for (const module of modules) {
     outputs.push(
       ...(await filesBelow(module + "/dist")),
       ...(await filesBelow(module + "/.cache")),
@@ -59,7 +72,7 @@ export async function captureBuildEvidence() {
   return {
     schemaVersion: 1,
     producer: "stack-toolchain@0.3.1/compile",
-    inputs: await digestFiles(inputs),
+    inputs,
     outputs: await digestFiles(outputs),
   };
 }
