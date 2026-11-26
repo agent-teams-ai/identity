@@ -1,0 +1,360 @@
+schemaVersion: 3
+workspace:
+  kind: pnpm
+  manifest: pnpm-workspace.yaml
+rootPackage: true
+packageRoots:
+  - packages
+  - apps
+governedRoots:
+  - packages/identity/src
+  - packages/identity/tests
+  - packages/contracts/src
+  - packages/contracts/proto
+  - packages/contracts/tests
+  - apps/server/src
+  - apps/server/tests
+  - tools
+  - scripts
+boundaries:
+  - id: identity.domain
+    roots:
+      - packages/identity/src/features/account/domain
+    entrypoints:
+      - packages/identity/src/features/account/domain/admission-policy.ts
+      - packages/identity/src/features/account/domain/admission.ts
+      - packages/identity/src/features/account/domain/authority.ts
+      - packages/identity/src/features/account/domain/model.ts
+    dependencyMode: runtime
+    allow:
+      boundaries: []
+      packages: []
+      builtins: []
+      runtimeReferences: []
+  - id: identity.application
+    roots:
+      - packages/identity/src/features/account/application
+    entrypoints:
+      - packages/identity/src/features/account/application/ports/account-api.ts
+      - packages/identity/src/features/account/application/ports/account-store.ts
+      - packages/identity/src/features/account/application/ports/authentication.ts
+      - packages/identity/src/features/account/application/use-cases/get-account-status.ts
+      - packages/identity/src/features/account/application/use-cases/get-self-status.ts
+      - packages/identity/src/features/account/application/use-cases/read-bound-account.ts
+      - packages/identity/src/features/account/application/use-cases/resolve-self.ts
+      - packages/identity/src/features/account/application/use-cases/transition-account.ts
+    dependencyMode: runtime
+    allow:
+      boundaries:
+        - identity.domain
+      packages: []
+      builtins: []
+      runtimeReferences: []
+  - id: identity.contracts
+    roots:
+      - packages/identity/src/features/account/contracts
+    entrypoints:
+      - packages/identity/src/features/account/contracts/account.ts
+    dependencyMode: runtime
+    allow:
+      boundaries: []
+      packages: []
+      builtins: []
+      runtimeReferences: []
+  - id: identity.adapters
+    roots:
+      - packages/identity/src/features/account/adapters
+    entrypoints:
+      - packages/identity/src/features/account/adapters/inbound/direct-api.ts
+      - packages/identity/src/features/account/adapters/inbound/keycloak-authentication.ts
+      - packages/identity/src/features/account/adapters/inbound/keycloak-jwks.ts
+      - packages/identity/src/features/account/adapters/inbound/keycloak-profile.ts
+      - packages/identity/src/features/account/adapters/outbound/postgres-codecs.ts
+      - packages/identity/src/features/account/adapters/outbound/postgres-store.ts
+    dependencyMode: runtime
+    allow:
+      boundaries:
+        - identity.domain
+        - identity.application
+        - identity.contracts
+      packages:
+        - pg
+        - jose
+        - uuid
+      builtins:
+        - node:crypto
+      runtimeReferences: []
+  - id: identity.feature-composition
+    roots:
+      - packages/identity/src/features/account/composition
+    entrypoints:
+      - packages/identity/src/features/account/composition/account.contracts.ts
+      - packages/identity/src/features/account/composition/account.declaration.ts
+      - packages/identity/src/features/account/composition/account.group.ts
+      - packages/identity/src/features/account/composition/account.module.ts
+    dependencyMode: runtime
+    allow:
+      boundaries:
+        - identity.domain
+        - identity.application
+        - identity.contracts
+        - identity.adapters
+      packages:
+        - "@get-modular/assembly"
+        - "@get-modular/core"
+        - "@get-modular/resources"
+      builtins: []
+      runtimeReferences: []
+  - id: identity.api
+    roots:
+      - packages/identity/src/composition
+      - packages/identity/src/index.ts
+    entrypoints:
+      - packages/identity/src/composition/identity.contracts.ts
+      - packages/identity/src/composition/identity.declaration.ts
+      - packages/identity/src/composition/identity.module.ts
+      - packages/identity/src/composition/identity.root.ts
+      - packages/identity/src/index.ts
+    dependencyMode: runtime
+    packageExports:
+      - .
+    allow:
+      boundaries:
+        - identity.feature-composition
+        - identity.contracts
+      packages:
+        - "@get-modular/assembly"
+        - "@get-modular/core"
+        - "@get-modular/resources"
+      builtins: []
+      runtimeReferences: []
+  - id: contracts.protocol
+    roots:
+      - packages/contracts/src/features/protocol/contracts
+    entrypoints:
+      - packages/contracts/src/features/protocol/contracts/gen/identity/v1/identity_pb.ts
+    dependencyMode: runtime
+    allow:
+      boundaries: []
+      packages:
+        - "@bufbuild/protobuf"
+      builtins: []
+      runtimeReferences: []
+  - id: contracts.api
+    roots:
+      - packages/contracts/src/index.ts
+    entrypoints:
+      - packages/contracts/src/index.ts
+    dependencyMode: runtime
+    packageExports:
+      - .
+    allow:
+      boundaries:
+        - contracts.protocol
+      packages: []
+      builtins: []
+      runtimeReferences: []
+  - id: contracts.protocol-schema
+    roots:
+      - packages/contracts/proto
+    entrypoints: []
+    dependencyMode: runtime
+    allow:
+      boundaries: []
+      packages: []
+      builtins: []
+      runtimeReferences: []
+  - id: server.http-contracts
+    roots:
+      - apps/server/src/features/http/contracts
+    entrypoints:
+      - apps/server/src/features/http/contracts/http.ts
+    dependencyMode: runtime
+    allow:
+      boundaries:
+        - identity.api
+        - contracts.api
+      packages: []
+      builtins: []
+      runtimeReferences: []
+  - id: server.http-adapters
+    roots:
+      - apps/server/src/features/http/adapters
+    entrypoints:
+      - apps/server/src/features/http/adapters/inbound/connect-routes.ts
+      - apps/server/src/features/http/adapters/inbound/fastify-host.ts
+      - apps/server/src/features/http/adapters/inbound/rpc-errors.ts
+      - apps/server/src/features/http/adapters/inbound/wire-mapping.ts
+    dependencyMode: runtime
+    allow:
+      boundaries:
+        - server.http-contracts
+        - identity.api
+        - contracts.api
+      packages:
+        - fastify
+        - "@connectrpc/connect"
+        - "@connectrpc/connect-fastify"
+        - "@connectrpc/connect-node"
+        - "@bufbuild/protobuf"
+      builtins:
+        - node:crypto
+      runtimeReferences: []
+  - id: server.http-composition
+    roots:
+      - apps/server/src/features/http/composition
+    entrypoints:
+      - apps/server/src/features/http/composition/http.contracts.ts
+      - apps/server/src/features/http/composition/http.declaration.ts
+      - apps/server/src/features/http/composition/http.group.ts
+      - apps/server/src/features/http/composition/http.module.ts
+    dependencyMode: runtime
+    allow:
+      boundaries:
+        - server.http-adapters
+        - server.http-contracts
+        - identity.api
+        - contracts.api
+      packages:
+        - "@get-modular/assembly"
+        - "@get-modular/core"
+        - "@get-modular/resources"
+      builtins: []
+      runtimeReferences: []
+  - id: server.host
+    roots:
+      - apps/server/src/main.ts
+      - apps/server/src/composition
+    entrypoints:
+      - apps/server/src/main.ts
+      - apps/server/src/composition/configuration.ts
+      - apps/server/src/composition/server.contracts.ts
+      - apps/server/src/composition/server.declaration.ts
+      - apps/server/src/composition/server.module.ts
+      - apps/server/src/composition/server.root.ts
+    dependencyMode: runtime
+    allow:
+      boundaries:
+        - server.http-composition
+        - server.http-contracts
+        - identity.api
+        - contracts.api
+      packages:
+        - pg
+        - uuid
+        - "@get-modular/assembly"
+        - "@get-modular/core"
+        - "@get-modular/resources"
+      builtins:
+        - node:fs/promises
+        - node:process
+      runtimeReferences: []
+  - id: identity.tests
+    roots:
+      - packages/identity/tests
+    entrypoints:
+      - packages/identity/tests/features/account/keycloak-authentication.test.ts
+      - packages/identity/tests/features/account/keycloak-browser-fixture.ts
+    dependencyMode: development
+    allow:
+      boundaries:
+        - identity.domain
+        - identity.application
+        - identity.contracts
+        - identity.adapters
+        - identity.feature-composition
+        - identity.api
+      packages:
+        - pg
+        - jose
+        - uuid
+        - "@get-modular/conformance"
+      builtins:
+        - node:assert/strict
+        - node:test
+        - node:crypto
+        - node:fs/promises
+        - node:path
+        - node:url
+        - node:http
+      runtimeReferences: []
+  - id: contracts.tests
+    roots:
+      - packages/contracts/tests
+    entrypoints:
+      - packages/contracts/tests/features/protocol/wire.test.ts
+    dependencyMode: development
+    allow:
+      boundaries:
+        - contracts.protocol
+        - contracts.api
+      packages:
+        - "@bufbuild/protobuf"
+      builtins:
+        - node:assert/strict
+        - node:test
+        - node:fs/promises
+        - node:path
+        - node:url
+      runtimeReferences: []
+  - id: server.tests
+    roots:
+      - apps/server/tests
+    entrypoints: []
+    dependencyMode: development
+    allow:
+      boundaries:
+        - server.http-contracts
+        - server.http-adapters
+        - server.http-composition
+        - server.host
+        - identity.api
+        - contracts.api
+      packages:
+        - "@connectrpc/connect"
+        - "@connectrpc/connect-node"
+        - "@bufbuild/protobuf"
+        - pg
+        - uuid
+      builtins:
+        - node:assert/strict
+        - node:test
+        - node:http
+        - node:crypto
+        - node:fs/promises
+        - node:path
+        - node:url
+      runtimeReferences: []
+  - id: repository-tools
+    roots:
+      - tools
+      - scripts
+    entrypoints:
+      - tools/build-evidence.ts
+      - tools/check-feature-modules.ts
+      - tools/clean-build.ts
+      - tools/project-topology.ts
+      - tools/record-build-evidence.ts
+      - tools/run-tests.ts
+    dependencyMode: development
+    allow:
+      boundaries: []
+      packages:
+        - "@agent-teams/engineering-foundation"
+        - "@agent-teams/feature-module-standard"
+        - "@get-modular/conformance"
+        - yaml
+      builtins:
+        - node:assert/strict
+        - node:child_process
+        - node:crypto
+        - node:fs
+        - node:fs/promises
+        - node:module
+        - node:os
+        - node:path
+        - node:process
+        - node:url
+        - node:util
+        - node:zlib
+      runtimeReferences: []

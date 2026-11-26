@@ -1,0 +1,12 @@
+version: 1
+packages:
+  - id: identity-core
+    role: service-core
+    path: packages/identity
+    package_name: "@agent-teams/identity-core"
+    owner_document: ADR-0001
+  - id: identity-contracts
+    role: contracts
+    path: packages/contracts
+    package_name: "@agent-teams/identity-contracts"
+    owner_document: ADR-0001

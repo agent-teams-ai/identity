@@ -1,0 +1,15 @@
+schemaVersion: 1
+governedRoots:
+  - packages/identity/src
+  - packages/identity/tests
+  - packages/contracts/src
+  - packages/contracts/proto
+  - packages/contracts/tests
+  - apps/server/src
+  - apps/server/tests
+  - tools
+  - scripts
+nonWaivableRulePrefixes:
+  - architecture.
+  - quality.
+waivers: []

@@ -1,0 +1,26 @@
+schemaVersion: 2
+profiles:
+  - id: full
+    packageManager: pnpm
+    concurrency: 1
+    tasks:
+      - id: build
+        timeoutMs: 180000
+      - id: check:static
+        needs:
+          - build
+        timeoutMs: 300000
+      - id: contracts:check
+        needs:
+          - check:static
+        timeoutMs: 180000
+      - id: test
+        needs:
+          - contracts:check
+        timeoutMs: 180000
+  - id: format-authorities
+    packageManager: pnpm
+    concurrency: 1
+    tasks:
+      - id: format:support:check
+        timeoutMs: 60000

@@ -40,7 +40,7 @@ const boundedFetch: FetchImplementation = async (url, options) => {
   const response = await fetch(url, { ...options, redirect: 'error' });
   const body = await readBoundedBody(response);
   requireBoundedKeys(body);
-  return new Response(body, { status: 200, headers: { 'content-type': 'application/json' } });
+  return new Response(new Uint8Array(body), { status: 200, headers: { 'content-type': 'application/json' } });
 };
 
 /** Only the configured issuer supplies keys; jose owns selection and cryptography. */

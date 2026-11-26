@@ -1,0 +1,21 @@
+schemaVersion: 2
+packageManager:
+  kind: pnpm
+  workspaceManifest: pnpm-workspace.yaml
+policies:
+  externalDependencies: catalog
+  catalogVersions: exact
+  internalDependencies: workspace-protocol
+  reservedScopes: []
+  developmentOnlyPackages:
+    - "@agent-teams/engineering-foundation"
+    - "@agent-teams/feature-module-standard"
+    - "@get-modular/conformance"
+    - stack-toolchain
+    - "@bufbuild/buf"
+    - "@bufbuild/protoc-gen-es"
+    - eslint
+  exactRegistryDevelopmentOnlyPackages:
+    - "@agent-teams/engineering-foundation"
+    - "@agent-teams/feature-module-standard"
+    - stack-toolchain

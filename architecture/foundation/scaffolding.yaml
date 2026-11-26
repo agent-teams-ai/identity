@@ -1,0 +1,23 @@
+schemaVersion: 1
+projectId: identity
+targetCatalogPath: architecture/package-catalog.yaml
+compositions:
+  - id: library-boundary
+    scaffoldProfile:
+      ref:
+        id: foundation.node-typescript-pnpm-esm
+        contractVersion: 1
+      parameters:
+        tsconfigBase: tsconfig.base.json
+    recipe:
+      ref:
+        id: foundation.node-typescript-library-boundary
+        contractVersion: 1
+    targetRoles: [service-core, contracts]
+    authorityVerifiers:
+      - id: foundation.markdown-yaml-owner
+        contractVersion: 1
+        parameters:
+          allowedStatuses: [accepted]
+          documentRoots: [docs/decisions]
+    policies: []

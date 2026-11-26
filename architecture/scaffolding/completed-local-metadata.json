@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "kind": "completed-local-scaffolding-disposition",
+  "observedAt": "2026-11-26T21:06:47.520Z",
+  "disposition": "Completed local records moved outside the consumer after applied receipts and idle public preflight. No pending transaction was removed.",
+  "scope": "Historical inventory only; raw-byte availability is not asserted in CI. Public plans and receipts remain committed and are validated natively.",
+  "preflight": {
+    "mode": "REGISTRY",
+    "installedVersion": "4.0.2",
+    "issues": [],
+    "transaction": "absent"
+  },
+  "receipts": [
+    "architecture/scaffolding/identity-core.receipt.json",
+    "architecture/scaffolding/identity-contracts.receipt.json"
+  ],
+  "originalArchiveSha256": "e31d219fdf65efb9f3393c26c9a911333acfb3eb8ca08cd03b3626ed14fb6460",
+  "files": [
+    {
+      "path": ".agent-teams-local/foundation-cleanup-retired-evidence/24d33862-02a6-47a2-b18e-b05e7d9aba5f/marker",
+      "size": 30,
+      "sha256": "6f926c9347ec768668ca1bd5d8bd63d37d07d9b32fb8475b8b1e3deeacd4320f"
+    },
+    {
+      "path": ".agent-teams-local/foundation-cleanup-retired-evidence/364b8758-ac71-44cf-98f5-ed223579e1a2/marker",
+      "size": 30,
+      "sha256": "6f926c9347ec768668ca1bd5d8bd63d37d07d9b32fb8475b8b1e3deeacd4320f"
+    },
+    {
+      "path": ".agent-teams-local/foundation-cleanup-retired-evidence/5353094f-b89d-46da-8d98-fc57398f0b31/marker",
+      "size": 30,
+      "sha256": "6f926c9347ec768668ca1bd5d8bd63d37d07d9b32fb8475b8b1e3deeacd4320f"
+    },
+    {
+      "path": ".agent-teams-local/foundation-cleanup-retired-evidence/54506b75-c885-4838-a795-8399580230a9/marker",
+      "size": 30,
+      "sha256": "6f926c9347ec768668ca1bd5d8bd63d37d07d9b32fb8475b8b1e3deeacd4320f"
+    },
+    {
+      "path": ".agent-teams-local/foundation-cleanup-retired-evidence/ecadb108-a691-42c8-a9b0-9058100e1b82/marker",
+      "size": 30,
+      "sha256": "6f926c9347ec768668ca1bd5d8bd63d37d07d9b32fb8475b8b1e3deeacd4320f"
+    },
+    {
+      "path": ".agent-teams-local/foundation-cleanup-retired-evidence/f28b5c06-3e82-4c31-ab43-fec57148185f/marker",
+      "size": 30,
+      "sha256": "6f926c9347ec768668ca1bd5d8bd63d37d07d9b32fb8475b8b1e3deeacd4320f"
+    },
+    {
+      "path": ".agent-teams-local/foundation-operation-lock.completed-evidence/released.5111c56f-8823-4e79-96ab-8efa28cee237/evidence",
+      "size": 114,
+      "sha256": "26df8cf47d1dd115b44e2d4a04429cea3b96ee5c11a88fe76fef8e143473f3ba"
+    },
+    {
+      "path": ".agent-teams-local/foundation-operation-lock.completed-evidence/released.8ea6d3e3-382f-4f43-92c4-646752e11b7a/evidence",
+      "size": 113,
+      "sha256": "d8622a57c7a17574f67b60ce0db0c416f094f70a20c6bf07777c630a1420f3cc"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.1/evidence",
+      "size": 7294,
+      "sha256": "66b949f964a4962b97c81100c0a1cc749d953a4571b1c0b089887c7521e35445"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.10/evidence",
+      "size": 7297,
+      "sha256": "ba60a6c14e94ed1d8d52d077912e4ad088a9177c15d9d1919026b39323b5a54c"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.12/evidence",
+      "size": 7299,
+      "sha256": "70501560382f50216966660c39795a8e547f4d848b883bf8ffd62dc1911fc6d9"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.13/evidence",
+      "size": 7296,
+      "sha256": "d789ef5995e2f40d97e749a512abe5c0c46ce5d8734e6e386feb221c512d4bdf"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.15/evidence",
+      "size": 7298,
+      "sha256": "380d364ee4213644ec54ecc5394de117756a8dc86b6b2251b027083715d1d24e"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.16/evidence",
+      "size": 7299,
+      "sha256": "70501560382f50216966660c39795a8e547f4d848b883bf8ffd62dc1911fc6d9"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.18/evidence",
+      "size": 7301,
+      "sha256": "d38cb65b8193070f11495d2de46acedaca23b1368174b1ac4a649e39283e4280"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.19/evidence",
+      "size": 7298,
+      "sha256": "380d364ee4213644ec54ecc5394de117756a8dc86b6b2251b027083715d1d24e"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.21/evidence",
+      "size": 7300,
+      "sha256": "af6bd820bff2773cbe0096f4229fe184d0eaf04c0d2fb79d5ffc0f9e0632ab0e"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.22/evidence",
+      "size": 7301,
+      "sha256": "d38cb65b8193070f11495d2de46acedaca23b1368174b1ac4a649e39283e4280"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.24/evidence",
+      "size": 7300,
+      "sha256": "af6bd820bff2773cbe0096f4229fe184d0eaf04c0d2fb79d5ffc0f9e0632ab0e"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.3/evidence",
+      "size": 7294,
+      "sha256": "66b949f964a4962b97c81100c0a1cc749d953a4571b1c0b089887c7521e35445"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.4/evidence",
+      "size": 7294,
+      "sha256": "66b949f964a4962b97c81100c0a1cc749d953a4571b1c0b089887c7521e35445"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.6/evidence",
+      "size": 7297,
+      "sha256": "ba60a6c14e94ed1d8d52d077912e4ad088a9177c15d9d1919026b39323b5a54c"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.7/evidence",
+      "size": 7294,
+      "sha256": "66b949f964a4962b97c81100c0a1cc749d953a4571b1c0b089887c7521e35445"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.28.9/evidence",
+      "size": 7296,
+      "sha256": "d789ef5995e2f40d97e749a512abe5c0c46ce5d8734e6e386feb221c512d4bdf"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.1/evidence",
+      "size": 7264,
+      "sha256": "28c0ce07a0508d36150b0cd22e90d5b2013ec0ca5de63f20f8c23435f3996b6b"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.10/evidence",
+      "size": 7267,
+      "sha256": "d117cf85cd44293f0c98835f3093691066d0ba7d39839eb6abe71ee9ec72cf8a"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.12/evidence",
+      "size": 7269,
+      "sha256": "5e04e4c5d8623ad37f2ef34ee07eee18807d1985ab097351b58b178c27b8b7e9"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.13/evidence",
+      "size": 7266,
+      "sha256": "0dbe6ebcff376972b10105fd0c98f0fca071dfe7caa2796fc4433a5d9652f3aa"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.15/evidence",
+      "size": 7268,
+      "sha256": "89c79ee38ce2a27462238a73a2e6a0dc247f453b73ab0a802381f7999c5e3ad2"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.16/evidence",
+      "size": 7269,
+      "sha256": "5e04e4c5d8623ad37f2ef34ee07eee18807d1985ab097351b58b178c27b8b7e9"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.18/evidence",
+      "size": 7271,
+      "sha256": "dc13dec622bc3f43ef11a16531aee6e3403b7792493fb052b0bb357420738cfd"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.19/evidence",
+      "size": 7268,
+      "sha256": "89c79ee38ce2a27462238a73a2e6a0dc247f453b73ab0a802381f7999c5e3ad2"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.21/evidence",
+      "size": 7270,
+      "sha256": "334797346617c05a83de51f29e881e07bbd2c62afce7d4cd4c0a0833682c4b4c"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.22/evidence",
+      "size": 7271,
+      "sha256": "dc13dec622bc3f43ef11a16531aee6e3403b7792493fb052b0bb357420738cfd"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.24/evidence",
+      "size": 7270,
+      "sha256": "334797346617c05a83de51f29e881e07bbd2c62afce7d4cd4c0a0833682c4b4c"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.3/evidence",
+      "size": 7264,
+      "sha256": "28c0ce07a0508d36150b0cd22e90d5b2013ec0ca5de63f20f8c23435f3996b6b"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.4/evidence",
+      "size": 7264,
+      "sha256": "28c0ce07a0508d36150b0cd22e90d5b2013ec0ca5de63f20f8c23435f3996b6b"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.6/evidence",
+      "size": 7267,
+      "sha256": "d117cf85cd44293f0c98835f3093691066d0ba7d39839eb6abe71ee9ec72cf8a"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.7/evidence",
+      "size": 7264,
+      "sha256": "28c0ce07a0508d36150b0cd22e90d5b2013ec0ca5de63f20f8c23435f3996b6b"
+    },
+    {
+      "path": ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-retired.3.9/evidence",
+      "size": 7266,
+      "sha256": "0dbe6ebcff376972b10105fd0c98f0fca071dfe7caa2796fc4433a5d9652f3aa"
+    },
+    {
+      "path": "packages/contracts/.foundation-retired-evidence-/5bb3e843-af1e-428e-8fc4-c9da1327348e/owned-temporary",
+      "size": 544,
+      "sha256": "ddf8d93040c49ed802c24ee06c1ff9a05c860da6584c5da26dedf3bbd011778e"
+    },
+    {
+      "path": "packages/contracts/.foundation-retired-evidence-/a1ee238e-37a8-4a0c-b8e8-cc5d35582164/owned-temporary",
+      "size": 364,
+      "sha256": "6575cc639907728c96af9381e3c99ae2328db1ca3b2228f178477dae1d24abab"
+    },
+    {
+      "path": "packages/contracts/src/.foundation-retired-evidence-/f6f54836-1242-4d45-b3d3-34608e8c7188/owned-temporary",
+      "size": 831,
+      "sha256": "693c59dedb77451fb166b2d684010c2fc892521d2093fc835f31884f7803af23"
+    },
+    {
+      "path": "packages/identity/.foundation-retired-evidence-/11c6b679-3c84-4088-acf6-57c049b888ca/owned-temporary",
+      "size": 694,
+      "sha256": "6449213f5411c6902f07727cfdc64b7b6d942e8081acd7b3cc0c68e221572d61"
+    },
+    {
+      "path": "packages/identity/.foundation-retired-evidence-/27655e6e-6132-4792-9d74-60bd8736fa59/owned-temporary",
+      "size": 364,
+      "sha256": "6575cc639907728c96af9381e3c99ae2328db1ca3b2228f178477dae1d24abab"
+    },
+    {
+      "path": "packages/identity/src/.foundation-retired-evidence-/73e8c5b2-41f9-42a8-a841-11e13e02a57b/owned-temporary",
+      "size": 350,
+      "sha256": "905b5c4073a124f4ac8afa3c61bfb9e58b776fd2724973edcc0a4519c0081752"
+    }
+  ],
+  "emptyDirectories": [
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.28.11.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.28.14.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.28.17.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.28.2.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.28.20.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.28.23.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.28.5.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.28.8.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.3.11.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.3.14.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.3.17.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.3.2.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.3.20.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.3.23.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.3.5.empty",
+    ".agent-teams-local/scaffolding-transaction.json.completed-scaffold-evidence/scaffolding-transaction.json.scaffold-quarantine.3.8.empty"
+  ]
+}
