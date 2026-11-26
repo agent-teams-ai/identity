@@ -329,6 +329,7 @@ boundaries:
         - node:http
         - node:crypto
         - node:fs/promises
+        - node:os
         - node:path
         - node:url
         - node:util
