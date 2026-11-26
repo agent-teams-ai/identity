@@ -128,6 +128,24 @@ right to grant tenant membership. Orchestrator's
 [OD-012](https://github.com/agent-teams-ai/agent-teams-orchestrator/blob/b622026a082a0cccc5ec44eebf12d3f88eef6359/docs/open-decisions/OD-012-identity-authorization-tenant-isolation.md)
 remains open; this plan does not settle its graph or local-authority protocols.
 
+The owner's 26 November endorsement of the earlier IAM recommendations is
+preserved with all alternatives in the [shared follow-up record](https://github.com/agent-teams-ai/engineering-research/blob/578b166650b916efa51f011598a42fabadaeff2f/docs/studies/identity-provider-evidence.md).
+Its product-owned grants, independent personal-local authority and BFF direction
+fit this service. An independent AccountId does not by itself prove independent
+recovery custody: D3 still owns the enforceable social-root profile.
+The endorsement does not select this plan's numerical freshness/retention values
+or newly identified D3/D8 alternatives and does not authorize implementation.
+
+Before a later Platform/Orchestrator integration claims support, its owner maps
+Identity logout, suspend/close and attachment changes separately from local
+principal disable, membership end, grant/delegation revoke and API-key compromise.
+Preserve the accepted distinction between subject-bound Run authority,
+tenant-autonomous authority, client sponsorship and AR enforcement. A human
+logout cannot implicitly revoke every organization's autonomous work; a central
+account-status lease cannot replace product grant or last-mile checks.
+This is that product's integration contract, not additional scope for Identity's
+GetTok/Review Router first delivery.
+
 ## 4. Architecture and repository shape
 
 Use one modular TypeScript service plus independently operated Keycloak. A
@@ -189,8 +207,8 @@ adapters expose ordinary typed values/functions. The accepting ADR/profile pins
 the reviewed CMS document digest and real Host scope, independently of FMS and
 npm versions. BOOTSTRAP records that adoption work.
 
-Account status, binding uniqueness, proof consumption, command receipt and
-outbox must be able to commit together. Do not split them into separate contexts
+Account status, binding uniqueness, first consumer attachment/history registration,
+proof consumption, command receipt and outbox must be able to commit together. Do not split them into separate contexts
 or databases just to mirror nouns. Audit/export and provider integration may be
 separate technical features when they have real independent responsibilities.
 No generic repository, shared Unit of Work across products, global service bag,
@@ -521,6 +539,15 @@ ends the declared authentication sessions, not product balances or independently
 authorized API keys. Those product capabilities retain an explicit compromise
 and account-disable policy with their owners.
 
+A live account/attachment lease is not evidence that an individual Keycloak
+SSO/client session still exists. If a provider-native logout notification is
+lost, workload status refresh may continue to observe an active account. D8 and
+consumer R0 must select the exposed control's exact revocation scope and finite
+lost-delivery contract. Do not apply the account-wide freshness candidate below
+to native single-session logout without an enforcing mechanism. Root removal
+and credential recovery also need an explicit session-invalidation scope in
+that inventory; ordinary unlink and compromise containment remain distinct.
+
 ### Proposed initial freshness contract
 
 Events accelerate revocation; **event receipt alone never proves freshness**.
@@ -568,6 +595,16 @@ an attachment for a caller-selected AccountId. This small relation authorizes
 minimal eligibility/epoch reads and recipient-scoped lifecycle delivery; it
 stores no local product UserId, membership, repository grant or product profile.
 It is not proof that a product has created or merged an account.
+
+First attachment, explicit reattachment and closure serialize through the same
+Account lifecycle gate. The eligibility check and attachment/history registration
+commit atomically while admission is permitted, before returning usable active
+evidence. Closure closes that gate and captures every earlier committed
+attachment/history registration in its participant boundary. If attachment wins,
+closure includes that consumer even when the successful response arrives late;
+if closure wins, the losing resolution cannot register a new attachment or
+return usable active evidence. Reuse the Account transaction/lock or lifecycle-
+revision CAS. A later consumer registration cannot reopen a closed account.
 
 Batch reads and replay/snapshot feeds intersect requested references with that
 consumer's live admitted set, enforce bounded size/rate/retention and return a
@@ -674,7 +711,10 @@ Closure is terminal for its AccountId and first blocks new account use under
 the declared admission bound. Erasure is a separately reported outcome. At the
 closure transaction, the existing account-owned operation freezes a bounded
 participant manifest from known integrated consumers and retained attachment
-history, including previously detached relations. This is a list of possible
+history, including previously detached relations. The account-local ordering in
+section 8 closes the first-attachment-versus-manifest race; it is not sufficient
+to read ACTIVE and insert an attachment after an unrelated manifest snapshot.
+This is a list of possible
 data owners, not proof that each product provisioned a user. It does not discover
 unknown external systems or authorize arbitrary cross-product deletion.
 
@@ -897,9 +937,9 @@ pending; do not replace it with a mock PASS.
 | --- | --- | --- |
 | T1 — authenticated resolution | Valid direct login; wrong issuer/audience/client/token kind; nonce/state/PKCE failure and callback replay; cross-consumer/expired/detached status access and self token used for batch | Actual session/account mapping, no unintended account, directory access or token exposure |
 | T2 — identity ownership | Parallel create, link conflicts, equal email/different identities, same native GitLab ID/different instances | Unique database ownership and unchanged losing account |
-| T3 — lifecycle races | Competing root channels; OAuth timestamp presented as fresh-factor proof; first-factor bootstrap, lost-factor bootstrap retry and enrollment during an incident; delayed opposing provider effects; close versus login | Admitted initial enrollment succeeds, but prior stronger-profile admission and incident/legacy trust cutoffs cannot be bypassed. Common root policy and unresolved-effect gate hold |
-| T4 — session custody | Two replicas refresh, logout/disable/disconnect during refresh, back-channel replay | Revoked state wins; late tokens do not reopen a session/connection |
-| T5 — effects and delivery | Lost provider reply, DB rollback, publish-before-ack crash, recipient/generation mismatch; detached historical participant and history-retention expiry; late provision after not-provisioned/erased receipt | Scoped idempotent receipts and local closure fence; no duplicated ownership, cross-consumer acknowledgement or false complete erasure. Lost participant evidence yields limited/unknown coverage |
+| T3 — lifecycle races | Competing root channels; social account coming under corporate control after enrollment; OAuth timestamp presented as fresh-factor proof; first-factor bootstrap, lost-factor bootstrap retry and enrollment during an incident; delayed opposing provider effects; close versus login | Admitted initial enrollment succeeds, but prior stronger-profile admission and incident/legacy trust cutoffs cannot be bypassed. Common root policy and unresolved-effect gate hold |
+| T4 — session custody | Two replicas refresh, logout/disable/disconnect during refresh, back-channel replay and lost native-session logout while workload status remains active | Revoked state wins; late tokens do not reopen a session/connection |
+| T5 — effects and delivery | Lost provider reply, DB rollback, publish-before-ack crash, recipient/generation mismatch; first attachment versus closure in both commit orders with delayed response; detached historical participant and history-retention expiry; late provision after not-provisioned/erased receipt | Scoped idempotent receipts and local closure fence; no duplicated ownership, cross-consumer acknowledgement or false complete erasure. Lost participant evidence yields limited/unknown coverage |
 | T6 — freshness and outage | Paused delivery across suspend/enable and detach/reattach; delayed pre-cutoff response across local session commit; unavailable status, expiry, restart/clock regression | Session pins both issued generations; newer known state wins, old evidence expires by its original bound. New explicit ordinary login and stronger incident recovery obey different proof policies; refresh never upgrades old sessions |
 | T7 — product migration | Existing local assets; old cookie plus attacker's central login; fresh dual-control flow versus required stronger proof; close/erase then same native identity with a new AccountId; late callback; connection cancellation | Correct admitted proof, never-bound legacy predicate, retained local ownership and typed repair/transfer conflict; no automatic resurrection or asset move |
 | T8 — recovery and keys | Signing-key rotation, unknown kid storm, backup restore with stale binding/revoke, lost continuity | Bounded fetches, correct signatures and closed admission until repair |
@@ -1009,6 +1049,43 @@ later remove scoped relationships, not destroy the person's global account.
 | B | Introduce origin/assurance scope into login, refresh, session admission, linking and recovery without erasing existing account IDs. Let company A control its IdP/mailbox and attempt B-resource access through every continuation; a lost provenance restriction falsifies isolation. |
 | C | Namespace authority bindings by realm and migrate memberships through explicit dual proof; do not combine equal emails across realms. Attempt company-A recovery against a company-B/global binding; any transferred ownership or cross-realm token acceptance falsifies the profile. |
 
+#### D3 follow-up: ongoing root custody and independent proof
+
+The independent common-account goal is selected; the mechanism below remains
+open. A personal-root declaration or current public hostname is not a durable
+enforcement mechanism. GitLab documents automatic claiming of eligible existing
+GitLab.com accounts after group domain verification and enterprise administration
+of primary email and 2FA [S12]. This is a concrete changing-custody counterexample,
+not proof of an exploit in our unimplemented service.
+
+P0 must select behavior for unknown or changed custody and the proof required
+before unrelated organizations' resources become accessible. P2 exercises
+enrollment followed by company control, then ordinary login, existing-cookie
+continuation, refresh, linking, bootstrap and recovery against B. The selected
+A/B isolation guarantee must hold; unchanged product membership is insufficient.
+No policy may claim that a newly enrolled factor proves ownership of pre-existing
+B assets. Ordinary direct GitHub/GitLab login remains supported.
+
+These alternatives refine D3; none is silently accepted by the earlier choice
+of direct social login. Estimates are incremental handwritten production TS
+across Identity and one representative consumer, exclude UI/configuration/infra,
+generated code and provider Java, and overlap the existing scope. Test/fixture
+ranges are separate; sizing confidence is 3/10.
+
+| Option | Recommendation and boundary | P / T LOC | U/N/C |
+| --- | --- | ---: | ---: |
+| A. Independent continuity proof for protected shared-account use | Recommended when A-to-B isolation is firm. Direct social login remains; before protected organizational resources, require a previously admitted Keycloak-local factor whose replacement/recovery cannot be satisfied by the challenged social/corporate root alone. Retain admitted assurance for a selected session age; no MFA on every ordinary request. Product owners declare every protected boundary. | 800–1,600 / 350–700 | 8/9/6 |
+| B. Scoped enterprise authentication provenance now | Company-controlled proof remains scoped to that company through login, refresh, linking and recovery; unrelated resources require independent proof. Larger qualification surface. | 2,200–4,900 / 900–1,700 | 7/8/9 |
+| C. Separate corporate authority/account namespaces | Corporate identities cannot become unrestricted roots of the shared account. Explicit account switching and independent personal proof preserve isolation, with a less seamless account experience. | 1,200–2,500 / 500–1,000 | 8/9/7 |
+
+Option A relies on the existing enrollment-provenance and monotonic stronger-
+profile rules; weak-session enrollment cannot upgrade old ownership or clear an
+incident. Assurance is bound to the actual session, scope and accepted age,
+not a mutable account label copied into every new social login. Provider evidence
+that demonstrably proves ongoing independent custody can support a narrower
+profile, but no such evidence has been qualified here. An unknown custody state
+must not be labeled proven personal custody.
+
 ### D4. Retention, recovery and deployment envelope
 
 The owner must select supported outage/restore windows, operational capacity,
@@ -1080,6 +1157,31 @@ before accepting it. If neither profile can prove the invariant, that capability
 remains unavailable and the declared release scope must reflect it. Domain and
 product owners stay unchanged; building a replacement IdP is outside this plan.
 
+
+#### D8 follow-up: native session and client controls
+
+Inventory session/application termination and credential/root changes as well as
+root-changing channels. For each exposed control, record the user-visible scope,
+canonical mutation owner, invalidated evidence, maximum lost-delivery horizon,
+and whether a later explicit SSO login is permitted. A Keycloak native session
+change with a missed callback does not necessarily change Account security epoch
+or attachment generation [S2]; repeated workload status refresh cannot detect a
+fact absent from those records.
+
+| Option | Recommendation and limit | P / T LOC | U/N/C |
+| --- | --- | ---: | ---: |
+| A. Canonical product/session revocation | Recommended first for supported controls. Use the existing product session owner for an exact session, and attachment retirement only for an explicitly consumer-wide action. Restrict unsupported native mutation paths only through a qualified enforcement mechanism, not hidden UI. | 300–650 / 180–350 | 8/9/4 |
+| B. Qualified provider-session check | Bind to verified provider session identity and periodically check continued session authority through a supported mechanism. Qualify caching, outage and per-session semantics; no second central session ledger. | 550–1,250 / 300–650 | 7/8/7 |
+| C. Explicit finite best-effort native logout | State the finite absolute local-session horizon after lost native delivery; workload leases and local activity cannot extend it. Stronger revocation uses the canonical operation. Lower immediacy is an explicit tradeoff. | 100–250 / 100–220 | 9/6/3 |
+
+These are unselected incremental alternatives across Identity and one consumer;
+P is production TS and T is focused fixture/test work. They overlap existing
+session work and exclude UI/config/infra/provider code; sizing confidence is
+3/10. P0/R0 chooses the scope and numerical horizon; P2/P4 tests dropped native
+logout while workload status continues to refresh. Existing global logout keeps
+its canonical epoch/cutoff contract. Ordinary unlink and compromise recovery
+need separate entries; selecting this table does not redefine product grants.
+
 ## 17. Definition of completion
 
 The planning task is complete when both owning Draft PRs contain detailed source-
@@ -1112,3 +1214,5 @@ not certify this unimplemented service.
 - **S10:** [Keycloak realm import/export limitations](https://www.keycloak.org/server/importExport).
 
 - **S11:** [Keycloak 26.8.2 authentication time handling](https://github.com/keycloak/keycloak/blob/26.8.2/services/src/main/java/org/keycloak/services/managers/AuthenticationManager.java), [OIDC broker age forwarding](https://github.com/keycloak/keycloak/blob/26.8.2/services/src/main/java/org/keycloak/broker/oidc/OIDCIdentityProvider.java), and [GitHub social identity lookup](https://github.com/keycloak/keycloak/blob/26.8.2/services/src/main/java/org/keycloak/social/github/GitHubIdentityProvider.java); source inspection distinguishes broker-flow time from upstream factor age. S3 documents GitHub's account-selection parameter; neither is runtime qualification of our profile.
+
+- **S12:** [GitLab enterprise users](https://docs.gitlab.com/user/enterprise_user/) and [enterprise-user API](https://docs.gitlab.com/api/group_enterprise_users/), retrieved 2026-11-26: eligible existing accounts can be claimed after domain verification; enterprise administration includes primary-email and 2FA changes. These source facts motivate the ongoing-custody test, not a claim that our proposed integration was exploited.
