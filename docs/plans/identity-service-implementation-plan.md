@@ -133,8 +133,10 @@ preserved with all alternatives in the [shared follow-up record](https://github.
 Its product-owned grants, independent personal-local authority and BFF direction
 fit this service. An independent AccountId does not by itself prove independent
 recovery custody: D3 still owns the enforceable social-root profile.
-The endorsement does not select this plan's numerical freshness/retention values
-or newly identified D3/D8 alternatives and does not authorize implementation.
+That earlier endorsement did not select the new D3/D8 alternatives. The later
+owner decision below selects D3 continuity option A as the first profile; D8's
+additional policies, numerical freshness/retention values and provider
+qualification remain separate. This documentation pass implements no service.
 
 Before a later Platform/Orchestrator integration claims support, its owner maps
 Identity logout, suspend/close and attachment changes separately from local
@@ -915,6 +917,30 @@ work. P1 negative application/contract cases do not stand in for P2's real
 Keycloak token/client evidence. Any optional early provider spike is labeled
 with its exact environment and proves only that bounded hypothesis.
 
+### Implementation handoff after the D3 selection
+
+The reviewed plan is ready for a bounded implementation assignment. Start P0
+now; bounded P2 provider/proof fixtures can run in parallel. Start substantive
+P1 account code once its necessary local decisions and coherent source/tooling
+route are established. RR R0/R1 use the exact P1 packed TEST candidate rather
+than waiting for publication. Re-read current source/PR heads before assigning
+files; the source snapshots in this plan are evidence, not moving ownership.
+
+The selected profile does not waive BOOTSTRAP's admission work or the remaining
+phase gates. Set protected-surface/proof parameters before dependent admission,
+qualify provider channels before dependent P3 behavior, and settle concrete
+retention/restore limits before destructive operations and release. D8-A remains
+the recommended supported-controls path; its exposed-control scope and finite
+lost-delivery guarantees are not selected by the D3 approval.
+
+P1 plus RR R0/R1 is an internal implementation increment. A usable production
+first release needs the relevant P2-P6 and R2-R6 gates, including real migration,
+rollback and operational evidence. Keep Clean Architecture, DDD invariants,
+applicable Foundation checks and mandatory Get Modular/FMS/CMS in each owning
+slice. Enterprise SSO/SCIM breadth and P7 can follow later; they do not justify
+shortcuts in the initial account, proof or session boundaries. This planning PR
+continues to contain documentation only.
+
 ### Suggested coherent implementation PR boundaries
 
 Use one owning PR per coherent slice: bootstrap + first real account feature;
@@ -973,6 +999,12 @@ extensions, shared-library completion and operational rollout are excluded.
 | Review Router adaptation | Use its own current plan | Use its own plan | Reuse active credential work; do not count it twice |
 | One later qualified EF/LMU adapter | 500–1,200 | 250–600 | 6–15 after actual contracts exist |
 | Missing upstream admission/lifecycle primitives | Separately sized by owner | Separately sized by owner | Not hidden in the numbers above |
+
+The selected D3 continuity option A spans Identity and one consumer and overlaps
+these existing factor/session/lifecycle workstreams. P0/R0 must assign each task
+to one owner and reconcile only any uncovered delta; do not add its estimate to
+each repository or treat the baseline as a newly measured total. There is no
+separately qualified smaller MVP subtotal in this plan.
 
 Sizing confidence is **3/10** until P0 and the first real Keycloak/PostgreSQL
 slice. Direction fit **9/10**, expected reliability **8/10 within the qualified
@@ -1051,30 +1083,35 @@ later remove scoped relationships, not destroy the person's global account.
 
 #### D3 follow-up: ongoing root custody and independent proof
 
-The independent common-account goal is selected; the mechanism below remains
-open. A personal-root declaration or current public hostname is not a durable
+**Owner-selected first profile — 2026-11-26:** the owner selected continuity
+option A below, including progressive independent proof before protected
+organizational use and a future path to scoped enterprise authentication.
+Direct GitHub/GitLab login remains available. Selection settles the product
+direction; P0 specifies its parameters and P2 qualifies the real mechanism.
+A personal-root declaration or current public hostname is not a durable
 enforcement mechanism. GitLab documents automatic claiming of eligible existing
 GitLab.com accounts after group domain verification and enterprise administration
 of primary email and 2FA [S12]. This is a concrete changing-custody counterexample,
 not proof of an exploit in our unimplemented service.
 
-P0 must select behavior for unknown or changed custody and the proof required
-before unrelated organizations' resources become accessible. P2 exercises
+P0 specifies behavior for unknown or changed custody and the admitted proof
+parameters before unrelated organizations' resources become accessible. P2 exercises
 enrollment followed by company control, then ordinary login, existing-cookie
 continuation, refresh, linking, bootstrap and recovery against B. The selected
 A/B isolation guarantee must hold; unchanged product membership is insufficient.
 No policy may claim that a newly enrolled factor proves ownership of pre-existing
 B assets. Ordinary direct GitHub/GitLab login remains supported.
 
-These alternatives refine D3; none is silently accepted by the earlier choice
-of direct social login. Estimates are incremental handwritten production TS
+These alternatives refine D3. Option A is selected by the later explicit owner
+decision; B and C remain preserved alternatives, not additional first-release
+scope. Estimates are incremental handwritten production TS
 across Identity and one representative consumer, exclude UI/configuration/infra,
 generated code and provider Java, and overlap the existing scope. Test/fixture
 ranges are separate; sizing confidence is 3/10.
 
 | Option | Recommendation and boundary | P / T LOC | U/N/C |
 | --- | --- | ---: | ---: |
-| A. Independent continuity proof for protected shared-account use | Recommended when A-to-B isolation is firm. Direct social login remains; before protected organizational resources, require a previously admitted Keycloak-local factor whose replacement/recovery cannot be satisfied by the challenged social/corporate root alone. Retain admitted assurance for a selected session age; no MFA on every ordinary request. Product owners declare every protected boundary. | 800–1,600 / 350–700 | 8/9/6 |
+| A. Independent continuity proof for protected shared-account use — selected | Owner-selected first profile for A-to-B isolation. Direct social login remains; before protected organizational resources, require a previously admitted Keycloak-local factor whose replacement/recovery cannot be satisfied by the challenged social/corporate root alone. Retain admitted assurance for a selected session age; no MFA on every ordinary request. Product owners declare every protected boundary. | 800–1,600 / 350–700 | 8/9/6 |
 | B. Scoped enterprise authentication provenance now | Company-controlled proof remains scoped to that company through login, refresh, linking and recovery; unrelated resources require independent proof. Larger qualification surface. | 2,200–4,900 / 900–1,700 | 7/8/9 |
 | C. Separate corporate authority/account namespaces | Corporate identities cannot become unrestricted roots of the shared account. Explicit account switching and independent personal proof preserve isolation, with a less seamless account experience. | 1,200–2,500 / 500–1,000 | 8/9/7 |
 
@@ -1085,6 +1122,22 @@ not a mutable account label copied into every new social login. Provider evidenc
 that demonstrably proves ongoing independent custody can support a narrower
 profile, but no such evidence has been qualified here. An unknown custody state
 must not be labeled proven personal custody.
+
+P0 and each consumer's R0 enumerate protected organizational reads, mutations,
+connection/installation actions and queued subject-authorized effects before
+opening those surfaces. Classify the actual resource and action, not merely a
+workspace's personal/organization label. Record accepted proof provenance and
+age, step-up triggers, insufficient-proof behavior, prospective first-factor
+bootstrap and independent replacement/recovery. D3 approval does not select D6's
+legacy-ownership migration proof or a numerical session/freshness horizon.
+
+Growth to scoped enterprise authentication retains stable AccountId and local
+product IDs. Add versioned authority/proof bindings and consumer enforcement
+when qualified; do not replace product grant ownership or implement B now.
+Enabling an enterprise provider or changing account policy cannot widen existing
+sessions: their issued proof and immutable generations remain unchanged until
+an explicit qualified transition. This supports evolution, not a promise of
+zero adapter, contract or migration work.
 
 ### D4. Retention, recovery and deployment envelope
 
