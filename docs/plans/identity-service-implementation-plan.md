@@ -66,7 +66,19 @@ inputs, not dependency adoption or a claim that a mutable main cannot advance.
 | Platform | `76fc9734f6128b78c7a8b1bc858859fb1cbe835a` | Accepted local principal and authority ownership |
 | Orchestrator | `b622026a082a0cccc5ec44eebf12d3f88eef6359` | Open IAM decision, standalone independence |
 | Review Router | `1912bb61b54de8af113e0dccd5d4a144382e19e2` | Current Auth.js/provider coupling and existing credential mechanisms |
-| GetTok | `4ced45bb1854eb3296015fb4b092b64a8c263b46` | Existing Go OIDC and local account/balance ownership |
+| GetTok, `777genius/get-tok` | `287d1751564de571a35ec847634a62cb47dd21d7` | Actual consumer fork main; existing Go OIDC and local account/balance ownership |
+
+GetTok's consumer baseline is distinct from the supplemental TokenRouter
+upstream snapshot `4ced45bb1854eb3296015fb4b092b64a8c263b46`. The final provenance
+check corrected the earlier attribution of that upstream revision to the fork:
+upstream is 130 commits ahead in the
+[observed comparison](https://github.com/777genius/get-tok/compare/287d1751564de571a35ec847634a62cb47dd21d7...4ced45bb1854eb3296015fb4b092b64a8c263b46).
+The actual fork already owns its
+[external identity mapping](https://github.com/777genius/get-tok/blob/287d1751564de571a35ec847634a62cb47dd21d7/backend/ent/schema/auth_identity.go)
+and [local user/balance model](https://github.com/777genius/get-tok/blob/287d1751564de571a35ec847634a62cb47dd21d7/backend/ent/schema/user.go).
+P5 qualifies the actual fork's OIDC adapter and preserves those owners; it does
+not presume that unmerged upstream changes are present or require an unrelated
+full upstream synchronization.
 
 Read [BOOTSTRAP](../../BOOTSTRAP.md) for exact tooling availability and the
 central admission incompatibilities. Read the

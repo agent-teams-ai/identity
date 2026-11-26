@@ -78,7 +78,8 @@ configuration, provider extension, migration or production system is correct.
 
 | Document | SHA-256 |
 | --- | --- |
-| Identity implementation plan | `d4de28a235be00f17b1994e31c2d331eda46ae7044520274ace186b8c8b630c2` |
+| Identity architecture after second-round closure, before final source-provenance correction | `d4de28a235be00f17b1994e31c2d331eda46ae7044520274ace186b8c8b630c2` |
+| Final Identity plan including the independently checked GetTok provenance correction | `10fda9097aa22c1aa92e585ac965e61fd615b4fe960041d39f6de95ec579996e` |
 | BOOTSTRAP | `7743661a56a1558a9f04d3e2859bd59ccec3afa4aa59913fca565d451e18acaf` |
 | Module/HTTP audit including the source-only LMU refresh | `6b2f5792508f57eafa4f4442a33aa9491dd040610d6f70a0d7a138b5c208a2b8` |
 | Review Router integration plan | `dfd7cec89a266024c3424dfd9b8aebb8818a02edd3648cdd834e1e53d1b9fa24` |
@@ -86,6 +87,16 @@ configuration, provider extension, migration or production system is correct.
 These hashes identify the substantive reviewed documents. This review record,
 navigation and PR metadata are separate reporting surfaces and do not hash
 themselves. Review Router retains its own consumer-side review record.
+
+The final source refresh found one additional provenance error: the earlier
+GetTok row named a TokenRouter upstream revision as the consumer fork's main.
+The Foundation reviewer independently checked the actual fork source at
+`287d1751564de571a35ec847634a62cb47dd21d7`, its OIDC entrypoints and identity/user
+schemas against supplemental upstream `4ced45bb1854eb3296015fb4b092b64a8c263b46`.
+The final plan distinguishes those coordinates and cites the fork's actual
+schemas. Existing Go OIDC, local identity/balance ownership and the proposed
+adapter direction remain supported. No full upstream sync or new runtime
+dependency is inferred. The architecture and RR contracts are otherwise unchanged.
 
 ## Freshness and documentation verification
 
@@ -100,7 +111,8 @@ package status preserved. Central #425 is merged prerequisite documentation,
 not activation of a newer managed Docs cohort. The other cited reviewed
 GM/EF/central/Foundation/RR proposal states did not change the adoption decisions.
 
-Documentation checks cover all new Markdown and changed indexes: local targets
+Documentation checks cover all ten new/changed Markdown files and 67 local
+references before the external source-provenance note: local targets
 and used anchors, final newlines, trailing whitespace, code-fence balance and
 diff scope. `git diff --check` is the whitespace gate. No formatter installation
 or repository-wide runtime suite is required merely to publish these plans.
