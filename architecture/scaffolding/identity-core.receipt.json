@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": 1,
+  "planDigest": "sha256:9ee87ce8070ce431911935d15e980fdd3d9bfca9b88773290bd124f818ed65a1",
+  "adapter": {
+    "id": "foundation.filesystem/v1",
+    "contractVersion": 1
+  },
+  "outcome": "applied",
+  "commit": {
+    "state": "committed",
+    "atomicity": "journaled-recoverable"
+  },
+  "operations": [
+    {
+      "operationId": "materialize/packages/identity/package.json",
+      "path": "packages/identity/package.json",
+      "outcome": "applied",
+      "resultDigest": "sha256:7e27a98d0f81ab324e3cd7eb00d566af64c8073134722cf771e059161227e887"
+    },
+    {
+      "operationId": "materialize/packages/identity/src/index.ts",
+      "path": "packages/identity/src/index.ts",
+      "outcome": "applied",
+      "resultDigest": "sha256:8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "operationId": "materialize/packages/identity/tsconfig.json",
+      "path": "packages/identity/tsconfig.json",
+      "outcome": "applied",
+      "resultDigest": "sha256:6575cc639907728c96af9381e3c99ae2328db1ca3b2228f178477dae1d24abab"
+    }
+  ],
+  "diagnostics": [],
+  "receiptDigest": "sha256:d7e6135ba4e5c4f18d407d3e012fe21ee05c35f19489907381f483b16821b9ee"
+}

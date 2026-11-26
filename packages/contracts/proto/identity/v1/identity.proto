@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package identity.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/agent-teams-ai/identity/packages/contracts/gen/go/identity/v1;identityv1";
+
+// An internal TEST candidate. Credentials belong in authenticated RPC metadata,
+// never in a message. Request bodies cannot select a human issuer or subject.
+service IdentityService {
+  // Human access-token context. May establish the first binding/attachment;
+  // never implicitly reattaches a retired consumer relationship.
+  rpc ResolveSelf(ResolveSelfRequest) returns (ResolveSelfResponse);
+
+  // Human context. Read only; does not create an account or attachment.
+  rpc GetSelfStatus(GetSelfStatusRequest) returns (GetSelfStatusResponse);
+
+  // Separate workload context, bound to one configured consumer. The account
+  // must already have a live attachment to that consumer. No directory access.
+  rpc GetAccountStatus(GetAccountStatusRequest) returns (GetAccountStatusResponse);
+}
+
+message ResolveSelfRequest {
+  // Bounded opaque command identity. A different actor/client/payload under the
+  // same identity conflicts. A receipt replay never renews admission evidence.
+  string idempotency_key = 1;
+}
+
+message GetSelfStatusRequest {}
+
+message GetSelfStatusResponse {
+  AccountStatusEvidence status = 1;
+}
+
+message GetAccountStatusRequest {
+  AccountReference account = 1;
+}
+
+message GetAccountStatusResponse {
+  AccountStatusEvidence status = 1;
+}
+
+message AccountReference {
+  string account_id = 1;
+  // Configured authority continuity, not a user claim or a product session ID.
+  string authority_incarnation = 2;
+}
+
+message ResolveSelfResponse {
+  AccountStatusEvidence status = 1;
+  SessionAdmission admission = 2;
+}
+
+enum AccountEligibility {
+  ACCOUNT_ELIGIBILITY_UNSPECIFIED = 0;
+  ACCOUNT_ELIGIBILITY_ACTIVE = 1;
+  ACCOUNT_ELIGIBILITY_SUSPENDED = 2;
+  ACCOUNT_ELIGIBILITY_CLOSED = 3;
+}
+
+// An authenticated observation, not a token. An ACTIVE value only permits use
+// within every applicable consumer, credential, proof and clock bound.
+message AccountStatusEvidence {
+  AccountReference account = 1;
+  string consumer_id = 2;
+  AccountEligibility eligibility = 3;
+  uint64 account_revision = 4;
+  uint64 security_epoch = 5;
+  google.protobuf.Timestamp authentication_cutoff = 6;
+  uint64 attachment_generation = 7;
+  google.protobuf.Timestamp reattachment_cutoff = 8;
+  // Captured at the authoritative database observation, not HTTP transmission.
+  google.protobuf.Timestamp observed_at = 9;
+  // Absolute and non-renewable. Transit consumes the acceptance budget.
+  google.protobuf.Timestamp valid_until = 10;
+}
+
+enum AdmissionProfile {
+  ADMISSION_PROFILE_UNSPECIFIED = 0;
+  ADMISSION_PROFILE_PROVIDER_SESSION_CONTROL_V1 = 1;
+  // Must remain unavailable until the exact provider mechanism and enrollment
+  // provenance qualify. An amr/acr string alone cannot create this assurance.
+  ADMISSION_PROFILE_INDEPENDENT_CONTINUITY_V1 = 2;
+}
+
+// Issuance facts pinned to one product session together with status epochs and
+// generation. Neither status method returns or renews this authority.
+message SessionAdmission {
+  // Qualified provider sid. It is distinct from the product's session/family ID.
+  string authority_session_id = 1;
+  AdmissionProfile profile = 2;
+  // Exact server-configured resource/action policy, owned jointly with the
+  // consumer's guard. This is not an arbitrary scope or an organization grant.
+  string policy_id = 3;
+  uint32 policy_version = 4;
+  // Verified flow/factor age for this profile. Never substitute token iat.
+  google.protobuf.Timestamp authenticated_at = 5;
+  google.protobuf.Timestamp valid_until = 6;
+}
+
+// Stable, non-sensitive Connect error detail. Unknown reasons fail closed.
+// Transport unavailable/deadline_exceeded never means permission to proceed.
+enum IdentityErrorReason {
+  IDENTITY_ERROR_REASON_UNSPECIFIED = 0;
+  IDENTITY_ERROR_REASON_ACCOUNT_SUSPENDED = 1;
+  IDENTITY_ERROR_REASON_ACCOUNT_CLOSED = 2;
+  IDENTITY_ERROR_REASON_REATTACHMENT_REQUIRED = 3;
+  IDENTITY_ERROR_REASON_AUTHENTICATION_REQUIRED_AFTER_CUTOFF = 4;
+  IDENTITY_ERROR_REASON_INSUFFICIENT_PROOF = 5;
+  IDENTITY_ERROR_REASON_RECOVERY_REQUIRED = 6;
+  IDENTITY_ERROR_REASON_REPAIR_REQUIRED = 7;
+  IDENTITY_ERROR_REASON_CONFLICT = 8;
+  IDENTITY_ERROR_REASON_ADMISSION_EXPIRED = 9;
+}
+
+message IdentityErrorDetail {
+  IdentityErrorReason reason = 1;
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "profile": "typescript-node",
+  "typecheck": {
+    "projects": [
+      "tsconfig.quality.json"
+    ]
+  },
+  "lint": {
+    "config": ".oxlintrc.type-aware.json",
+    "paths": [
+      "packages/*/src",
+      "packages/*/tests",
+      "apps/*/src",
+      "apps/*/tests",
+      "tools",
+      "scripts"
+    ]
+  },
+  "format": {
+    "paths": [
+      "*.json",
+      "*.md",
+      "*.yaml",
+      ".github",
+      "architecture",
+      "docs",
+      "packages",
+      "apps",
+      "tools",
+      "scripts",
+      "deploy"
+    ]
+  }
+}
