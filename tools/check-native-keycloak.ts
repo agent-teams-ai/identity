@@ -261,17 +261,16 @@ const track = (child: ChildProcess): Tracked => ({
     });
   }),
 });
+const providerRunning = (process: Tracked): boolean =>
+  process.child.pid !== undefined &&
+  process.child.exitCode === null &&
+  process.child.signalCode === null;
 
 const awaitReady = async (process: Tracked): Promise<void> => {
   const deadline = performance.now() + 120_000;
   while (performance.now() < deadline) {
     interruption.signal.throwIfAborted();
-    assert.ok(
-      process.child.pid !== undefined &&
-        process.child.exitCode === null &&
-        process.child.signalCode === null,
-      `Keycloak exited before readiness; diagnostics: ${logs}`,
-    );
+    assert.ok(providerRunning(process), `Keycloak exited before readiness; diagnostics: ${logs}`);
     try {
       const response = await fetch(`${issuer.href}/.well-known/openid-configuration`, {
         redirect: "error",
@@ -299,9 +298,10 @@ const awaitReady = async (process: Tracked): Promise<void> => {
 };
 
 const stop = async (process: Tracked): Promise<void> => {
-  if (process.child.exitCode === null && process.child.signalCode === null) {
-    process.child.kill("SIGTERM");
-  }
+  // A provider that already exited, including by signal, cannot acquire a
+  // successful shutdown witness. kc.sh forwards our TERM to Java and preserves
+  // its exit status; 143 is its documented shell translation of SIGTERM.
+  const requested = providerRunning(process) && process.child.kill("SIGTERM");
   const completion = await Promise.race([
     process.completed,
     delay(15_000, undefined, { ref: false }),
@@ -312,6 +312,12 @@ const stop = async (process: Tracked): Promise<void> => {
     throw new Error("Native Keycloak did not stop gracefully");
   }
   assert.equal(completion.error, undefined, "Native provider process failed to launch");
+  assert.ok(requested, "Native provider exited before its requested shutdown");
+  assert.ok(
+    (completion.signal === "SIGTERM" && completion.code === null) ||
+      (completion.signal === null && (completion.code === 0 || completion.code === 143)),
+    "Native provider did not finish its requested shutdown cleanly",
+  );
 };
 
 try {
@@ -343,7 +349,7 @@ try {
         entry.endsWith("gettok-consumer.native.js") ? 360_000 : 180_000,
       );
       process.stdout.write(result.stdout);
-      assert.equal(provider.child.exitCode, null, "Provider exited during native qualification");
+      assert.ok(providerRunning(provider), "Provider exited during native qualification");
     }
   } finally {
     try {
@@ -359,6 +365,7 @@ try {
   process.removeListener("SIGINT", interrupt);
   process.removeListener("SIGTERM", interrupt);
 }
+interruption.signal.throwIfAborted();
 process.stdout.write(
   `${JSON.stringify({
     nativeKeycloakAndIdentity: "passed",

@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 env:
-  GETTOK_REVISION: fc991f1e6d10ab190ffc0ff5322d9197fa943a80
+  GETTOK_REVISION: e947b992f74ca8bd1f19f0f3c254e2aac8269346
 
 concurrency:
   group: identity-gettok-conformance-${{ github.ref }}
@@ -109,6 +109,12 @@ jobs:
           set -euo pipefail
           go mod download
           git diff --exit-code -- go.mod go.sum
+      - name: Verify generated consumer composition matches its source
+        working-directory: gettok/backend
+        run: |
+          set -euo pipefail
+          go generate ./cmd/server
+          git diff --exit-code -- internal/app/wire_gen.go
       - name: Read the consumer linter pin
         id: golangci
         run: printf 'version=%s\n' "$(cat gettok/.golangci-version)" >> "$GITHUB_OUTPUT"
