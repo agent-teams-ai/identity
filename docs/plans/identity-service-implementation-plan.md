@@ -94,7 +94,9 @@ Before each implementation phase, refresh relevant heads, open PRs, registry
 metadata, published bytes and adopted contracts. Review deltas against this
 baseline; do not silently change a lock or accept an unmerged proposal. Prefer
 current compatible released artifacts, with exact manifest/lock/integrity pins.
-Unpublished contracts are not dependencies even when their code looks finished.
+Unpublished contracts are not production dependencies even when their code looks
+finished. Exact versioned packed TEST candidates can support the bounded
+interoperability work in P1/R0; they do not establish public release or admission.
 
 ## 3. Owners and trust boundaries
 
@@ -156,8 +158,10 @@ instead of manufacturing identical DTO copies at every function.
 
 ### Proposed source responsibilities
 
-Paths are prospective, to be materialized through the admitted Foundation
-Plan/Apply route with their first real feature, never as empty directories.
+Paths are prospective and appear with their first real feature, never as empty
+directories. Use Foundation Plan/Apply/Receipt only for eligible released
+package-boundary recipes; author feature layouts and FMS/CMS facts as reviewed
+source changes.
 
 | Prospective root | Responsibility and feature ownership |
 | --- | --- |
@@ -229,7 +233,7 @@ proposal, not a previously accepted organization-wide ID rule.
 
 | Record | Required semantics |
 | --- | --- |
-| Account | Immutable ID; active/suspended/closed eligibility; monotonic account revision; separate monotonic security epoch and authentication cutoff; timestamps |
+| Account | Immutable ID; active/suspended/closed eligibility; monotonic account revision; separate monotonic security epoch and authentication cutoff; admitted assurance policy and monotonic stronger-profile admission fact/cutoff; timestamps |
 | Authority binding | AccountId plus configured authority, exact verified issuer, case-sensitive subject, source incarnation and binding revision; active/retired status |
 | Consumer attachment | Minimal consumer-to-account relation derived from verified user context; ordinary revision, non-reusable admission generation and reattachment cutoff; authorizes only scoped status/delivery, never product membership; retained history also identifies possible closure participants |
 | Proof/operation receipt | One-use operation identity, actor, exact target/intended change, expected revisions, bounded expiry and result; hashed opaque proof where applicable |
@@ -328,7 +332,7 @@ selected policy version; these are normalized verifier results, not new tokens:
 
 | Evidence class | Established fact | Permitted first-profile use |
 | --- | --- | --- |
-| Provider/session control | A fresh purpose-bound OAuth/broker round trip or an existing admitted session within its explicitly accepted policy; exact authority/subject, transaction and expiry are verified | Ordinary social login; a new explicit login after ordinary logout; the explicitly accepted ordinary legacy-migration profile in D6 |
+| Provider/session control | A fresh purpose-bound OAuth/broker round trip or an existing admitted session within its explicitly accepted policy; exact authority/subject, transaction and expiry are verified | Ordinary social login; a new explicit login after ordinary logout; explicitly admitted ordinary bootstrap/add-only linking in section 7; the ordinary legacy-migration profile in D6 |
 | Fresh factor authentication | The method, assurance and age of a previously admitted factor are actually proven by the qualified Keycloak flow or upstream assertion | Compromise recovery, privileged root/recovery changes and any operation whose policy promises factor freshness |
 
 A `prompt`/`acr_values` request, an account picker, a token's new `iat`,
@@ -403,6 +407,29 @@ privileged operators. Offer passkeys and recovery appropriate to the selected
 profile; enrolling a factor in a newly authenticated session is an enrollment
 decision, not retrospective proof of legacy ownership. NIST is guidance for the
 threat model, not a compliance certification [S6].
+
+**Separate ordinary bootstrap from security recovery.** For an active,
+unrestricted social-only account that has not previously admitted the stronger
+factor profile, the P0-approved bootstrap policy may allow first-factor
+enrollment and ordinary add-only social-root linking after fresh, purpose-bound
+control proof of an existing admitted root, plus proof of the new root/factor
+and explicit confirmation. This inherits the declared social-root trust profile;
+a stolen live upstream session remains a residual risk. It is not stronger
+evidence of historical ownership.
+
+The bootstrap exception cannot remove or replace an established root, weaken
+an already admitted assurance policy, be re-entered after a factor was lost or
+removed, clear an incident restriction, or transfer a legacy owner. Preserve
+the stronger-profile admission fact in account security state; do not derive
+bootstrap eligibility from today's factor count. After the stronger profile
+has been admitted, sensitive root/recovery changes require its qualified
+previously admitted proof or the separately authorized recovery procedure.
+Factor authority starts prospectively from its admitted enrollment; a factor
+established through the challenged session or after the applicable incident/
+recovery trust cutoff cannot satisfy that recovery or establish earlier legacy
+ownership. Ordinary social login keeps its session-control profile. Qualify
+this enrollment provenance and all enabled channels at P2; if the provider
+cannot enforce the selected rule, use the restricted capability profile in D8.
 
 Do not automatically link matching email addresses, even when both providers
 report them verified. Prove control of both exact sides at the operation's
@@ -651,6 +678,15 @@ history, including previously detached relations. This is a list of possible
 data owners, not proof that each product provisioned a user. It does not discover
 unknown external systems or authorize arbitrary cross-product deletion.
 
+Detach does not remove cleanup membership. Retain the minimal consumer-to-account
+relation while that product may hold data in the chosen erasure scope or an
+unfinished cleanup obligation; a short status/event TTL is not its retention
+policy. Prefer this bounded product-retention/obligation horizon, with no product
+profile copied centrally. If a separately accepted privacy/retention decision
+purges that relation earlier, report limited/unknown participant coverage and
+completion only for the known manifest. An absent historical row cannot prove
+not-provisioned or complete cross-product erasure.
+
 Record separate Identity, Keycloak and per-product outcomes:
 `pending`, `not-provisioned`, `erased`, `retained-by-policy` or `repair-required`.
 Each participant receipt identifies this operation, account/authority incarnation,
@@ -861,9 +897,9 @@ pending; do not replace it with a mock PASS.
 | --- | --- | --- |
 | T1 — authenticated resolution | Valid direct login; wrong issuer/audience/client/token kind; nonce/state/PKCE failure and callback replay; cross-consumer/expired/detached status access and self token used for batch | Actual session/account mapping, no unintended account, directory access or token exposure |
 | T2 — identity ownership | Parallel create, link conflicts, equal email/different identities, same native GitLab ID/different instances | Unique database ownership and unchanged losing account |
-| T3 — lifecycle races | Competing root channels; OAuth flow timestamp presented as fresh-factor proof; delayed opposing Keycloak effects; close versus login | Actual admitted proof class, common root policy and unresolved-effect gate; ordinary SSO cannot clear compromise restrictions |
+| T3 — lifecycle races | Competing root channels; OAuth timestamp presented as fresh-factor proof; first-factor bootstrap, lost-factor bootstrap retry and enrollment during an incident; delayed opposing provider effects; close versus login | Admitted initial enrollment succeeds, but prior stronger-profile admission and incident/legacy trust cutoffs cannot be bypassed. Common root policy and unresolved-effect gate hold |
 | T4 — session custody | Two replicas refresh, logout/disable/disconnect during refresh, back-channel replay | Revoked state wins; late tokens do not reopen a session/connection |
-| T5 — effects and delivery | Lost provider reply, DB rollback, publish-before-ack crash, recipient/generation mismatch; detached historical participant; late provision after not-provisioned/erased receipt | Scoped idempotent receipts and local closure fence; no duplicated ownership, cross-consumer acknowledgement or false complete erasure |
+| T5 — effects and delivery | Lost provider reply, DB rollback, publish-before-ack crash, recipient/generation mismatch; detached historical participant and history-retention expiry; late provision after not-provisioned/erased receipt | Scoped idempotent receipts and local closure fence; no duplicated ownership, cross-consumer acknowledgement or false complete erasure. Lost participant evidence yields limited/unknown coverage |
 | T6 — freshness and outage | Paused delivery across suspend/enable and detach/reattach; delayed pre-cutoff response across local session commit; unavailable status, expiry, restart/clock regression | Session pins both issued generations; newer known state wins, old evidence expires by its original bound. New explicit ordinary login and stronger incident recovery obey different proof policies; refresh never upgrades old sessions |
 | T7 — product migration | Existing local assets; old cookie plus attacker's central login; fresh dual-control flow versus required stronger proof; close/erase then same native identity with a new AccountId; late callback; connection cancellation | Correct admitted proof, never-bound legacy predicate, retained local ownership and typed repair/transfer conflict; no automatic resurrection or asset move |
 | T8 — recovery and keys | Signing-key rotation, unknown kid storm, backup restore with stale binding/revoke, lost continuity | Bounded fetches, correct signatures and closed admission until repair |
@@ -996,12 +1032,21 @@ P0/R0 must record the accepted ordinary-migration profile and its residual risk;
 this document proposes A for ordinary unambiguous legacy users, B for operations
 that require stronger assurance, and C for cases neither can safely admit.
 This does not reopen direct GitHub/GitLab login or mandate MFA for every login.
+The enrollment/bootstrap exception in section 7 does not qualify as option B's
+proof of historical ownership.
 
 | Option | Benefit, limit and recommendation | Incremental scope / qualification |
 | --- | --- | --- |
 | A. Explicit dual session-control migration | Practical default for GitHub-only legacy users: fresh exact-native OAuth proof plus the central owner's proof, one intent, confirmation and audit. A stolen live upstream SSO session is a residual risk; no fresh-factor guarantee is claimed. | Within the migration estimate; prove an old cookie alone, wrong native identity and mismatched intent cannot bind. P0/R0 explicitly accept the strength/age policy before enabling it. |
 | B. Require a previously admitted stronger proof | Use for privileged root changes, compromise recovery and a high-assurance migration profile. Some legacy users have no such evidence. A newly enrolled factor after weak login cannot establish historical ownership. | Qualify real Keycloak-local or upstream method/age provenance, including forwarding/claim configuration; unsupported users cannot be silently downgraded. Additional provider-specific work may exceed the estimate. |
 | C. Separate audited recovery/transfer or leave unbound | Correct fallback for incident, ambiguous ownership or unavailable required assurance; greater support cost. | A separately authorized procedure with independent evidence; no name/email heuristic, no automatic account merge and no operator bypass invented by the SDK. |
+
+For first-factor setup, recommend section 7's bounded bootstrap profile with
+explicit acceptance of the original social-root trust. The stricter alternative
+requires independently established proof or a qualified upstream assurance
+profile from the start; that can require a separately authorized manual path for
+GitHub-only users. Neither permits a lost factor or an incident to reopen the
+bootstrap exception. This is a P0 admission choice, not a new auth subsystem.
 
 Ordinary global logout retires current product sessions and requests the declared
 provider-session cleanup. A new explicit broker login may use upstream SSO;
