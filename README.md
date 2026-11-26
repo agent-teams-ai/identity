@@ -13,7 +13,7 @@ Direct GitHub/GitLab login does not require a Google account.
 - [Architecture and phased implementation plan](docs/plans/identity-service-implementation-plan.md)
 - [Repository bootstrap and full Engineering Foundation adoption](BOOTSTRAP.md)
 - [Source audit: public module contracts and Discord's HTTP boundary](docs/research/modules-and-http-source-audit-2026-11-26.md)
-- [Latest module-source refresh after the qualification PR merges](docs/research/modules-source-freshness-2026-11-26.md)
+- [Latest source refresh after qualification and governance updates](docs/research/modules-source-freshness-2026-11-26.md)
 - [Independent review record and verification limits](docs/reviews/identity-plan-review-2026-11-26.md)
 - [Review Router integration plan](https://github.com/777genius/review-router-ai/blob/docs/unified-identity-scm-plan-20261126/ai-docs/plans/2026-11-26-unified-identity-and-scm-connections.md), owned and implemented in that consumer repository
 

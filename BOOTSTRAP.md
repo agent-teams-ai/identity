@@ -26,7 +26,9 @@ materializing source. A planning PR is not a production bootstrap pass.
 
 Read current changes for freshness; adopt exact reviewed revisions for durable
 contracts. A newer navigation target cannot silently change an accepted
-standard, release baseline or consumer pin.
+standard, release baseline or consumer pin. The [final source refresh](docs/research/modules-source-freshness-2026-11-26.md)
+records the later central governance changes at `7ad5abb` and their limited
+applicability to Identity; the original reviewed snapshot above is retained.
 
 ## 2. Exact observed availability and its limits
 
@@ -206,10 +208,12 @@ not proof that the architecture conforms.
    tests, Foundation, registry/dev-only and contract checks. Avoid duplicate
    full test runs when existing evidence covers the changed risk.
 5. **Install immutable callers.** Render the current reviewed central admission
-   caller and the separately accepted commit-identity caller. The currently
-   recognized identity implementation is
-   `77a0f46cbfc7688cbabbe12ee819e50ba6f64234`; verify its continued authority
-   before adoption. Open central #423 is not installed permission or a bypass.
+   caller and the separately accepted commit-identity caller. The initially
+   inspected policy recognized implementation
+   `77a0f46cbfc7688cbabbe12ee819e50ba6f64234`; resolve the current qualified caller
+   and verify its authority before adoption. Central #423 is now merged policy,
+   but its scoped owner-PR exception does not include Identity and does not
+   establish installed remote enforcement.
 6. **Qualify the actual consumer.** Execute a real permitted import and forbidden
    import, unknown production source, weakened protected rule and representative
    critical contract failure with the same installed artifacts/configuration.
@@ -227,7 +231,7 @@ The bootstrap is complete when the first real implementation and its admitted
 tooling pass the required same-source gates with actual enforcement observed.
 The central static result `configured_not_qualified` alone is insufficient.
 
-## 6. Upstream work to track without importing a draft
+## 6. Upstream changes and adoption boundaries
 
 - [Engineering #476](https://github.com/agent-teams-ai/engineering-foundation/pull/476)
   proposes optional Effect diagnostics and GM qualification. Observe its public
@@ -239,9 +243,12 @@ The central static result `configured_not_qualified` alone is insufficient.
 - [Engineering #458](https://github.com/agent-teams-ai/engineering-foundation/pull/458)
   compares existing dependency updaters. It has not created a universal runtime
   dependency profile or automatic fleet upgrade service.
-- [Central #423](https://github.com/agent-teams-ai/.github/pull/423) concerns a
-  proposed owner PR identity route. Preserve the currently installed protections
-  and the user's request to deliver this work as Draft PRs.
+- [Central #423](https://github.com/agent-teams-ai/.github/pull/423) is merged.
+  The [policy at `7ad5abb`](https://github.com/agent-teams-ai/.github/blob/7ad5abbf5a8dade79f91f3e6f06481070b966a9e/governance/commit-author-identity.json)
+  permits a scoped owner-PR exception for six named repositories; Identity is
+  absent, and the default ruleset has no bypass actors. This is policy evidence,
+  not proof of installed protection. Preserve the applicable protections and
+  the user's request to deliver this work as Draft PRs.
 
-Tracked proposals may inform sequencing. Only qualified public contracts and
+Tracked proposals and policy changes may inform sequencing. Only qualified public contracts and
 explicit consumer adoption become actual dependencies.
