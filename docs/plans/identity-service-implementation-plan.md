@@ -1,0 +1,864 @@
+---
+id: plan.identity-service-implementation
+type: implementation-plan
+status: proposed
+owner: identity
+date: 2026-11-26
+---
+
+# Identity Service: architecture and implementation plan
+
+## 1. Assignment, outcome and decision status
+
+Build the foundation for a substantial identity product with explicit ownership,
+Clean Architecture, SOLID, DDD and DRY. The owner selected the expanded service
+direction: stable accounts, binding and account lifecycle, integration events,
+SDKs, public Get Modular composition, Engineering Foundation from the first
+substantive source, and later qualified Extension Foundation / Live Module Updates
+integration. A limited first delivery must preserve these boundaries.
+
+**This delivery is a reviewed planning Draft PR, not implementation or production
+admission.** It changes no existing product authentication, account, credential,
+balance, deployment or accepted upstream ADR. Runtime phases below are future
+work. The owner also requested a separate Review Router integration plan; that
+consumer owns its implementation and migration.
+
+The intended user experience is **Continue with GitHub** or **Continue with
+GitLab**, directly, without a Google account or intermediate Google login.
+Keycloak brokers the selected provider. Review Router can then continue into its
+own repository connection consent. These are separate grants inside one coherent
+journey; a provider may still require consent, account selection, MFA or application
+installation. We must not promise a single provider redirect in every situation.
+
+### Scope of the expanded first product
+
+| Included in the implementation sequence | Boundary |
+| --- | --- |
+| Stable human accounts and authenticated issuer/subject bindings | Product accounts retain their own identifiers and business data |
+| Personal GitHub/GitLab login, passkeys/MFA and recovery integration | Keycloak owns credentials, upstream login bindings and authentication sessions |
+| Explicit binding migration, suspension, closure, PII erasure and tombstones | Distinct facts; no automatic merge/split or resurrection |
+| Account-security audit, transactional outbox, bounded reconciliation | Account facts only; no global authorization engine |
+| Versioned public API and thin SDK, TS and Go consumer compatibility | Generated transport models terminate at consumer adapters |
+| Two-replica service/session qualification and an operational deployment profile | Concrete capacity and recovery targets established before a production claim |
+| GetTok and Review Router integration contracts | Their changes land in their own repositories and retain local permissions |
+| Static modules now, qualified extension/update adapters later | No private foundation imports or competing lifecycle implementation |
+
+Enterprise SCIM, arbitrary customer IdPs, account merge/split, arbitrary policy
+languages, active-active global writes, generic plugin hosting, a credential
+vault product, custom OAuth cryptography and a second IdP implementation are
+outside this first product. Their future integration seams are explicit below.
+Self-hosted and Fully Local Orchestrator remain independently operable; this
+cloud service is never an unconditional local dependency.
+
+## 2. Source baseline and freshness
+
+Research was performed on 2026-11-26 Europe/Kyiv. Source identities are audit
+inputs, not dependency adoption or a claim that a mutable main cannot advance.
+
+| Owner | Reviewed main | Meaning |
+| --- | --- | --- |
+| Organization `.github` | `755c8515a5d106402a7e9e2cff621fb1fdc855cf` | Engineering standard, FMS, backend stack, repository admission |
+| Engineering Foundation | `fac03920e50ebde038ae415edeb7aa9e3d610ada` | Tooling packages and actual configuration contracts |
+| Get Modular | `ae2418b186119c3c84736a6217a9ef25bbfe86cb` | Public static composition and resource ownership |
+| Extension Foundation | `65e03edd10cc08194cc4031f857aae302d4b9020` | Empty production package catalog; pending qualification work |
+| Live Module Updates | `6e0d5a9e61d76ff7eba7561aea89aa729ce32086` | Private qualification/reference work; no released update coordinator |
+| Discord Meeting Assistant | `8fb3d273f4d51eb149e9c310b7edefbee1c72052` | HTTP adapter pattern, not a tooling baseline to copy |
+| Platform | `76fc9734f6128b78c7a8b1bc858859fb1cbe835a` | Accepted local principal and authority ownership |
+| Orchestrator | `b622026a082a0cccc5ec44eebf12d3f88eef6359` | Open IAM decision, standalone independence |
+| Review Router | `1912bb61b54de8af113e0dccd5d4a144382e19e2` | Current Auth.js/provider coupling and existing credential mechanisms |
+| GetTok | `4ced45bb1854eb3296015fb4b092b64a8c263b46` | Existing Go OIDC and local account/balance ownership |
+
+Read [BOOTSTRAP](../../BOOTSTRAP.md) for exact tooling availability and the
+central admission incompatibilities. Read the
+[HTTP and modules audit](../research/modules-and-http-source-audit-2026-11-26.md)
+for source paths, public exports, npm observations and pending PR boundaries.
+The [review record](../reviews/identity-plan-review-2026-11-26.md) distinguishes
+independent review from runtime evidence.
+
+Before each implementation phase, refresh relevant heads, open PRs, registry
+metadata, published bytes and adopted contracts. Review deltas against this
+baseline; do not silently change a lock or accept an unmerged proposal. Prefer
+current compatible released artifacts, with exact manifest/lock/integrity pins.
+Unpublished contracts are not dependencies even when their code looks finished.
+
+## 3. Owners and trust boundaries
+
+| Owner | Canonical responsibility | Does not own |
+| --- | --- | --- |
+| Keycloak | Credential verification, password/passkey/MFA storage, social broker links, OIDC issuance, authentication sessions and credential recovery | Product balances, repository grants, membership, Identity's AccountId |
+| Identity account context | AccountId, eligibility/lifecycle revision, authenticated-authority binding, migration proof references, minimal profile, erasure/tombstones | A second password/session/token ledger, tenant roles or repository OAuth tokens |
+| Identity provider adapter | Calls supported Keycloak APIs and interprets protocol evidence | Domain decisions or direct Keycloak database access |
+| Product BFF/session owner | Browser session, its OAuth transaction and server-held tokens, local logout and refresh concurrency | Global account authority or another product's session |
+| Product identity adapter | Exact mapping from authority/account reference to local user/principal | Copying Identity aggregates, email-based account discovery |
+| Product authorization owner | Membership, tenant access, roles, capabilities, provider-connection use, API-key policy | Redefining global authentication roots |
+| Review Router integrations | GitHub/GitLab connection consent, custody, installations, provider access and webhook effects | Central login credentials or global account recovery |
+| Engineering Foundation | Development and conformance tooling | Runtime dependency or product authority |
+| Get Modular / EF / LMU | Their qualified composition, artifact and update mechanisms | Account state, authentication permission or durable product revocation |
+
+Keycloak's social binding and Identity's authority binding have different subjects:
+Keycloak binds a GitHub/GitLab identity to its realm user; Identity maps the
+verified **Keycloak issuer plus subject** to AccountId. Do not build another
+writable mirror of all broker bindings in Identity. Any displayed provider metadata
+is a read projection, never account ownership evidence by itself.
+
+The Platform [identity dossier](https://github.com/agent-teams-ai/agent-teams-platform/blob/76fc9734f6128b78c7a8b1bc858859fb1cbe835a/docs/domain/contexts/identity/README.md)
+and accepted [ADR-0007](https://github.com/agent-teams-ai/agent-teams-platform/blob/76fc9734f6128b78c7a8b1bc858859fb1cbe835a/docs/decisions/0007-platform-strategic-context-map-and-first-project-management-slice.md)
+retain PlatformPrincipalId, product eligibility, scoped bindings and historical
+authorship. Identity adds an external account authority; it does not delete that
+context. Before Platform integration, its owner records the exact mapping and any
+scoped successor needed. Do not rewrite accepted ADR bytes or give Identity the
+right to grant tenant membership. Orchestrator's
+[OD-012](https://github.com/agent-teams-ai/agent-teams-orchestrator/blob/b622026a082a0cccc5ec44eebf12d3f88eef6359/docs/open-decisions/OD-012-identity-authorization-tenant-isolation.md)
+remains open; this plan does not settle its graph or local-authority protocols.
+
+## 4. Architecture and repository shape
+
+Use one modular TypeScript service plus independently operated Keycloak. A
+separate worker entrypoint may run the same account-owned outbox/reconciliation
+capability; it is not a new domain or mandatory microservice.
+
+```mermaid
+flowchart TD
+  UI["Product browser"] --> BFF["Product BFF"]
+  BFF --> KC["Keycloak and chosen login provider"]
+  BFF --> IN["Identity HTTP / Connect adapter"]
+  IN --> APP["Account use cases and owned ports"]
+  APP --> DOM["Account invariants"]
+  PG["PostgreSQL adapter"] -. "implements ports" .-> APP
+  KA["Keycloak management adapter"] -. "implements ports" .-> APP
+  OUT["Outbox / delivery adapter"] -. "implements ports" .-> APP
+```
+
+The arrows from inbound adapters are call/dependency direction; outbound adapters
+implement application-owned ports. Domain/application do not import Fastify,
+Connect, generated Protobuf models, Drizzle, Keycloak SDKs, Get Modular or an
+extension runtime. Technical adapters can expose their own technical APIs to
+outer composition. Do not manufacture identical DTO copies at every function.
+
+### Proposed source responsibilities
+
+Paths are prospective, to be materialized through the admitted Foundation
+Plan/Apply route with their first real feature, never as empty directories.
+
+| Prospective root | Responsibility and feature ownership |
+| --- | --- |
+| `packages/identity/src/features/account/` | One cohesive account capability: registration/resolve, binding invariants and account eligibility; internal domain/application/ports/adapters only as needed |
+| Same feature, or a justified nested feature | Binding migration and closure/erasure when complexity warrants a declared FMS sub-feature; preserve the actual transaction owner |
+| `packages/identity/src/features/account/composition/` | Account-owned descriptors, declarations, implementations and public group; no policies in factories |
+| `packages/identity/src/composition/` | Assembles public top-level feature groups and genuine package Host entries; never wires another feature's internals |
+| `packages/contracts/src/features/identity-api/` | Versioned wire schemas, generated representations and compatibility fixtures; no aggregates |
+| `packages/client/src/features/identity-client/` | Thin client over the published API, bounded transport behavior, credential injection at its edge |
+| `apps/server/` | Process composition, config, HTTP/Connect hosting, health and shutdown |
+| `apps/worker/` only if deployment needs it | Wires existing owned dispatch/reconciliation features |
+| `deploy/keycloak/` and `deploy/` | Reviewed realm/client/theme configuration and exact deployment profile |
+| `docs/`, `architecture/` | Decisions, source topology, FMS/CMS adoption, contracts and evidence owned here |
+
+The prospective FMS profile classifies the contracts/client packages explicitly,
+including their maintained schema, generated/public transport and feature test
+roots. Tests mirror their actual owning feature. Parent feature composition
+assembles its direct child's group. Child public contracts/descriptors become
+externally visible only through the parent's curated public entrypoint or
+composition-contract surface, with each republication edge declared. The package
+root assembles the public top-level parent group and never wires the child
+directly. Under the separately adopted CMS, `@get-modular/*` imports are confined
+to composition and tests, including for resource acquisition; contracts and
+adapters expose ordinary typed values/functions. The accepting ADR/profile pins
+the reviewed CMS document digest and real Host scope, independently of FMS and
+npm versions. BOOTSTRAP records that adoption work.
+
+Account status, binding uniqueness, proof consumption, command receipt and
+outbox must be able to commit together. Do not split them into separate contexts
+or databases just to mirror nouns. Audit/export and provider integration may be
+separate technical features when they have real independent responsibilities.
+No generic repository, shared Unit of Work across products, global service bag,
+universal event-sourced engine or one package per port.
+
+### HTTP independence: what to take from Discord
+
+Reuse its accepted pattern: small server lifecycle contract and feature-owned
+Fastify inbound adapters invoking plain application inputs. Its actual routes
+are Fastify plugins; `PlatformHttpHost` only abstracts start/close. Do not import
+the Discord application package or copy its older tooling, long timeouts or
+meeting-specific transport. Exact evidence is in the HTTP audit.
+
+Use the central [backend reference](https://github.com/agent-teams-ai/.github/blob/755c8515a5d106402a7e9e2cff621fb1fdc855cf/docs/backend-stack.md):
+Fastify hosts ordinary HTTP and Connect handlers in the same process. Protobuf
+and Buf own the real external API. Dapr is only applicable to a selected private
+process boundary. PostgreSQL/Drizzle remain persistence adapters; NATS JetStream
+uses the official SDK. Do not install Temporal, Dapr, Centrifugo or OpenFGA
+without a concrete owned responsibility in this service.
+
+Replacing Fastify must change the server/inbound adapters and transport tests,
+not accounts or use cases. Prove that through source/declaration dependency
+checks and a direct application consumer. A second HTTP server implementation
+or an in-house router DSL now would add no useful proof. Preserve useful layer
+boundaries even if an adapter is small.
+
+## 5. Identity model, uniqueness and lifecycle
+
+`AccountId` is an immutable opaque ID generated by Identity. Proposed storage:
+UUIDv7 using a maintained implementation; neither its ordering nor uniqueness
+grants access. Expose it to explicitly admitted first-party backends only. A
+third-party directory or cross-product enumeration API is not included.
+
+Keep authority ID, issuer URL, provider subject, source incarnation, AccountId,
+product UserId, session ID, lifecycle/security revision, binding revision and
+module generation as different identities. UUIDv7 selection is an implementation
+proposal, not a previously accepted organization-wide ID rule.
+
+### Conceptual records, not a committed database schema
+
+| Record | Required semantics |
+| --- | --- |
+| Account | Immutable ID; active/suspended/closed eligibility; monotonic account revision; separate monotonic security epoch and authentication cutoff; timestamps |
+| Authority binding | AccountId plus configured authority, exact verified issuer, case-sensitive subject, source incarnation and binding revision; active/retired status |
+| Consumer attachment | Minimal admitted consumer-to-account relation derived from verified user context; incarnation, revision and lifecycle; authorizes only status/event delivery, never product membership |
+| Proof/operation receipt | One-use operation identity, actor, exact target/intended change, expected revisions, bounded expiry and result; hashed opaque proof where applicable |
+| Account-owned outbox | Transition and recipient/contract identity committed with the transition; delivery state is separate |
+| Security audit | Minimal actor/subject/action/outcome/revision and evidence references; raw credentials excluded |
+| Erasure obligation/tombstone | Bounded process progress and minimal approved non-reusable historical reference, separate from eligibility |
+
+OIDC identifies a subject in its issuer namespace; email, display name and login
+are attributes, not unique identity keys [S1]. Preserve issuer semantics and
+exact subject bytes. Any URL canonicalization is a configured connection migration,
+not opportunistic normalization of a received `iss`. A GitLab native user ID
+must additionally be scoped by the actual GitLab instance/connection identity.
+
+Enforce binding uniqueness in PostgreSQL, not only a pre-insert lookup. In one
+transaction: validate current account/binding revisions, consume proof, establish
+or change binding, write receipt, audit and outbox. On a uniqueness race, reload
+the canonical result; never create an orphan account or redirect a losing link
+to somebody else's account. A repeated command with the same idempotency identity
+and payload returns its receipt; a different payload is a hard conflict.
+
+An authority's configured source incarnation is operational continuity evidence,
+not a user-supplied claim. Recreating a realm, losing an authoritative binding
+database, importing an inconsistent backup or changing issuer identity must close
+admission until reconciled. Do not use a new incarnation to silently reassign an
+old subject. Preserve a minimal binding retirement record for the selected
+retention horizon; erasure must not accidentally permit account takeover through
+recreation. Exact retention and privacy classification are decisions in section 16.
+
+Suspension is reversible; closure is terminal for that AccountId. Re-enablement
+requires fresh sessions and authority evaluation, never resurrection of old
+sessions/grants. Erasure removes permitted PII and secrets under their actual
+owners; it does not reassign IDs, erase paid balances or cascade product data.
+Binding removal, provider disconnect, product logout, global logout, compromise
+containment and account closure are distinct commands and UI labels.
+
+## 6. Authentication and the direct GitHub/GitLab journey
+
+1. The product creates a bounded server-side login transaction with an opaque
+   nonce/state, PKCE verifier, selected issuer/client, exact callback, local
+   return target, client/session generation, and optional connection continuation.
+2. Its button starts OIDC Authorization Code + S256 PKCE to Keycloak, using a
+   server-allowlisted `kc_idp_hint` for GitHub or GitLab. Keycloak supports this
+   redirect mechanism [S2]; it is a UX hint, not authenticated provenance.
+3. Keycloak authenticates through that provider and applies its admitted broker
+   linking/MFA policy. No Google account is required. Unknown hints cannot choose
+   arbitrary identity-provider URLs or bypass assurance.
+4. The BFF validates state, code exchange, issuer, client/ID-token audience, nonce,
+   token use and timestamps with a maintained OIDC/JOSE library. It consumes the
+   login transaction once and rejects a callback for an obsolete generation.
+5. The BFF calls Identity's authenticated self-resolution API with an access token
+   actually addressed to Identity, obtains the stable account reference and
+   current eligibility, and resolves its own local product principal.
+6. If repository connection was requested, the product continues into its own
+   provider consent/install flow. Cancellation leaves the authenticated account
+   usable with an explicit disconnected state. It never silently expands login
+   scopes into repository administration.
+
+### Exact token boundary for self-resolution
+
+For the initial BFF profile, configure a separate confidential OIDC client per
+product/environment. Its login ID token has that client as audience. The
+bootstrap access token carries the narrow `identity.resolve:self` permission
+and `identity-api` resource audience through the reviewed client scope/audience
+configuration. Identity verifies issuer, signature/algorithm, time, token kind,
+audience, scope and the admitted requesting client (`azp` under the selected
+Keycloak profile). A role or `azp` never substitutes for audience validation.
+Admit an actual human authentication context, not merely a syntactically valid
+`sub`: human BFF clients disable service accounts, password grants and other
+unneeded flows; workload clients are separately classified and rejected by this
+API. Qualify this against actual issued tokens and client configuration.
+
+The request has no arbitrary account or subject selector: Identity derives the
+authority/subject from verified access-token context. ID tokens are never API
+bearer tokens. A token meant only for Review Router is rejected by Identity.
+The resolver token is never a repository credential or a generic credential for
+another product API. Later resource-server grants use their own audience and
+scope. Qualify actual emitted tokens; configuration labels are not evidence.
+
+Use a deliberately narrow public-subject profile for the trusted first-party
+clients initially. Pairwise subjects can differ across clients/sectors [S1];
+never assume they all equal the same Keycloak user ID. Enabling pairwise output
+requires an explicit owner-controlled alias mapping and migration first.
+
+Self-resolution creates an account only for an authenticated eligible authority
+subject and the admitted signup policy. It neither creates tenant memberships
+nor claims that a legacy product user with the same email is that account.
+Unauthenticated directory lookup and caller-selected issuer discovery are absent.
+
+### Review Router-specific contract
+
+Keycloak authenticates; Review Router owns the GitHub App/user authorization or
+GitLab OAuth grant, selected provider identity and repository installation.
+GitHub App permissions come from the app/installation and user intersection;
+ordinary OAuth `repo` scopes are not an accurate substitute [S3]. GitLab
+`read_user` is profile access; repository provisioning may require broader
+product consent [S4]. Identity stores neither product token.
+
+Preserve Review Router's existing `User.id`, memberships and installations.
+Require recent proof of both the legacy user and the central account, with an
+explicit intent to bind those exact owners. An existing local session satisfies
+the legacy side only if its actual authentication age/assurance meets that policy;
+an old cookie plus fresh central login is insufficient. Otherwise a product-owned
+OAuth continuation proves the old exact provider identity. Bind both proofs to
+one bounded browser/session-generation intent and consume it once. Do
+not infer upstream numeric identity from `kc_idp_hint`, email, username, or a
+broker session-note username. Different provider accounts need an explicit
+choice, never an implicit merge. Already-owned bindings cause a typed conflict.
+
+Account linking and repository connection remain independent: disconnecting
+GitHub repositories does not delete the global login root; removing a login
+root does not automatically transfer a repository connection. Before enabling
+new connections, reuse the current Review Router #1007 custody/revision work
+where it has landed. Do not duplicate a parallel credential manager.
+
+## 7. Binding changes, MFA, recovery and administration
+
+Use Keycloak's supported broker/account linking flow and its credential UI,
+initially with a small theme. Current supported application-initiated linking
+is a candidate mechanism to qualify [S5]; this plan does not freeze an obsolete
+URL or internal session-note API. Avoid a custom Java authenticator unless a
+bounded spike proves the required contract cannot be met through supported
+configuration/APIs. Such a finding changes the phase estimate explicitly.
+
+Adding/removing authentication roots, changing recovery material, migrating an
+authority binding, closure and administrative containment require fresh appropriate
+authentication and explicit intent. Use authenticated `auth_time` and admitted
+assurance evidence; a freshly refreshed token's `iat` is not fresh user proof.
+Require phishing-resistant MFA for privileged operators. Offer passkeys and
+recovery mechanisms appropriate to the chosen account profile; NIST is guidance
+for the threat model, not a compliance certification [S6].
+
+Do not automatically link matching email addresses, even when both providers
+report them verified. Prove ownership of both sides, consume that proof once,
+and reject concurrent competing binding changes. Unlink must preserve an admitted
+way to regain access, or enter an explicit recovery/closure flow; two concurrent
+unlinks must not remove the final usable authentication root. The adapter must
+prove the real Keycloak operation and read-back semantics; a local count alone
+cannot enforce a concurrent provider mutation.
+
+Inventory every enabled root-changing channel in the pinned Keycloak profile:
+Account Console, broker link/unlink, application-initiated actions, recovery,
+administrator APIs and any supported extension. The same invariant must be
+enforced across them. Hide-only UI changes do not disable an endpoint. Disable
+an unsafe path or qualify a supported enforcement mechanism; if neither is
+possible, that capability cannot ship until the bounded provider-extension
+decision is resolved. Test competing channels, not just two calls to our adapter.
+
+The initially admitted social account is a declared global authentication root.
+Its compromise and upstream recovery have a global account impact. A public
+GitHub/GitLab hostname does not prove personal custody. Customer-controlled
+GitLab/enterprise IdPs and corporate mailbox recovery must not become unrestricted
+roots of a shared A/B account. Keep them disabled for this global-root profile
+until scoped provenance/recovery is designed and qualified. This still permits
+product-owned self-hosted GitLab repository connections without granting that
+server global login or recovery authority.
+
+Keycloak owns credential recovery; Identity owns eligibility and rebinding.
+A reset link cannot bypass a suspended/closed Identity account. Email is a
+notification/recovery channel only under the declared trust policy, never
+ownership evidence sufficient to move an existing product account. Lost all
+factors is a separate audited recovery operation, with no heuristic based on
+name, email similarity, OS account, an old backup or customer-admin role.
+
+Human/platform service/agent actors and OAuth clients remain distinct. Product
+admins cannot delete a global account, edit another customer's factors or gain
+Keycloak realm-management roles. Operator APIs require their own narrow clients,
+capabilities, audit and step-up. Workload identity authenticates a caller, not an
+arbitrary human subject it places in a request. Break-glass recovery is separately
+scoped, time-bounded and audited; never a fallback allow when Identity is down.
+
+## 8. Sessions, logout, suspension and freshness
+
+Keycloak remains the authentication-session authority. Product BFFs own local
+sessions. Identity does not implement its own refresh-token minting system or
+duplicate all Keycloak sessions. An account security epoch is eligibility/version
+state, not an OAuth session database.
+
+Every issued product session stores an immutable `issuedSecurityEpoch`, the
+authority incarnation and its admitted authentication proof. Revocation events
+(including suspend, compromise containment and global logout) advance the
+account epoch and an authoritative authentication cutoff; ordinary profile
+changes advance account revision without needlessly revoking every session.
+At each protected admission, a session must match current-enough account epoch
+and incarnation. Refreshing a token or status lease never advances the session's
+issued epoch. Re-enablement keeps the increased epoch. A final active snapshot
+after missed suspend and enable events therefore cannot revive an old session.
+
+New session issuance after a cutoff requires an admitted fresh authentication
+after that cutoff, using actual `auth_time`/assurance, not token `iat` or a still
+live Keycloak SSO/refresh token. Qualify explicit reauthentication and the pinned
+provider's timestamp granularity/skew; an indistinguishable boundary proof is
+rejected. This requirement also covers the interval before asynchronous provider
+logout has settled. It does not create another refresh-token authority.
+
+Browsers get protected opaque session cookies; tokens remain server-side.
+Use Secure, HttpOnly, a narrow host cookie, an admitted SameSite setting,
+session fixation protection and explicit CSRF/origin checks on state changes.
+Do not put tokens in URL fragments, logs, localStorage or cross-product cookies.
+Two-replica refresh requires a durable claim/version and atomic publication;
+logout, revoke or disconnect must win over a late refresh. A process-local
+single-flight is insufficient. Reuse the actual product custody owner.
+
+Back-channel logout validates signed logout-token issuer, intended audience,
+event, age and replay identity; `sid`/`sub` select only the appropriate local
+sessions [S7]. Treat missed logout delivery as a failure mode. Global logout
+ends the declared authentication sessions, not product balances or independently
+authorized API keys. Those product capabilities retain an explicit compromise
+and account-disable policy with their owners.
+
+### Proposed initial freshness contract
+
+Events accelerate revocation; **event receipt alone never proves freshness**.
+For protected new admissions, each consumer keeps bounded account-status evidence
+from Identity with account, authority incarnation, lifecycle/security revision,
+observation time and a strict validity deadline. Proposed initial maximum stale
+acceptance is **60 seconds including clock-skew allowance**, pending the phase-0
+operational decision and real measurement. A cache may shorten, never extend it.
+Expired, missing, contradictory or unavailable required evidence fails closed.
+Existing sessions cannot live indefinitely just because an access JWT is valid.
+
+Evidence expiry is anchored to the authoritative snapshot's observation time,
+with a bounded absolute `validUntil`; never start a fresh 60-second TTL when a
+delayed response or replayed event arrives. The client also records monotonic
+request-start time and bounds its usable deadline conservatively by that start
+plus the admitted maximum, source expiry, applicable credential expiry and skew.
+Response transit consumes the budget. Reject evidence already expired on arrival
+or older than a known account revision. Uncertain clock conversion closes
+admission. These are authenticated API response facts, not a new token format.
+
+Fresh evidence is obtained at login and refreshed on demand, with deduplication,
+or in authorized bounded batches for active accounts. The authorization contract
+below applies; neither an arbitrary list nor a global scan is permitted. Clock
+regression/restore invalidates the local lease. A consumer
+restarts with expired evidence until refreshed. Sensitive global operations
+read the authoritative account state at their own commit boundary.
+
+### Status and delivery authorization
+
+P2 can start with self-only refresh using a valid server-held user token addressed
+to Identity. P4's batch/feed profile uses a **separate workload client**, mapped
+by operator-owned configuration to a consumer identity, with `identity-api`
+audience and the narrow proposed `identity.status:read` permission. Human OIDC
+clients cannot use client credentials to impersonate users. Workload tokens and
+self tokens are not interchangeable; account management has separate authority.
+
+A successful authenticated self-resolution records only the minimal
+`(consumerId, AccountId, authorityIncarnation)` attachment justified by the
+verified subject and admitted requesting OIDC client. The consumer's workload
+client is paired with that OIDC client by trusted configuration. It cannot create
+an attachment for a caller-selected AccountId. This small relation authorizes
+minimal eligibility/epoch reads and recipient-scoped lifecycle delivery; it
+stores no local product UserId, membership, repository grant or product profile.
+It is not proof that a product has created or merged an account.
+
+Batch reads and replay/snapshot feeds intersect requested references with that
+consumer's live admitted set, enforce bounded size/rate/retention and return a
+non-enumerating denial for unowned references. Events use the same recipient
+scope. The live-attachment predicate also applies to self-status refresh: a
+detached consumer receives a typed reattachment-required/denied result and no
+usable active lease, even with a still valid old self token. Consumer detachment
+is versioned; reattachment requires renewed user-bound
+authorization after its cutoff. Ordinary self-status refresh cannot reactivate
+a detached relation; preserve that tombstone and require an explicit fresh
+attachment intent. Closure retains only the bounded final-status/tombstone delivery
+needed by previously attached consumers under the selected retention policy.
+P1 specifies exact wire names and P4 qualifies cross-consumer, detached-relation
+through both self and batch, expired-credential and self-token-to-batch rejection.
+A generic service credential
+never grants a global account directory.
+
+This deadline bounds new admission from the Identity suspension commit. It does
+not promise recall of already disclosed data or physical cancellation of remote
+work. Already accepted work and API-key use obey their product-specific rules.
+Each integrated product must state which protected operations enforce this
+contract before it claims support; otherwise the rollout remains incomplete.
+
+Suspension commits eligibility, epoch/revision, audit and outbox first. Provider
+disable/logout and consumer delivery follow as bounded retriable effects.
+The declared global-logout operation likewise commits its epoch/cutoff before
+provider logout, so missed back-channel notifications cannot keep an old product
+session alive beyond the freshness bound. A provider-native single-session logout
+is a distinct scope; do not label it complete account-wide revocation. Exposed
+account-wide UI actions route through the canonical operation, including the
+managed account UI profile; direct provider administration belongs to the
+controlled/out-of-band policy below.
+Return accepted plus operation progress until they are confirmed; do not claim
+all sessions were revoked after a local write. Serialize provider mutations per
+authority subject. A timeout after sending a Keycloak request is an
+`outcome_unknown` operation, not permission to send an opposing successor.
+Persist the in-flight intent before issuing the external request. Losing its
+worker lease cannot authorize a conflicting successor while that worker may
+still send or complete the request.
+Keycloak's ordinary administration update has no assumed revision CAS: a DB
+lease, expired worker, cancellation or one read-back cannot fence a late PUT.
+
+Hold conflicting provider mutations and keep user admission denied until the
+original effect is demonstrably settled or a qualified provider-side barrier
+excludes it. Process failover inherits that durable unresolved operation; it
+does not erase it. If the pinned provider offers no reliable settlement proof,
+retain a visible repair-required state and require an audited recovery/barrier
+procedure, rather than claiming automatic enable-after-timeout. Route ordinary
+admin changes through the same owner; break-glass/out-of-band changes invalidate
+continuity and close admission until reconciled. Read-back verifies settled
+state but does not itself prove the absence of an in-flight predecessor.
+Re-enabling becomes effective only after that gate and fresh-session policy are
+satisfied. Test the delayed disable-after-enable and enable-after-disable
+counterexamples against the real adapter. No cross-system atomicity is claimed.
+
+## 9. Durable effects, retries, events and erasure
+
+There is no distributed transaction between Identity PostgreSQL, Keycloak,
+NATS and product stores. Keep network calls outside account transactions. Use
+an account-owned durable operation/receipt for external lifecycle effects.
+When an API response is lost after an effect, reconcile the exact original
+intent and current provider state before retry or replacement. Idempotence of
+one provider endpoint does not prove ordering of conflicting operations.
+
+Proposed event envelope: event ID, producer/authority incarnation, contract name
+and version, opaque account reference, monotonic account revision, occurrence
+time and minimal transition facts. Events do not carry bearer tokens, secrets,
+full user profiles or product memberships. Trace/correlation IDs never authorize
+an action. The owning wire schema defines numeric/encoding limits across TS/Go.
+
+Account transition, audit and outbox commit together. Publish with bounded batch
+size/lease; acknowledge only after durable broker acceptance. A crash can repeat
+publication. Consumers deduplicate in an inbox transaction with their local
+projection, reject stale incarnation/revision, detect gaps and reconcile from an
+authorized snapshot/feed. No exactly-once claim and no security dependence on
+Get Modular Observation. NATS subjects, stream/consumer permissions and retention
+must prevent arbitrary products from reading a cross-product account directory.
+Use the recipient-scoped ConsumerAttachment set selected in section 8 for live
+delivery and replay; a generic first-party broadcast is not this profile.
+
+Outbox retention and replay limits are selected with outage and restore windows.
+Poison messages yield an observable repair state; skipping them cannot quietly
+advance a security checkpoint. Unbounded retries, amplification or permanent
+full-account scans are not acceptable. The receiver owns its product effects;
+the SDK is not another grant ledger or dispatch authority.
+
+Closure first blocks new account use. Erasure then tracks Keycloak profile/
+credential cleanup, Identity PII and product-owned obligations with separate
+receipts. A legal/retention decision must name which minimum data remains and
+why; a hashed issuer/subject is still potentially identifying data. No promise
+of complete cross-product erasure before every applicable owner confirms it.
+Keep non-reusable reference semantics without retaining unnecessary raw PII.
+
+## 10. SDK, external API and scaling without premature distribution
+
+Start the public contract with self-resolution/current-account status and the
+explicit account-management operations actually implemented. Separate user-facing
+and operator methods. Administrative arbitrary-account lookup must never be
+reachable through a self-only token. Names such as `ResolveSelf`, `SuspendAccount`
+and `GetOperation` are prospective; phase 1 records the exact public schema.
+
+The contract defines success, denied, conflict, expired proof, unsupported,
+unavailable and outcome-unknown separately. Commands carry an idempotency key
+and expected revision when needed. SDK retries only a demonstrably safe read or
+the same idempotent command; an ambiguous effect keeps its original operation
+identity. Deadlines stop waiting, not already committed effects.
+
+Generate Protobuf/Connect transport types and clients from one schema. A small
+TS wrapper maps errors, deadlines and credential supply. Go consumers use the
+same published semantics and their generated transport adapter. Do not require
+GetTok to adopt TypeScript/Get Modular or import Identity's domain package.
+Cross-language vectors cover large revisions, timestamps, absent fields, unknown
+enum/version handling and typed errors. Generated lines are not authored LOC.
+
+The default deployment uses stateless API replicas and PostgreSQL as the account
+authority, plus independently scaled Keycloak. Bound DB pools, payloads, login
+transactions, JWKS requests, per-account work, queues and retries. Identity IDs
+contain no physical shard address. Key lifecycle and issuer continuity are
+explicit so later cell placement does not require replacing product identifiers.
+No active-active writer algorithm or new shard/router service is built now.
+
+The first load probe records expected active accounts, login/resolve throughput,
+status refresh load at the selected freshness deadline, p95/p99, DB saturation,
+provider/connection rate limits and worst-case recovery. Numerical targets and
+operational SLOs must be named before calling the deployment qualified; the
+organization's scale ambition is not a benchmark result.
+
+## 11. Module and extension integration
+
+Use actual public Core/Assembly contracts now: descriptors and implementations
+live in composition, while features expose ordinary semantic ports. Qualify the
+selected pinned static graph before product reliance. Resources manages owned
+process/worker/DB handles at the outer boundary. Borrowed handles are never
+closed by a feature that did not acquire them. Startup failure closes all acquired
+resources; shutdown stops ingress, settles owned work, then releases dependencies.
+
+Only import declared package public roots. Keep emitted declarations free of
+optional frameworks. Apply the current CMS function-property port conventions
+and module/feature publication rules. No local resolver, copied lifecycle kernel,
+fallback production construction path or generic plugin manager.
+
+| Extension point | Initial implementation | Later EF/LMU admission requirement |
+| --- | --- | --- |
+| Audit export | Trusted static adapter over minimum event data | Supported artifact verification/install/enablement, explicit read grant and effect sink; at-least-once delivery preserved |
+| Notifications | Static channel adapter; account policy owns recipient and purpose | Bounded capability/PII permission; stale work cannot bypass current account policy |
+| Product lifecycle delivery | Versioned event transport adapter | Consumer-specific contract, durable progress and no transfer of account authority |
+| Profile enrichment | Optional non-authoritative adapter | Validation, origin/SSRF restrictions, no overwrite of identity/recovery ownership |
+| Token verification, credentials, binding/lifecycle commits | Controlled reviewed process rollout | No general-purpose third-party hot replacement in the first product |
+
+EF main has no production packages; its #68 is a TEST-owned matcher. LMU #4 is a
+private reference, not an update runtime. GM lifecycle-kernel remains private.
+Do not import or copy those contracts to satisfy an aspirational dependency.
+When the owners publish their admitted APIs, refresh this plan and bind exact
+versions in the outer adapter. Public contract availability, compatible semantics,
+artifact qualification and consumer adoption are four separate checks.
+
+For a genuinely live eligible adapter, require supported admission cutoff,
+generation affinity for held work, current receiver grants, canonical-state
+ownership, original cleanup completion/debt and rollback compatibility. LMU
+owns shared update coordination; Identity supplies its real narrow primitives.
+A signed artifact or Worker is not hostile-code containment. In-process trusted
+extensions can access the process's authority; untrusted execution requires an
+actually qualified isolation profile before enabling it.
+
+This architecture reduces the scope of later edits; it cannot promise zero
+refactoring against an unpublished contract. Keep the semantic port small enough
+that changes stay at integration boundaries, without inventing guessed EF/LMU
+types or a second implementation now.
+
+## 12. Deployment, recovery and threat controls
+
+| Boundary | Required implementation/operational contract |
+| --- | --- |
+| OIDC/JWT | Maintained libraries; exact issuer/audience/algorithm and token-use rules; bounded JWKS cache, refresh cooldown and unknown-key denial [S8] |
+| Keycloak origin | Fixed externally visible issuer/hostname, HTTPS, explicit trusted proxy behavior; protect Admin API at the network/proxy, not only an admin hostname [S9] |
+| Clients and callbacks | Exact redirects/logout returns, separate environment clients, no wildcard redirects or caller-supplied arbitrary upstream |
+| Provider connections | Approved discovery/hosts; no public network fetch from untrusted issuer strings; self-hosted GitLab access policy enforced by its product adapter |
+| Secrets | Approved secret custody/encryption/rotation; separate DB roles and Keycloak admin privilege; no secrets in logs, plans, tokens-as-events or error pages |
+| Abuse | Account/IP/client-aware bounded rate limits and recovery throttling; avoid trivial account enumeration and attacker-induced permanent lockout |
+| Data stores | Identity and Keycloak have separate DB roles/schemas/databases and no cross-store SQL; migration owner is explicit |
+| Backup/restore | Restore actual database, key material, authority/binding continuity, outbox/inbox positions and minimum revoke/retirement evidence coherently |
+| Availability | Timeouts and bounded retries at each adapter; denied versus unavailable are distinct; no fail-open on stale eligibility |
+| Upgrade | Exact container digests, schema/theme/client config compatibility, expand/contract migration, tested rollback limits; preserve issuer/sub continuity |
+
+Keycloak realm export is not a complete backup [S10]. Recover with admission
+closed; compare restored revisions and retained revocation evidence, repair
+bindings, invalidate obsolete sessions and reconcile pending operations before
+reopening. A newer code image over an older database does not establish authority
+continuity. Key loss cannot be repaired by inventing a new owner binding.
+
+No blind downgrade after a destructive schema migration. Returning to previous
+code requires compatible data and current grants, not replay of an old authority
+snapshot. Report partial restore, unknown provider effects and cleanup debt as
+such. The initial Compose profile is for development/small server deployments;
+large hosted Kubernetes qualification is a separate deployment responsibility.
+
+## 13. Implementation phases and exit evidence
+
+Every phase starts with the assigned scope, current source pins and unresolved
+dependency check. A plan is not permission to implement unrelated upstream work.
+Commits are published promptly to the owning Draft PR; protect accepted data,
+actual required checks and other agents' branches. No runtime feature flags are
+introduced solely to defer architecture.
+
+| Phase | Concrete steps | Exit evidence and dependencies |
+| --- | --- | --- |
+| P0 — authority and bootstrap decisions | Record account/product/Keycloak owners, login-root and freshness policy, API exposure, retention/restore targets. Resolve the central Stack/coverage/admission deltas through their owners. Select exact compatible tooling and FMS/CMS cohort. | Accepted scoped decisions, current artifacts, real admission route. Planning can finish before these production gates; no empty source to fake coverage. |
+| P1 — contracts and first account slice | Materialize one account feature and its real source topology with Foundation Plan/Apply. Implement immutable ID, unique issuer/subject resolve and atomic receipt/audit/outbox. Define the initial Protobuf/Connect self contract and local consumer mapping. | Real PostgreSQL concurrent registration and replay produce one account/binding; outsider subject and wrong audience fail. Source/strict TS/CMS gates actually execute. |
+| P2 — Keycloak and direct social login | Pin Keycloak/container/config/theme; register product/environment clients, exact callbacks/scopes; configure GitHub/GitLab brokering and bounded signup. Implement supported verifier/management adapters and BFF transaction boundary. | Real Keycloak/browser flow without Google; two clients, cookie isolation, state/nonce/PKCE rejection and replay. Provider-native proof is separately recorded. |
+| P3 — linking, factors and lifecycle | Implement proof-based link/migrate, concurrent unlink/last-root protection, privileged step-up, suspend/enable/close/erase intents, provider-effect reconciliation and recovery limits. | Competing link/unlink, proof replay, provider timeout-after-effect and suspend/enable reordering cannot grant unintended access. No silent account merge. |
+| P4 — durable consumers and sessions | Deliver outbox/feed, bounded status freshness, idempotent consumers, BFF two-replica refresh/logout/back-channel behavior and consumer repair. | Stop/delay/reorder delivery, revoke during refresh, restart with stale evidence; selected maximum stale-admission bound is measured and enforced. |
+| P5 — SDK and product integration | Pack schema/TS client; exercise Go binding; implement GetTok's local account adapter and reviewed RR plan in their repositories. Reuse landed RR custody/provisioning work. | GetTok balance/API-key/history preserved; RR direct login + repository connection, legacy binding, disconnect and mismatch recovery work against actual owned APIs. |
+| P6 — operations and release qualification | Complete runbooks, backup/restore drill, key rotation, incomplete HTTP shutdown, bounded load and outage probes; inspect artifacts and required CI on actual release candidate. | Defined deployment profile with observed limits and recoverability; no secrets in evidence; exact production/tooling pins and no outstanding critical review findings. |
+| P7 — qualified extensions/update adoption | After real public release and profile evidence, implement one useful audit/notification adapter using actual EF/LMU public contracts, not private references. | Denied effects, unsupported contract, held work, late disposer and failed/unknown update cases observed through the real mechanisms. Separate support claim from P6. |
+
+P0/P1 do not require all future P7 mechanisms. P2 fixtures and contract review
+can proceed independently where unresolved production admission does not apply.
+P5 consumes P3/P4 security semantics; enabling a login button before those controls
+exist is not a completed rollout. If a shared owner primitive is missing, name
+that owner and affected exit instead of hiding a new subsystem in adapter LOC.
+
+### Suggested coherent implementation PR boundaries
+
+Use one owning PR per coherent slice: bootstrap + first real account feature;
+login/provider adapter; lifecycle/durable delivery; client/product integration;
+operational qualification. A PR can combine phases when its invariant is
+reviewable, but should not bundle a central policy change with an unrelated
+consumer migration. The current task ends at the planning Draft PRs.
+
+## 14. Necessary tests, without a large decorative suite
+
+Prioritize a compact set of high-value integration/concurrency/E2E families.
+Use real PostgreSQL, the exact Keycloak build and real HTTP for guarantees that
+depend on them. Controlled upstream OAuth fixtures make adverse cases deterministic;
+they do not certify native GitHub/GitLab consent or installations. Run one bounded
+provider-native canary per supported provider using disposable TEST apps/accounts
+when authorized credentials exist. If unavailable, label that release evidence
+pending; do not replace it with a mock PASS.
+
+| Family | Minimum discriminating cases | Independent observable result |
+| --- | --- | --- |
+| T1 — authenticated resolution | Valid direct login; wrong issuer/audience/client/token kind; nonce/state/PKCE failure and callback replay; cross-consumer/expired/detached status access and self token used for batch | Actual session/account mapping, no unintended account, directory access or token exposure |
+| T2 — identity ownership | Parallel create, link conflicts, equal email/different identities, same native GitLab ID/different instances | Unique database ownership and unchanged losing account |
+| T3 — lifecycle races | Competing Account Console/broker/admin final-root changes; stale proof; delayed opposing Keycloak mutations after timeout/failover; close versus fresh login | Enforced common root policy, unresolved-effect gate and no successor access from obsolete work |
+| T4 — session custody | Two replicas refresh, logout/disable/disconnect during refresh, back-channel replay | Revoked state wins; late tokens do not reopen a session/connection |
+| T5 — effects and delivery | Lost provider reply, DB rollback, publish-before-ack crash, duplicate/reordered/gapped events | Exact receipts/projections; no duplicated ownership or falsely completed revoke |
+| T6 — freshness and outage | Paused delivery, delayed active response, unavailable status API, cache expiry, restart/clock regression; missed suspend then enable or global logout with old session/SSO/refresh token | Denial by source-bound expiry and epoch/cutoff; response receipt cannot extend authority; fresh proof required |
+| T7 — product migration | Existing GetTok user with balance and keys; RR legacy user/memberships; old cookie plus attacker's fresh central login; conflicting old/new binding; connection cancellation | Recent proof of both owners, same local IDs/business data and explicit repair state |
+| T8 — recovery and keys | Signing-key rotation, unknown kid storm, backup restore with stale binding/revoke, lost continuity | Bounded fetches, correct signatures and closed admission until repair |
+| T9 — architecture and lifetime | Declared forbidden inward import, public package consumer, partial startup, held worker and incomplete HTTP body | Real boundary rejection and owned-resource cleanup; borrowed resource survives |
+| T10 — bounded load | Selected two-replica workload, status refresh at expiry, provider/DB outage | Measured limits, bounded queues/pools and recoverable overload |
+
+These are scenario families, not a claim that ten tests prove all security.
+Parameterize genuinely shared negative cases; add unit/property tests only for
+subtle owned transitions or codecs that integration tests cannot diagnose well.
+Reuse upstream OIDC/crypto tests and existing Foundation/FMS checks. No copied
+assertions of every getter, snapshot of all config or coverage percentage target.
+Retain deliberately broken controls for ownership/freshness and observe the
+failure at the real receiver, not only at a mock return value.
+
+## 15. Estimates and design confidence
+
+These replace the earlier conversational 5.5–9k estimate with explicit scope.
+They are planning judgments, not measured code or a target to fill. P is new/
+changed handwritten production/integration code; T is focused tests/fixtures.
+Generated/vendor code, docs, realm/configuration/infrastructure, provider-side
+extensions, shared-library completion and operational rollout are excluded.
+
+| Workstream | P LOC | T LOC | Engineer-days, one experienced engineer |
+| --- | ---: | ---: | ---: |
+| Identity account/binding/lifecycle core and persistence | 2,200–3,600 | 900–1,500 | 18–30 |
+| Keycloak/protocol/HTTP/composition integration | 1,400–2,300 | 500–900 | 12–22 |
+| Durable effects, audit, status freshness and recovery integration | 1,500–2,500 | 700–1,200 | 15–28 |
+| Public contract and thin SDK/cross-language integration | 600–1,100 | 250–500 | 6–12 |
+| **Identity first expanded scope, without P7** | **5,700–9,500** | **2,350–4,100** | **51–92** |
+| GetTok adapter/migration, separate consumer scope | 600–1,300 | 300–650 | 6–14 |
+| Review Router adaptation | Use its own current plan | Use its own plan | Reuse active credential work; do not count it twice |
+| One later qualified EF/LMU adapter | 500–1,200 | 250–600 | 6–15 after actual contracts exist |
+| Missing upstream admission/lifecycle primitives | Separately sized by owner | Separately sized by owner | Not hidden in the numbers above |
+
+Sizing confidence is **3/10** until P0 and the first real Keycloak/PostgreSQL
+slice. Direction fit **9/10**, expected reliability **8/10 within the qualified
+profile**, implementation/maintenance complexity **8/10**. These are ordinal
+judgments, not measured availability or a guarantee of no future refactoring.
+Native provider limitations, admin API race semantics or custom provider code
+can exceed the range. Record that finding instead of weakening an invariant.
+
+## 16. Decisions to resolve before dependent implementation
+
+Owner-selected expanded scope and direct GitHub/GitLab login are not reopened.
+Routine implementation choices stay with maintainers. The following bounded
+decisions materially affect custody, compatibility or user-visible guarantees.
+Numbers below are incremental alternatives and overlap section 15; do not add
+them together. U = fit, N = expected reliability in stated scope, C = complexity;
+estimate confidence is 2–3/10. Generated/config/deployment work is excluded.
+
+### D1. Stable account resolution boundary
+
+| Option | Benefit / strongest counterexample | P / T LOC; days | U/N/C |
+| --- | --- | --- | --- |
+| A. Authenticated self-resolution, first-party public-subject profile — recommended | Keeps canonical mapping in Identity and uses standard access-token audience. Login depends on Identity availability; token/profile configuration must be proven. | 500–900 / 200–400; 5–9 | 9/8/5 |
+| B. Read-only AccountId token mapper, with authoritative provisioning | Removes login lookup after provisioning. A stale/misconfigured writable attribute can assert the wrong account; atomic provisioning/migration is extra work. | 700–1,300 / 350–650; 8–15 | 7/7/7 |
+| C. Product-scoped alias issuance and mapping from the start | Reduces cross-product correlation. Adds durable alias lifecycle and migration semantics before first-party need is demonstrated. | 1,100–2,000 / 500–850; 12–22 | 6/8/8 |
+
+Select A for P1 unless concrete external-customer privacy requires C. Reject A
+if its actual access token cannot be constrained to the self API. B requires a
+non-user-editable claim and lifecycle read-back qualification, not just a mapper.
+
+| Option | Migration effect and falsifying experiment |
+| --- | --- |
+| A | Existing products add a resolver/binding adapter while retaining local IDs. Reject adoption if a wrong-audience token or caller-selected subject resolves an account, or the actual trusted clients do not share the admitted subject namespace. |
+| B | Coordinate canonical provisioning, mapper rollout and old-token expiry before consumers trust the claim. Reject if a user-writable/stale attribute or interrupted provisioning can produce another account's ID. |
+| C | Products migrate to audience-scoped aliases through explicit versioned bindings; old references remain resolvable only under the transition policy. Reject if an alias from client A resolves in client B, or alias rotation/restore silently acquires a different local owner. |
+
+### D2. Admission freshness
+
+| Option | Benefit / strongest counterexample | P / T LOC; days | U/N/C |
+| --- | --- | --- | --- |
+| A. Events plus bounded current-status evidence — recommended | Local request path and explicit stale bound. Gaps, clocks and caches must expire closed; an event checkpoint is insufficient. | 700–1,300 / 400–700; 8–15 | 9/8/7 |
+| B. Synchronous current-status check for each protected admission | Easier local freshness reasoning. Central outages/latency affect every protected operation; still cannot recall external effects. | 400–800 / 250–500; 5–10 | 7/8/5 |
+| C. Very short resource credentials with no status cache | Fewer projection mechanisms. Logout/disable waits until expiry; reissue must consult canonical eligibility, and refresh/load can be expensive. | 500–1,000 / 300–600; 6–12 | 6/7/6 |
+
+Approve the numerical bound and affected operations at P0. Test A's stopped
+delivery + expired evidence counterexample before adopting it. Use B for the
+service's own sensitive commits even if consumer ordinary paths use A. C is
+credible only for a profile whose explicitly accepted expiry delay is sufficient.
+
+| Option | Migration effect and falsifying experiment |
+| --- | --- |
+| A | Add minimal consumer attachments, status leases, session epochs and recipient-scoped delivery to existing product session guards. Pause delivery across suspend and enable; reject the design if an old session receives renewed admission from the final active snapshot. |
+| B | Add a synchronous authoritative check to every declared protected path and revise product outage/latency expectations. Disconnect Identity during an admission: any fallback allow beyond the promised boundary falsifies the profile. |
+| C | Change resource issuers and consumer session/token lifetimes, then expire old long-lived credentials before cutover. Suspend just after issuance and attempt refresh/reissue; reject if new credentials are issued or old ones outlive the accepted bound. |
+
+### D3. Global roots and corporate SSO
+
+| Option | Benefit / strongest counterexample | P / T LOC; days | U/N/C |
+| --- | --- | --- | --- |
+| A. Declared personal social roots + central recovery/step-up; corporate roots gated — recommended first | Direct requested login and bounded trust model. Public provider account recovery may still be company-controlled; do not assume neutral custody. | 400–900 / 250–550; 6–12 | 9/8/6 |
+| B. Scoped enterprise authentication provenance now | Supports required company SSO with shared accounts. Existing cookie/refresh/linking can erase origin unless the actual provider gives enforceable scoped proof. | 1,800–4,000 / 1,000–1,800; 22–45 | 7/7/9 |
+| C. Separate authority realm per company, explicit cross-account use | Clearer root isolation for each company. More user accounts/recovery/operations; conflicts with seamless global-account goals unless explicitly accepted. | 1,200–2,500 / 650–1,200; 16–30 | 5/8/8 |
+
+This plan chooses A as its proposed first profile. B needs an A-controlled IdP/
+mailbox versus B-resource negative experiment. A known account-root isolation
+failure cannot be dismissed because membership checks pass. Corporate SCIM must
+later remove scoped relationships, not destroy the person's global account.
+
+| Option | Migration effect and falsifying experiment |
+| --- | --- |
+| A | Admit only the declared personal-root profile initially; keep corporate login separate from product SCM connections. Reject any configuration where an unadmitted corporate recovery channel or broker path becomes an unrestricted global root. |
+| B | Introduce origin/assurance scope into login, refresh, session admission, linking and recovery without erasing existing account IDs. Let company A control its IdP/mailbox and attempt B-resource access through every continuation; a lost provenance restriction falsifies isolation. |
+| C | Namespace authority bindings by realm and migrate memberships through explicit dual proof; do not combine equal emails across realms. Attempt company-A recovery against a company-B/global binding; any transferred ownership or cross-realm token acceptance falsifies the profile. |
+
+### D4. Retention, recovery and deployment envelope
+
+The owner must select supported outage/restore windows, operational capacity,
+PII/evidence retention, closure confirmation and the first deployment environment
+before P3/P6 claim completion. There are not three meaningful universal retention
+durations to invent. Compare the concrete obligations with the operator and the
+actual product data owners. Pending values block destructive erasure/release
+claims, not independent model, adapter or fixture work.
+
+### D5. Future extension contracts
+
+Public EF/LMU selection is intentionally deferred to their real release. There
+is no technically sound alternative based on importing TEST/private contracts
+or implementing a second coordinator. P7 records a support profile, exact public
+dependencies and owner evidence when they exist. P1–P6 stay statically composed.
+
+## 17. Definition of completion
+
+The planning task is complete when both owning Draft PRs contain detailed source-
+backed plans, applicable bootstrap/contract constraints, at least two actual
+independent critique rounds with corrections, and proportional documentation
+verification. No critical review finding may be hidden as a completed runtime
+guarantee. Open policy decisions name the exact dependent phase.
+
+The future service is complete only for its declared release profile after its
+real protocol/storage/consumer/operational evidence and required checks pass,
+with exact adopted artifacts, recovery runbooks and no unresolved critical
+findings. Queued, skipped, mocked, merely configured and source-reviewed results
+remain distinct from executed E2E and enforced production behavior.
+
+## Primary protocol sources
+
+Moving documentation retrieved 2026-11-26. Recheck supported behavior against
+the exact deployed release at P2. These sources constrain the design; they do
+not certify this unimplemented service.
+
+- **S1:** [OpenID Connect Core 1.0, errata 2](https://openid.net/specs/openid-connect-core-1_0.html), subject/issuer, pairwise subjects and token validation.
+- **S2:** [Keycloak Server Administration](https://www.keycloak.org/docs/latest/server_admin/), client-suggested IdP and first broker login/linking.
+- **S3:** [GitHub App user access tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app) and [GitHub App security practices](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/best-practices-for-creating-a-github-app).
+- **S4:** [GitLab OAuth provider scopes](https://docs.gitlab.com/integration/oauth_provider/) and [OAuth code/PKCE API](https://docs.gitlab.com/api/oauth2/).
+- **S5:** [Keycloak Server Developer Guide](https://www.keycloak.org/docs/latest/server_development/), supported broker APIs and application-initiated linking; observed documentation version 26.8.2, not yet an adopted container pin.
+- **S6:** [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b.html), authenticator lifecycle, phishing resistance and recovery guidance.
+- **S7:** [OpenID Connect Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html).
+- **S8:** [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700.html) and [RFC 8725](https://www.rfc-editor.org/rfc/rfc8725.html), OAuth/JWT security practice.
+- **S9:** [Keycloak hostname](https://www.keycloak.org/server/hostname) and [reverse proxy](https://www.keycloak.org/server/reverseproxy) boundaries.
+- **S10:** [Keycloak realm import/export limitations](https://www.keycloak.org/server/importExport).
