@@ -126,3 +126,21 @@ Foundation admission, package qualification and remote enforcement remain
 separate future evidence axes. Unresolved implementation decisions are explicitly
 owned by P0–P7 and the corresponding RR phase, including actual provider
 capabilities, bootstrap admission, numerical operational targets and retention.
+
+## Continuation check after the module PR merges
+
+A later source check at 02:42 Europe/Kyiv confirmed that GM #256, Extension
+Foundation #68 and LMU #4 have merged. Their exact new main revisions, inspected
+catalog/manifests and unchanged public package observations are recorded in the
+[source-freshness addendum](../research/modules-source-freshness-2026-11-26.md).
+It supersedes the earlier open-PR state, while retaining the audited plan and
+source evidence. No public EF/LMU production contract was introduced, so the
+reviewed architecture, API and adoption gates are unchanged.
+
+The continuation acceptance pass independently rechecked the two published main
+plans and review records, all 67 pre-existing local references and their
+cross-repository links. It found no missing original requirement, false runtime
+PASS, unfilled authoring placeholder or new material design blocker. The new
+addendum and its navigation are separately checked as documentation. Hosted
+Review Router CI results belong to that PR's exact head and are recorded in its
+PR verification note, not inferred from this source review.
