@@ -114,7 +114,13 @@ try {
         nativeGetTokConsumer: "failed",
         diagnostics: directory,
         locations: [...new Set(output.match(/[\w./-]+\.go:\d+(?::\d+)?/g) ?? [])],
-        stages: [...new Set(output.match(/native-stage:[a-z-]+/g) ?? [])],
+        stages: [
+          ...new Set(
+            [...output.matchAll(/nativeGetTokStage\\?"\s*:\s*\\?"([a-z-]+)/g)].map(
+              (match) => match[1],
+            ),
+          ),
+        ],
         browserPhases: [...new Set(output.match(/(?:\\?"phase\\?"):\\?"[a-z-]+\\?"/g) ?? [])],
       })}\n`,
     );

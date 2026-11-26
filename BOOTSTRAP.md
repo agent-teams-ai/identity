@@ -58,9 +58,18 @@ The latest checked owner heads remain central
 and Foundation
 [8432a97](https://github.com/agent-teams-ai/engineering-foundation/commit/8432a9737486384f894436bfd9242500e422fa5a).
 The central caller still executes its legacy Stack 0.1.1 / coverage adapter.
-Its narrow successor belongs in a separate owning PR, preserving the legacy
-profile and all actual v5 protections. Do not add rejected legacy fields to
-Identity's v5 profile. Docs stable33 remains QUALIFIED with Extension Foundation
+Its narrow successor is prepared in [central #447](https://github.com/agent-teams-ai/.github/pull/447),
+at source `050d47ec66717f0f177b586c36520eb09f3ab4e0`. Its 26 focused tests,
+native strict typecheck, complete maintained lint/format, source census and
+Foundation source boundaries passed locally. Its complete hosted
+[Node 26 check](https://github.com/agent-teams-ai/.github/actions/runs/45907296442)
+and [Node 24 compatibility check](https://github.com/agent-teams-ai/.github/actions/runs/45907296453)
+also passed, each with 5,810 current tests and nine retained frozen tests.
+The actual Identity configuration returns `configured_not_qualified` without
+issues under that candidate. The existing protected-source publication route
+and an explicit immutable consumer-pin update remain separate requirements.
+Do not add rejected legacy fields to Identity's v5 profile.
+Docs stable33 remains QUALIFIED with Extension Foundation
 as its canary; stable31 remains RECOMMENDED. Central
 [#434](https://github.com/agent-teams-ai/.github/pull/434) is still a separate
 managed-cohort adoption task. Identity has no fabricated managed Docs profile.

@@ -126,6 +126,7 @@ const prepareGetTok = async (): Promise<void> => {
   const version = await run(go, ["version"], { GOTOOLCHAIN: "local", GOWORK: "off" });
   assert.ok(version.stdout.startsWith("go version go1.27.3 "), "Native GetTok Go version differs");
   let compiled = false;
+  const started = performance.now();
   try {
     const result = await run(
       go,
@@ -140,7 +141,7 @@ const prepareGetTok = async (): Promise<void> => {
         "./internal/app",
       ],
       { GOTOOLCHAIN: "local", GOWORK: "off" },
-      300_000,
+      900_000,
       pathResolve(required("GETTOK_NATIVE_REPOSITORY"), "backend"),
     );
     await writeFile(join(logs, "consumer-build.log"), result.stdout + result.stderr, {
@@ -156,6 +157,16 @@ const prepareGetTok = async (): Promise<void> => {
         ? error.stderr
         : "Native compiler failed before captured diagnostics.";
     await writeFile(join(logs, "consumer-build.log"), stderr, { mode: 0o600 });
+    process.stderr.write(
+      `${JSON.stringify({
+        nativeGetTokCompilation: "failed",
+        elapsedMilliseconds: Math.round(performance.now() - started),
+        interruptionRequested: interruption.signal.aborted,
+        commandKilled:
+          typeof error === "object" && error !== null && "killed" in error && error.killed === true,
+        diagnostics: join(logs, "consumer-build.log"),
+      })}\n`,
+    );
   }
   assert.ok(compiled, `Native GetTok compilation failed; private diagnostics: ${logs}`);
   const state = await lstat(gettokBinary);

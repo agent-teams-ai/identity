@@ -96,7 +96,7 @@ after(async () => {
   await Promise.all([pool.end(), replica.end()]);
 });
 
-await test("two replicas racing first admission commit exactly one account and attachment", async () => {
+void test("two replicas racing first admission commit exactly one account and attachment", async () => {
   const actor = human();
   const results = await Promise.all(
     Array.from({ length: 12 }, async (_, index) =>
@@ -118,7 +118,7 @@ await test("two replicas racing first admission commit exactly one account and a
   assert.deepEqual(counts.rows[0], { accounts: 1, attachments: 1, receipts: 12, events: 1 });
 });
 
-await test("invalid proof cannot leave a partial account, binding, attachment, receipt or event", async () => {
+void test("invalid proof cannot leave a partial account, binding, attachment, receipt or event", async () => {
   const actor = human();
   await assert.rejects(
     accounts.api.resolveSelf(
@@ -143,7 +143,7 @@ await test("invalid proof cannot leave a partial account, binding, attachment, r
   }
 });
 
-await test("receipt replay preserves original deadlines and rejects actor changes or old evidence", async () => {
+void test("receipt replay preserves original deadlines and rejects actor changes or old evidence", async () => {
   const actor = human();
   const first = await accounts.api.resolveSelf(actor, "stable-receipt-key-1");
   assert.deepEqual(await otherReplica.api.resolveSelf(actor, "stable-receipt-key-1"), first);
@@ -163,7 +163,7 @@ await test("receipt replay preserves original deadlines and rejects actor change
   );
 });
 
-await test("status cannot enumerate or create attachments and authority restoration cannot claim a new account", async () => {
+void test("status cannot enumerate or create attachments and authority restoration cannot claim a new account", async () => {
   const actor = human();
   const first = await accounts.api.resolveSelf(actor, "first-owned-login-1");
   await assert.rejects(
@@ -191,7 +191,7 @@ await test("status cannot enumerate or create attachments and authority restorat
   assert.equal(count.rows[0]?.count, 1);
 });
 
-await test("suspend and enable preserve revocation even when a consumer missed every event", async () => {
+void test("suspend and enable preserve revocation even when a consumer missed every event", async () => {
   const actor = human();
   const first = await accounts.api.resolveSelf(actor, "before-suspend-login");
   await accounts.administration.transition(first.status.account, "suspend", 1n);
@@ -214,7 +214,7 @@ await test("suspend and enable preserve revocation even when a consumer missed e
   );
 });
 
-await test("detachment cannot be undone by login; reattachment counters and cutoff fence old sessions", async () => {
+void test("detachment cannot be undone by login; reattachment counters and cutoff fence old sessions", async () => {
   const actor = human();
   const first = await accounts.api.resolveSelf(actor, "before-detach-login-1");
   await pool.query(
@@ -254,7 +254,7 @@ function interceptStore(
   };
 }
 
-await test(
+void test(
   "closure captures a first attachment that commits before the lifecycle gate is acquired",
   { timeout: 10_000 },
   async () => {
@@ -292,7 +292,7 @@ await test(
   },
 );
 
-await test(
+void test(
   "closure committing first excludes late attachments without losing any existing participant",
   { timeout: 10_000 },
   async () => {
