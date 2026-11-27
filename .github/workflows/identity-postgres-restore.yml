@@ -1,0 +1,108 @@
+name: Identity PostgreSQL Recovery Drill
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/identity-postgres-restore.yml"
+      - "packages/identity/src/features/account/adapters/outbound/migrations/**"
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    name: PostgreSQL 18.7 isolated backup and restore
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:18.7-bookworm@sha256:e742a2668255221388004f3a42b6150a2103f5054ab3a4a93ae9e4f01e551c35
+        env:
+          POSTGRES_USER: identity_test
+          POSTGRES_PASSWORD: identity_test
+          POSTGRES_DB: identity_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U identity_test -d identity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Restore closed-world disposable Identity state
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="postgres:18.7-bookworm@sha256:e742a2668255221388004f3a42b6150a2103f5054ab3a4a93ae9e4f01e551c35"
+          db() {
+            local database="$1"
+            shift
+            docker run --rm -i --network host -e PGPASSWORD=identity_test "$image" \
+              psql --host=127.0.0.1 --user=identity_test --no-psqlrc \
+              --set=ON_ERROR_STOP=1 --dbname="$database" "$@"
+          }
+          db identity_test < packages/identity/src/features/account/adapters/outbound/migrations/0001_accounts.sql
+          db identity_test <<'SQL'
+          INSERT INTO identity_accounts(
+            account_id, authority_incarnation, eligibility, revision, security_epoch,
+            authentication_cutoff_ms, created_at_ms, updated_at_ms
+          ) VALUES (
+            'a0000000-0000-4000-8000-000000000001','realm-v1','suspended',2,2,
+            1700000000000,1699990000000,1700000000000
+          );
+          INSERT INTO identity_authority_bindings(
+            authority_id, issuer, subject, authority_incarnation, account_id, revision, state
+          ) VALUES (
+            'primary','https://test.example.com/realms/example','durable-subject','realm-v1',
+            'a0000000-0000-4000-8000-000000000001',1,'active'
+          );
+          INSERT INTO identity_consumer_attachments(
+            account_id, consumer_id, generation, revision, state, reattachment_cutoff_ms, created_at_ms
+          ) VALUES (
+            'a0000000-0000-4000-8000-000000000001','gettok',1,1,'active',0,1699990000000
+          );
+          INSERT INTO identity_resolution_receipts(
+            authority_id, issuer, subject, consumer_id, receipt_key, request_fingerprint,
+            account_id, authority_incarnation, account_revision, security_epoch, authentication_cutoff_ms,
+            attachment_generation, reattachment_cutoff_ms, observed_at_ms, status_valid_until_ms,
+            authority_session_id, proof_profile, proof_authenticated_at_ms, proof_valid_until_ms,
+            proof_policy_version, proof_scope
+          ) VALUES (
+            'primary','https://test.example.com/realms/example','durable-subject','gettok',
+            'disposable-login-receipt','digest-test',
+            'a0000000-0000-4000-8000-000000000001','realm-v1',1,1,0,
+            1,0,1699991000000,1699991001000,
+            'test-session','provider-session-control-v1',1699991000000,1699991001000,
+            '1','gettok-ordinary-login'
+          );
+          INSERT INTO identity_outbox(
+            event_id, account_id, consumer_id, kind, account_revision,
+            security_epoch, attachment_generation, observed_at_ms
+          ) VALUES (
+            'e0000000-0000-4000-8000-000000000001',
+            'a0000000-0000-4000-8000-000000000001',
+            'gettok','account.eligibility-changed',2,2,1,1700000000000
+          );
+          SQL
+          snapshot_dir="$(mktemp -d "$RUNNER_TEMP/identity-pg-restore.XXXXXX")"
+          trap 'rm -rf "$snapshot_dir"' EXIT
+          docker run --rm --network host -e PGPASSWORD=identity_test "$image" \
+            pg_dump --host=127.0.0.1 --user=identity_test --dbname=identity_test \
+              --format=custom --no-owner --no-acl > "$snapshot_dir/state.dump"
+          test -s "$snapshot_dir/state.dump"
+          test "$(stat -c%s "$snapshot_dir/state.dump")" -lt 10485760
+          db postgres --command='CREATE DATABASE identity_restore_test'
+          docker run --rm -i --network host -e PGPASSWORD=identity_test "$image" \
+            pg_restore --host=127.0.0.1 --user=identity_test --dbname=identity_restore_test \
+              --no-owner --no-privileges --exit-on-error < "$snapshot_dir/state.dump"
+          state="$(db identity_restore_test --tuples-only --no-align \
+            --command="SELECT (SELECT max(version) FROM identity_schema_migrations)::text || '|' ||
+              (SELECT eligibility FROM identity_accounts) || '|' ||
+              (SELECT security_epoch FROM identity_accounts)::text || '|' ||
+              (SELECT count(*) FROM identity_resolution_receipts)::text || '|' ||
+              (SELECT count(*) FROM identity_outbox WHERE published_at_ms IS NULL)::text || '|' ||
+              (SELECT count(*) FROM identity_consumer_attachments)::text")"
+          test "$state" = "1|suspended|2|1|1|1"
+          printf '%s\n' '{"postgres18Restore":"passed","suspendedFence":"retained","oldReceipt":"retained","outbox":"retained","productionRecovery":"not-qualified"}'

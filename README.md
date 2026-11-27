@@ -18,6 +18,7 @@ login profile cannot be used as independent continuity evidence.
 - [Architecture and phased implementation plan](docs/plans/identity-service-implementation-plan.md)
 - [Bootstrap, shared-tooling pins and admission prerequisites](BOOTSTRAP.md)
 - [Accepted architecture decisions](docs/decisions/README.md)
+- [PostgreSQL backup/restore TEST drill](docs/operations/postgresql-recovery-drill.md)
 - [Module adoption and native contract ownership](docs/architecture/module-adoption.md)
 - [Single FMS/CMS source profile](architecture/foundation/feature-modules.json)
 - [Versioned public contract](packages/contracts/README.md)
