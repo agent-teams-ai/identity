@@ -53,7 +53,7 @@ export function createPostgresOutboxDelivery(pool: Pool, consumerId: string): Ac
             AND (claimed_until_ms IS NULL OR claimed_until_ms <=
               floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint)
           ORDER BY observed_at_ms, event_id
-          FOR UPDATE SKIP LOCKED LIMIT 1
+          LIMIT 1 FOR UPDATE SKIP LOCKED
         )
         UPDATE identity_outbox AS event
         SET claim_generation = event.claim_generation + 1,
