@@ -89,6 +89,11 @@ export function statusOf(observation: AdmissionObservation): StatusEvidence {
 export function validateAdmission(actor: VerifiedHuman, observation: AdmissionObservation): void {
   const { account, attachment, observedAtMs: nowMs, policy } = observation;
   requireActive(account);
+  // The stronger profile is reserved until historical independent-factor
+  // custody and recovery gates have a real, accepted provider implementation.
+  if (actor.proof.profile !== "provider-session-control-v1") {
+    throw new AccountFailure("INSUFFICIENT_PROOF");
+  }
   requireLiveCredential(actor.credentialExpiresAtMs, nowMs, policy.maximumClockSkewMs);
   const cutoff = Math.max(account.authenticationCutoffMs, attachment.reattachmentCutoffMs);
   if (
