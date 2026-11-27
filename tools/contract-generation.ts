@@ -52,7 +52,7 @@ export const verifyContractTools = async (): Promise<void> => {
     "Connect generator pin differs",
   );
   assert.ok(
-    (await runContractCommand("go", ["version"])).startsWith("go version go1.27.3 "),
+    (await runContractCommand("go", ["version"])).startsWith("go version go1.27.4 "),
     "Native Go pin differs",
   );
 };

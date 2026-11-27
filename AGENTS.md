@@ -50,7 +50,7 @@ compiler, disable protected rules, skip library checking, hide new source roots
 or add deprecated fields to satisfy an older central checker.
 
 Run `pnpm install --frozen-lockfile --ignore-scripts`. Native contract checks also
-require Go 1.27.3, protoc-gen-go 1.36.12 and protoc-gen-connect-go 1.21.1.
+require Go 1.27.4, protoc-gen-go 1.36.12 and protoc-gen-connect-go 1.21.1.
 The required routes are:
 
 | Command                           | Subject                                                                                                       |

@@ -122,9 +122,22 @@ const prepareGetTok = async (): Promise<void> => {
   if (gettokBinary === undefined) {
     return;
   }
+  const consumerRoot = pathResolve(required("GETTOK_NATIVE_REPOSITORY"), "backend");
+  const moduleSource = await readFile(join(consumerRoot, "go.mod"), "utf8");
+  // The pinned consumer owns the same exact compiler directive used by setup-go.
+  // A separate toolchain override requires its own qualification.
+  const compilerDirectives = moduleSource
+    .split(/\r?\n/u)
+    .filter((line) => /^\s*(?:go|toolchain)(?:\s|$)/u.test(line));
+  assert.equal(compilerDirectives.length, 1, "Native GetTok requires one compiler directive");
+  const expectedGo = compilerDirectives[0]?.match(/^go ([1-9]\d*\.\d+\.\d+)$/u)?.[1];
+  assert.ok(expectedGo !== undefined, "Native GetTok requires an exact go.mod patch version");
   const go = required("GETTOK_NATIVE_GO");
   const version = await run(go, ["version"], { GOTOOLCHAIN: "local", GOWORK: "off" });
-  assert.ok(version.stdout.startsWith("go version go1.27.3 "), "Native GetTok Go version differs");
+  assert.ok(
+    version.stdout.startsWith(`go version go${expectedGo} `),
+    "Native GetTok Go version differs from its go.mod authority",
+  );
   let compiled = false;
   const started = performance.now();
   try {
@@ -142,7 +155,7 @@ const prepareGetTok = async (): Promise<void> => {
       ],
       { GOTOOLCHAIN: "local", GOWORK: "off" },
       900_000,
-      pathResolve(required("GETTOK_NATIVE_REPOSITORY"), "backend"),
+      consumerRoot,
     );
     await writeFile(join(logs, "consumer-build.log"), result.stdout + result.stderr, {
       mode: 0o600,

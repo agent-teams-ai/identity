@@ -12,7 +12,7 @@ generated DTOs; inbound and outbound adapters translate at their boundaries.
 ## Reproduction
 
 The workspace pins Buf 1.75.0, protoc-gen-es / protobuf 2.17.0 and Connect 2.3.0.
-Native Go bindings use Go 1.27.3, protoc-gen-go 1.36.12 and
+Native Go bindings use Go 1.27.4, protoc-gen-go 1.36.12 and
 protoc-gen-connect-go 1.21.1. Install those exact generator versions in a
 task-owned tool directory, put that directory and the workspace binaries on
 `PATH`, then run `node tools/generate-contracts.ts` from the repository root.
