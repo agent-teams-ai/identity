@@ -71,6 +71,7 @@ jobs:
       IDENTITY_TEST_CLIENT_SECRET: disposable-identity-ci-human-client
       IDENTITY_TEST_WORKLOAD_SECRET: disposable-identity-ci-workload-client
       IDENTITY_TEST_USER_PASSWORD: disposable-identity-ci-user-password
+      IDENTITY_TEST_NATIVE_BROKER_ADMIN: "true"
     services:
       postgres:
         image: postgres:18.7-bookworm@sha256:e742a2668255221388004f3a42b6150a2103f5054ab3a4a93ae9e4f01e551c35

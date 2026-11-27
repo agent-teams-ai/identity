@@ -345,6 +345,9 @@ boundaries:
       - tools/project-topology.ts
       - tools/record-build-evidence.ts
       - tools/run-tests.ts
+      - tools/provision-keycloak-brokers.ts
+      - tools/provision-keycloak-brokers.test.ts
+      - tools/provision-keycloak-brokers.native.ts
     dependencyMode: development
     allow:
       boundaries: []
@@ -357,6 +360,8 @@ boundaries:
         - node:assert/strict
         - node:child_process
         - node:crypto
+        - node:http
+        - node:test
         - node:fs
         - node:fs/promises
         - node:module
