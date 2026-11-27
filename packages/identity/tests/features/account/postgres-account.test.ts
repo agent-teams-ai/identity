@@ -6,6 +6,7 @@ import { Pool } from "pg";
 import { createAccounts } from "../../../src/features/account/adapters/inbound/direct-api.js";
 import { createPostgresAccountStore } from "../../../src/features/account/adapters/outbound/postgres-store.js";
 import { createPostgresOutboxDelivery } from "../../../src/features/account/adapters/outbound/postgres-outbox.js";
+import { deliverAccountEvent } from "../../../src/features/account/application/use-cases/deliver-account-events.js";
 import { AccountFailure } from "../../../src/features/account/domain/model.js";
 import type {
   AccountStore,
@@ -446,4 +447,33 @@ void test("closure outcomes require exact terminal account, generation and trust
     true,
     "Each recipient alone can report its own terminal item",
   );
+});
+
+void test("outbox dispatch acknowledges only after recipient success and preserves redelivery", async () => {
+  await accounts.api.resolveSelf(human(), "dispatch-first-admission");
+  const outbox = createPostgresOutboxDelivery(pool, "gettok");
+  let delivered = 0;
+  await assert.rejects(
+    deliverAccountEvent(outbox, async () => {
+      delivered += 1;
+      throw new Error("recipient transport failed with an unsafe secret");
+    }, 1000),
+    /Identity consumer delivery failed/,
+  );
+  const claimed = await pool.query<{ readonly event_id: string; readonly published_at_ms: string | null }>(
+    "SELECT event_id, published_at_ms FROM identity_outbox",
+  );
+  assert.equal(claimed.rows.length, 1);
+  assert.equal(claimed.rows[0]?.published_at_ms, null, "A failed send never publishes the event");
+  await pool.query("UPDATE identity_outbox SET claimed_until_ms = 0");
+  const observed: string[] = [];
+  assert.equal(
+    await deliverAccountEvent(outbox, async (event) => {
+      observed.push(event.eventId);
+    }, 1000),
+    "acknowledged",
+  );
+  assert.equal(observed.length, 1);
+  assert.equal(delivered, 1);
+  assert.equal(await deliverAccountEvent(outbox, async () => {}, 1000), "empty");
 });

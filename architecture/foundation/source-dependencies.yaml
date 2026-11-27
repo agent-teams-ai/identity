@@ -39,6 +39,7 @@ boundaries:
       - packages/identity/src/features/account/application/ports/account-store.ts
       - packages/identity/src/features/account/application/ports/account-outbox.ts
       - packages/identity/src/features/account/application/ports/authentication.ts
+      - packages/identity/src/features/account/application/use-cases/deliver-account-events.ts
       - packages/identity/src/features/account/application/use-cases/get-account-status.ts
       - packages/identity/src/features/account/application/use-cases/get-self-status.ts
       - packages/identity/src/features/account/application/use-cases/read-bound-account.ts
