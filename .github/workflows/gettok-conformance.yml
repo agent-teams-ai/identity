@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 env:
-  GETTOK_REVISION: c1e57c3d235291ad024f677f3b26fb3322b644b3
+  GETTOK_REVISION: beb4c792b70b50410c9c4d50fbe34d81509d33a3
 
 concurrency:
   group: identity-gettok-conformance-${{ github.ref }}
@@ -127,6 +127,15 @@ jobs:
       - name: Lint the exact native fixture build combination
         working-directory: gettok/backend
         run: bash ../tools/golangci-lint.sh run --build-tags=integration,native_identity,embed ./internal/app
+      - name: Check all consumer changes with the standard format gate
+        working-directory: gettok
+        env:
+          GETTOK_FORMAT_BASE: 287d1751564de571a35ec847634a62cb47dd21d7
+        run: |
+          set -euo pipefail
+          pnpm --dir plugin-sdk/web install --frozen-lockfile
+          git fetch --no-tags --depth=1 origin "$GETTOK_FORMAT_BASE"
+          make fmt-check BASE="$GETTOK_FORMAT_BASE"
       - name: Install the authority package manager
         uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
