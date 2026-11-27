@@ -37,6 +37,7 @@ boundaries:
     entrypoints:
       - packages/identity/src/features/account/application/ports/account-api.ts
       - packages/identity/src/features/account/application/ports/account-store.ts
+      - packages/identity/src/features/account/application/ports/account-outbox.ts
       - packages/identity/src/features/account/application/ports/authentication.ts
       - packages/identity/src/features/account/application/use-cases/get-account-status.ts
       - packages/identity/src/features/account/application/use-cases/get-self-status.ts
@@ -71,6 +72,7 @@ boundaries:
       - packages/identity/src/features/account/adapters/inbound/keycloak-profile.ts
       - packages/identity/src/features/account/adapters/outbound/postgres-codecs.ts
       - packages/identity/src/features/account/adapters/outbound/postgres-store.ts
+      - packages/identity/src/features/account/adapters/outbound/postgres-outbox.ts
     dependencyMode: runtime
     allow:
       boundaries:
