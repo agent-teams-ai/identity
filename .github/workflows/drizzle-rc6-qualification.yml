@@ -1,0 +1,117 @@
+name: Qualify Drizzle RC6 against Identity boundaries
+on:
+  push:
+    branches:
+      - spike/identity-drizzle-rc6-qualification-20261128
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    name: Strict TS 7 and PostgreSQL 18.7
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      IDENTITY_TEST_DATABASE_URL: postgres://identity_test:identity_test@127.0.0.1:5432/identity_test
+    services:
+      postgres:
+        image: postgres:18.7-bookworm@sha256:e742a2668255221388004f3a42b6150a2103f5054ab3a4a93ae9e4f01e551c35
+        env:
+          POSTGRES_USER: identity_test
+          POSTGRES_PASSWORD: identity_test
+          POSTGRES_DB: identity_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U identity_test -d identity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: 11.20.0
+          run_install: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Qualify exact unadopted candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --ignore-scripts
+          candidate="$(mktemp -d "$RUNNER_TEMP/identity-drizzle-rc6.XXXXXX")"
+          trap 'rm -rf "$candidate"' EXIT
+          printf '{"private":true,"type":"module"}\n' > "$candidate/package.json"
+          npm install --prefix "$candidate" --no-audit --no-fund --ignore-scripts --package-lock=false --save-exact drizzle-orm@1.0.0-rc.6 drizzle-kit@1.0.0-rc.6 pg@8.23.1 @types/pg@8.23.1 @types/node@26.6.11
+
+          cat > "$candidate/tsconfig.json" <<'JSON'
+          {
+            "compilerOptions": {
+              "target": "ES2024",
+              "module": "NodeNext",
+              "moduleResolution": "NodeNext",
+              "strict": true,
+              "skipLibCheck": false,
+              "exactOptionalPropertyTypes": true,
+              "noEmit": true,
+              "esModuleInterop": true,
+              "types": ["node"]
+            },
+            "files": ["probe.mts"]
+          }
+          JSON
+
+          cat > "$candidate/probe.mts" <<'TS'
+          import assert from "node:assert/strict";
+          import { randomUUID } from "node:crypto";
+          import pg from "pg";
+          import { drizzle } from "drizzle-orm/node-postgres";
+          import { eq } from "drizzle-orm";
+          import { pgTable, uuid, text, bigint } from "drizzle-orm/pg-core";
+
+          const items = pgTable("identity_drizzle_rc6_probe", {
+            id: uuid("id").primaryKey(),
+            revision: bigint("revision", { mode: "bigint" }).notNull(),
+            state: text("state").notNull(),
+          });
+          const pool = new pg.Pool({
+            connectionString: process.env["IDENTITY_TEST_DATABASE_URL"],
+            max: 2,
+          });
+          const originalBigintParser = pg.types.getTypeParser(20);
+          const client = await pool.connect();
+          try {
+            await client.query("CREATE TABLE identity_drizzle_rc6_probe (id uuid PRIMARY KEY, revision bigint NOT NULL, state text NOT NULL)");
+            const db = drizzle({ client });
+            assert.equal(pg.types.getTypeParser(20), originalBigintParser, "No global pg type parser mutation");
+            const id = randomUUID();
+            const revision = 9007199254740995n;
+            await client.query("BEGIN");
+            await client.query("SET LOCAL statement_timeout = '3000ms'");
+            await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [id]);
+            await db.insert(items).values({ id, revision, state: "active" });
+            const inside = await db.select().from(items).where(eq(items.id, id));
+            assert.equal(inside.length, 1);
+            assert.equal(inside[0]?.revision, revision, "Lossless bigint codec");
+            await client.query("ROLLBACK");
+            assert.equal((await db.select().from(items).where(eq(items.id, id))).length, 0, "Same-client rollback");
+            await client.query("BEGIN");
+            await db.insert(items).values({ id, revision, state: "active" });
+            await client.query("COMMIT");
+            const committed = await db.select().from(items).where(eq(items.id, id));
+            assert.equal(committed[0]?.revision, revision, "Same-client commit");
+            await client.query("DROP TABLE identity_drizzle_rc6_probe");
+            process.stdout.write('{"drizzleOrm":"1.0.0-rc.6","strictTs7":"passed","pg18":"passed","bigint":"passed","transaction":"passed","parserIsolation":"passed"}\n');
+          } finally {
+            client.release();
+            await pool.end();
+          }
+          TS
+
+          pnpm exec stack-toolchain compile --project "$candidate/tsconfig.json"
+          node --experimental-strip-types "$candidate/probe.mts"
