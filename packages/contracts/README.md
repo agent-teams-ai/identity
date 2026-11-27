@@ -53,7 +53,10 @@ may renew **status freshness only**, never that original human proof.
 The caller must capture request-start and response-received values from the
 **same monotonic clock**. The helper spends transport time and a configured
 clock uncertainty inside the source's exact validity window, bounds status
-leases to at most 60 seconds, rejects unknown/foreign/expired evidence,
+leases to at most 60 seconds, anchors **all future evidence deadlines** to
+the original human request/observed timestamp rather than reminting a cached
+response's lifetime, and requires a fresh clock instance ID after process
+restart or handoff. It rejects unknown/foreign/expired evidence,
 contradictory equal revisions, lost revocation, changed attachment generation,
 and any attempt to issue the unqualified independent-continuity profile.
 A denial must invalidate the calling product's session/use authorization;

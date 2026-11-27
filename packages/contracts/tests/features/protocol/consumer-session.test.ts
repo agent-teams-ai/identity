@@ -12,6 +12,7 @@ import {
 } from "../../../src/features/protocol/contracts/consumer-status.js";
 
 const policy = {
+  clockInstanceId: "one-disposable-process",
   consumerId: "gettok",
   policyId: "gettok-ordinary-login",
   maximumStatusAgeMs: 60_000,
@@ -63,8 +64,26 @@ void test("human admission pins proof separately from renewable status observati
     40_000,
     40_200,
   );
-  assert.equal(newer.statusDeadlineMonotonicMs, 90_000);
+  assert.equal(newer.statusDeadlineMonotonicMs, 90_100);
   assert.equal(newer.proofDeadlineMonotonicMs, original.proofDeadlineMonotonicMs);
+  rejects(() =>
+    observeConsumerStatus(
+      original,
+      status(),
+      policy,
+      60_000,
+      60_100,
+    ),
+  );
+  rejects(() =>
+    observeConsumerStatus(
+      original,
+      status({ observedAt: "2026-11-28T00:00:40Z", validUntil: "2026-11-28T00:01:35Z" }),
+      policy,
+      100_000,
+      100_100,
+    ),
+  );
   const late = observeConsumerStatus(
     newer,
     status({ observedAt: "2026-11-28T00:03:50Z", validUntil: "2026-11-28T00:04:45Z" }),
@@ -86,6 +105,15 @@ void test("human admission pins proof separately from renewable status observati
 
 void test("status from another consumer or prior account fences never authorizes a session", () => {
   const session = pinConsumerSession(response(), policy, 100, 200);
+  rejects(() =>
+    observeConsumerStatus(
+      session,
+      status(),
+      { ...policy, clockInstanceId: "new-process-clock" },
+      1000,
+      1100,
+    ),
+  );
   for (const changed of [
     { consumerId: "other-product" },
     { accountRevision: "2", securityEpoch: "2" },

@@ -13,6 +13,9 @@ export interface PinnedConsumerSession {
   readonly authoritySessionId: string;
   readonly policyId: string;
   readonly proofAuthenticatedAtMs: number;
+  readonly clockInstanceId: string;
+  readonly clockAnchorObservedAtMs: number;
+  readonly clockAnchorRequestStartedMonotonicMs: number;
   readonly issuedSecurityEpoch: bigint;
   readonly issuedAttachmentGeneration: bigint;
   readonly proofDeadlineMonotonicMs: number;
@@ -24,6 +27,8 @@ export interface PinnedConsumerSession {
 }
 
 export interface ConsumerEvidencePolicy {
+  /** A fresh nonpersisted identifier generated on each process/clock instance start. */
+  readonly clockInstanceId: string;
   readonly consumerId: string;
   readonly policyId: string;
   readonly maximumStatusAgeMs: number;
@@ -63,6 +68,8 @@ function policyOf(policy: ConsumerEvidencePolicy): void {
   if (
     !policy.consumerId ||
     !policy.policyId ||
+    !policy.clockInstanceId ||
+    policy.clockInstanceId.length > 128 ||
     !Number.isSafeInteger(policy.maximumStatusAgeMs) ||
     policy.maximumStatusAgeMs <= 0 ||
     policy.maximumStatusAgeMs > 60_000 ||
@@ -173,6 +180,9 @@ export function pinConsumerSession(
     authoritySessionId: admission.authoritySessionId,
     policyId: admission.policyId,
     proofAuthenticatedAtMs,
+    clockInstanceId: policy.clockInstanceId,
+    clockAnchorObservedAtMs: bounds.observedMs,
+    clockAnchorRequestStartedMonotonicMs: requestStartedMonotonicMs,
     issuedSecurityEpoch: status.securityEpoch,
     issuedAttachmentGeneration: status.attachmentGeneration,
     proofDeadlineMonotonicMs,
@@ -197,6 +207,8 @@ export function observeConsumerStatus(
   if (
     session.consumerId !== policy.consumerId ||
     session.policyId !== policy.policyId ||
+    session.clockInstanceId !== policy.clockInstanceId ||
+    requestStartedMonotonicMs < session.clockAnchorRequestStartedMonotonicMs ||
     status.account?.accountId !== session.accountId ||
     status.account?.authorityIncarnation !== session.authorityIncarnation ||
     status.securityEpoch !== session.issuedSecurityEpoch ||
@@ -208,6 +220,11 @@ export function observeConsumerStatus(
   const bounds = statusOf(status, policy);
   if (
     bounds.observedMs < session.lastObservedAtMs ||
+    bounds.observedMs >
+      session.clockAnchorObservedAtMs +
+        receivedMonotonicMs -
+        session.clockAnchorRequestStartedMonotonicMs +
+        policy.clockUncertaintyMs ||
     bounds.authenticationCutoffMs < session.lastAuthenticationCutoffMs ||
     bounds.reattachmentCutoffMs < session.lastReattachmentCutoffMs ||
     session.proofAuthenticatedAtMs <=
@@ -221,7 +238,10 @@ export function observeConsumerStatus(
   }
   const statusDeadlineMonotonicMs = Math.min(
     session.proofDeadlineMonotonicMs,
-    requestStartedMonotonicMs + bounds.validUntilMs - bounds.observedMs - policy.clockUncertaintyMs,
+    session.clockAnchorRequestStartedMonotonicMs +
+      bounds.validUntilMs -
+      session.clockAnchorObservedAtMs -
+      policy.clockUncertaintyMs,
   );
   if (
     receivedMonotonicMs >= session.proofDeadlineMonotonicMs ||
