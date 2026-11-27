@@ -29,12 +29,17 @@ interface BrokerRecord {
 async function fixture() {
   const created: BrokerRecord[] = [];
   let rejectSecond = false;
-  const server = createServer(async (request, response) => {
-    const chunks: Buffer[] = [];
-    for await (const chunk of request) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    }
-    assert.equal(request.headers.authorization, "Bearer disposable-admin-token");
+  const server = createServer((request, response) => {
+    void (async () => {
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of request) {
+        const value: unknown = chunk;
+        if (!(value instanceof Uint8Array)) {
+          throw new TypeError("Invalid request chunk");
+        }
+        chunks.push(value);
+      }
+      assert.equal(request.headers.authorization, "Bearer disposable-admin-token");
     if (request.url === "/admin/realms/test-realm/authentication/flows") {
       response.setHeader("content-type", "application/json");
       response.end(JSON.stringify([{ alias: "reviewed-no-email-link" }]));
@@ -59,10 +64,18 @@ async function fixture() {
       response.end();
       return;
     }
-    response.writeHead(404);
-    response.end();
+      response.writeHead(404);
+      response.end();
+    })().catch(() => {
+      response.writeHead(500);
+      response.end();
+    });
   });
-  await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
+  await new Promise<void>((resolve) => {
+    server.listen(0, "127.0.0.1", () => {
+      resolve();
+    });
+  });
   const address = server.address();
   if (address === null || typeof address === "string") {
     throw new Error("Fixture did not bind a TCP port");
@@ -70,7 +83,12 @@ async function fixture() {
   return {
     created,
     base: "http://127.0.0.1:" + address.port,
-    close: () => new Promise<void>((done) => server.close(() => done())),
+    close: () =>
+      new Promise<void>((resolve) => {
+        server.close(() => {
+          resolve();
+        });
+      }),
     failSecond: () => {
       rejectSecond = true;
     },

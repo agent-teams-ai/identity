@@ -25,11 +25,18 @@ interface ProviderRepresentation {
 }
 
 const brokers = ["github", "gitlab"] as const;
-const nonempty = (value: string, max: number): boolean =>
-  value.length > 0 &&
-  value.length <= max &&
-  value.trim() === value &&
-  !/[\u0000-\u001f\u007f]/u.test(value);
+const nonempty = (value: string, max: number): boolean => {
+  if (value.length === 0 || value.length > max || value.trim() !== value) {
+    return false;
+  }
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code < 32 || code === 127) {
+      return false;
+    }
+  }
+  return true;
+};
 
 function endpoint(input: BrokerProvisioning): string {
   let url: URL;
@@ -40,7 +47,7 @@ function endpoint(input: BrokerProvisioning): string {
   }
   const loopback = url.hostname === "127.0.0.1" || url.hostname === "[::1]";
   if (
-    (url.protocol !== "https:" && !(input.allowTestLoopback && url.protocol === "http:" && loopback)) ||
+    (url.protocol !== "https:" && !(input.allowTestLoopback === true && url.protocol === "http:" && loopback)) ||
     !url.hostname ||
     url.username ||
     url.password ||
@@ -84,7 +91,9 @@ async function readJson(response: Response): Promise<unknown> {
   try {
     for (;;) {
       const result = await reader.read();
-      if (result.done) break;
+      if (result.done) {
+        break;
+      }
       bytes += result.value.byteLength;
       if (bytes > 65_536) {
         throw new Error("Keycloak administrator response is too large");
@@ -92,7 +101,7 @@ async function readJson(response: Response): Promise<unknown> {
       pieces.push(result.value);
     }
   } finally {
-    await reader.cancel().catch(() => undefined);
+    await reader.cancel().catch(() => null);
   }
   try {
     return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(pieces)));
@@ -130,7 +139,7 @@ export async function provisionKeycloakBrokers(
       }
       if (method === "POST" && result.status === 201) {
         await result.body?.cancel();
-        return undefined;
+        return;
       }
     } catch {
       // Upstream errors may contain secrets or serialized request bodies.
