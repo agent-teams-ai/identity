@@ -361,6 +361,7 @@ boundaries:
         - node:child_process
         - node:crypto
         - node:http
+        - node:test
         - node:fs
         - node:fs/promises
         - node:module
