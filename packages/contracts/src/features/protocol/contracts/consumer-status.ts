@@ -194,6 +194,28 @@ export function pinConsumerSession(
   });
 }
 
+function matchesIssuedSession(
+  session: PinnedConsumerSession,
+  status: AccountStatusEvidence,
+  policy: ConsumerEvidencePolicy,
+  requestStartedMonotonicMs: number,
+): boolean {
+  if (status.account === undefined) {
+    return false;
+  }
+  return (
+    session.consumerId === policy.consumerId &&
+    session.policyId === policy.policyId &&
+    session.clockInstanceId === policy.clockInstanceId &&
+    requestStartedMonotonicMs >= session.clockAnchorRequestStartedMonotonicMs &&
+    status.account.accountId === session.accountId &&
+    status.account.authorityIncarnation === session.authorityIncarnation &&
+    status.securityEpoch === session.issuedSecurityEpoch &&
+    status.attachmentGeneration === session.issuedAttachmentGeneration &&
+    status.accountRevision >= session.lastRevision
+  );
+}
+
 /** Workload status updates freshness, not the original human proof or issued fences. */
 export function observeConsumerStatus(
   session: PinnedConsumerSession,
@@ -204,17 +226,7 @@ export function observeConsumerStatus(
 ): PinnedConsumerSession {
   policyOf(policy);
   monotonic(requestStartedMonotonicMs, receivedMonotonicMs);
-  if (
-    session.consumerId !== policy.consumerId ||
-    session.policyId !== policy.policyId ||
-    session.clockInstanceId !== policy.clockInstanceId ||
-    requestStartedMonotonicMs < session.clockAnchorRequestStartedMonotonicMs ||
-    status.account?.accountId !== session.accountId ||
-    status.account?.authorityIncarnation !== session.authorityIncarnation ||
-    status.securityEpoch !== session.issuedSecurityEpoch ||
-    status.attachmentGeneration !== session.issuedAttachmentGeneration ||
-    status.accountRevision < session.lastRevision
-  ) {
+  if (!matchesIssuedSession(session, status, policy, requestStartedMonotonicMs)) {
     return deny();
   }
   const bounds = statusOf(status, policy);

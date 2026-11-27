@@ -49,7 +49,9 @@ const response = (changes: Record<string, string> = {}) =>
     ResolveSelfResponseSchema,
     JSON.stringify({ status: initialStatus, admission: { ...baseAdmission, ...changes } }),
   );
-const rejects = (run: () => unknown) => assert.throws(run, IdentityStatusDenied);
+const rejects = (run: () => unknown): void => {
+  assert.throws(run, IdentityStatusDenied);
+};
 
 void test("human admission pins proof separately from renewable status observations", () => {
   const original = pinConsumerSession(response(), policy, 100, 200);
