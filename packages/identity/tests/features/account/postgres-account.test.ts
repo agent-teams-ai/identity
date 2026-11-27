@@ -395,6 +395,7 @@ void test("closure outcomes require exact terminal account, generation and trust
   const owned = rows.rows.find((row) => row.consumer_id === "gettok");
   assert.ok(owned !== undefined);
   const report = {
+    consumerId: "gettok",
     accountId: opened.status.account.accountId,
     closureRevision: BigInt(owned.closure_revision),
     participantGeneration: BigInt(owned.participant_generation),
@@ -429,5 +430,18 @@ void test("closure outcomes require exact terminal account, generation and trust
     await other.reportClosure({ ...report, outcome: "erased" }),
     false,
     "Another recipient cannot claim the first participant",
+  );
+  const second = rows.rows.find((row) => row.consumer_id === "other-product");
+  assert.ok(second !== undefined);
+  assert.equal(
+    await other.reportClosure({
+      consumerId: "other-product",
+      accountId: report.accountId,
+      closureRevision: BigInt(second.closure_revision),
+      participantGeneration: BigInt(second.participant_generation),
+      outcome: "erased",
+    }),
+    true,
+    "Each recipient alone can report its own terminal item",
   );
 });

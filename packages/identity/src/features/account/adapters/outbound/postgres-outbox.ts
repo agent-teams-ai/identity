@@ -86,6 +86,9 @@ export function createPostgresOutboxDelivery(pool: Pool, consumerId: string): Ac
       return result.rows.length === 1;
     },
     reportClosure: async (report) => {
+      if (report.consumerId !== consumerId) {
+        return false;
+      }
       const allowed: readonly ClosureOutcome[] = [
         "not-provisioned",
         "erased",

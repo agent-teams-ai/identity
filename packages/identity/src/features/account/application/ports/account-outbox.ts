@@ -19,6 +19,7 @@ export type ClosureOutcome =
   | "repair-required";
 
 export interface ClosureReport {
+  readonly consumerId: string;
   readonly accountId: string;
   readonly closureRevision: bigint;
   readonly participantGeneration: bigint;
