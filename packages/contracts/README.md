@@ -39,3 +39,30 @@ Before a consumer adopts the artifact, record its real source commit, schema
 digest and compatibility evidence. A later release must provide the normal
 immutable version and provenance rather than pretending this local candidate
 is already published.
+
+## Pure TypeScript consumer status guard — private TEST candidate
+
+The `pinConsumerSession` and `observeConsumerStatus` helpers consume the
+existing versioned protobuf DTOs without provider credentials, network calls,
+transport, database or mutable global clocks. An authenticated **human**
+`ResolveSelf` response establishes immutable account identity, consumer,
+security epoch, attachment generation, admission policy and original
+human-proof deadline. A separately authenticated workload status observation
+may renew **status freshness only**, never that original human proof.
+
+The caller must capture request-start and response-received values from the
+**same monotonic clock**. The helper spends transport time and a configured
+clock uncertainty inside the source's exact validity window, bounds status
+leases to at most 60 seconds, rejects unknown/foreign/expired evidence,
+contradictory equal revisions, lost revocation, changed attachment generation,
+and any attempt to issue the unqualified independent-continuity profile.
+A denial must invalidate the calling product's session/use authorization;
+discarding the exception and reusing stale cached authority is forbidden.
+
+The helper is intentionally a pure typed guard, not a credential validator.
+The owning BFF/worker must authenticate the actual response channel, persist
+its local revocation high-water mark and closed-owner fences, apply local
+roles/SCM permissions, coordinate concurrent refresh and handle provider
+logout/unknown external effects. No helper call upgrades product access.
+Consumer integration and a published signed SDK artifact remain separate
+qualification gates; this package is still private and version `0.0.0`.

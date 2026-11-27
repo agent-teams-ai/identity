@@ -30,3 +30,13 @@ export type {
   ResolveSelfResponse,
   SessionAdmission,
 } from "./features/protocol/contracts/gen/identity/v1/identity_pb.js";
+
+export {
+  IdentityStatusDenied,
+  pinConsumerSession,
+  observeConsumerStatus,
+} from "./features/protocol/contracts/consumer-status.js";
+export type {
+  PinnedConsumerSession,
+  ConsumerEvidencePolicy,
+} from "./features/protocol/contracts/consumer-status.js";

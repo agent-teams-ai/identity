@@ -134,6 +134,7 @@ boundaries:
       - packages/contracts/src/features/protocol/contracts
     entrypoints:
       - packages/contracts/src/features/protocol/contracts/gen/identity/v1/identity_pb.ts
+      - packages/contracts/src/features/protocol/contracts/consumer-status.ts
     dependencyMode: runtime
     allow:
       boundaries: []
