@@ -215,9 +215,7 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "fullScopeAllowed": false,
-      "redirectUris": [
-        "http://127.0.0.1:18181/second-product-callback"
-      ],
+      "redirectUris": ["http://127.0.0.1:18181/second-product-callback"],
       "webOrigins": [],
       "defaultClientScopes": ["basic", "identity.resolve:self", "email", "profile"],
       "optionalClientScopes": [],

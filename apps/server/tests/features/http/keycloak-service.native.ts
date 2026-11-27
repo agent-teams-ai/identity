@@ -96,8 +96,8 @@ const exerciseSecondConsumer = async (
   );
   const second = await client.resolveSelf(command, human);
   assert.deepEqual(second.status?.account, account, "Both consumers share the same account");
-  assert.equal(second.status?.consumerId, "second-product");
-  assert.equal(second.status?.eligibility, AccountEligibility.ACTIVE);
+  assert.equal(second.status.consumerId, "second-product");
+  assert.equal(second.status.eligibility, AccountEligibility.ACTIVE);
   assert.equal(second.admission?.policyId, "second-product-ordinary-login");
   assert.deepEqual(
     await client.resolveSelf(command, human),
@@ -159,7 +159,7 @@ const exercise = async (client: Client<typeof IdentityService>): Promise<void> =
   );
   const secondSuspended = (await client.getAccountStatus({ account }, second.machine)).status;
   assert.equal(secondSuspended?.eligibility, AccountEligibility.SUSPENDED);
-  assert.equal(secondSuspended?.securityEpoch, suspended.securityEpoch);
+  assert.equal(secondSuspended.securityEpoch, suspended.securityEpoch);
   await assert.rejects(
     client.resolveSelf(command, second.human),
     rejection(IdentityErrorReason.ACCOUNT_SUSPENDED),
@@ -178,7 +178,7 @@ const exercise = async (client: Client<typeof IdentityService>): Promise<void> =
   );
   const secondEnabled = (await client.getAccountStatus({ account }, second.machine)).status;
   assert.equal(secondEnabled?.eligibility, AccountEligibility.ACTIVE);
-  assert.equal(secondEnabled?.securityEpoch, enabled.securityEpoch);
+  assert.equal(secondEnabled.securityEpoch, enabled.securityEpoch);
   await assert.rejects(
     client.resolveSelf(command, second.human),
     rejection(IdentityErrorReason.AUTHENTICATION_REQUIRED_AFTER_CUTOFF),

@@ -37,8 +37,7 @@ export const nativeConfiguration = (
   issuer: environmentValue("IDENTITY_TEST_ISSUER"),
   humanClientId: consumer === "gettok" ? HUMAN_CLIENT : "second-product-test-bff",
   workloadClientId: consumer === "gettok" ? WORKLOAD_CLIENT : "second-product-test-workload",
-  callback:
-    consumer === "gettok" ? CALLBACK : "http://127.0.0.1:18181/second-product-callback",
+  callback: consumer === "gettok" ? CALLBACK : "http://127.0.0.1:18181/second-product-callback",
   humanSecret: environmentValue(
     consumer === "gettok" ? "IDENTITY_TEST_CLIENT_SECRET" : "IDENTITY_TEST_SECOND_CLIENT_SECRET",
   ),
