@@ -96,3 +96,43 @@ previously-admitted-factor invariant after factor loss. `acr`, `amr` or a
 theme cannot substitute for this enforcement. See the
 [qualification decision record](../../docs/reviews/keycloak-profile-qualification-2026-11-26.md)
 for the bounded implementation options and required falsifying scenarios.
+
+
+## Direct GitHub/GitLab broker setup — operator-only, initially disabled
+
+GetTok already distinguishes the allowlisted `github` and `gitlab`
+`identity_provider_hint` values. Keycloak's actual identity providers are
+separate resources: a list of aliases in a consumer does not configure them.
+The optional create-only command below prepares **disabled** Keycloak GitHub
+and GitLab provider instances, using the built-in `github` and `gitlab`
+provider IDs. It stores no external provider tokens and does not trust matching
+email as a shared-account ownership claim.
+
+The exact realm must already contain an operator-reviewed custom first-broker
+login flow. The provisioning program requires its exact alias and refuses to
+use an implicit stock flow. It also rejects preexisting aliases rather than
+overwriting another provider's secrets or changing its policy. It validates
+the entire proposed pair before any mutation, reads back the bounded provider
+list after creation and fails explicitly on a partial outcome. Partial
+creation leaves providers disabled for secure operator reconciliation.
+No mutation runs when mandatory inputs are missing or invalid.
+
+Supply these values as secret environment settings from the owning deployment
+environment, **not** committed files, shell arguments or CI TEST fixtures:
+`KEYCLOAK_ADMIN_BASE_URL`, `KEYCLOAK_REALM`,
+`KEYCLOAK_ADMIN_ACCESS_TOKEN`, `KEYCLOAK_FIRST_BROKER_FLOW`,
+`GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`,
+`GITLAB_OAUTH_CLIENT_ID` and `GITLAB_OAUTH_CLIENT_SECRET`.
+Use `pnpm broker:provision` with the pinned Node runtime. The admin URL
+requires HTTPS. Test-only loopback HTTP is available to the imported module's
+explicit test configuration, never to the operator CLI.
+
+After reviewing each actual Keycloak provider config, the custom first-broker
+flow, native redirect/callback, immutable provider identifiers and the account
+linking policy, qualify real GitHub and GitLab OAuth applications independently
+before enabling each provider. Verify the correct broker callback URI in each
+provider's OAuth app; never infer consent or repository permissions from login.
+The command intentionally has **no enable switch**, no automatic account
+linking by email and no provider update/delete operation. Mock-admin unit tests
+prove request shape and fail-closed behavior; they do not qualify Keycloak
+Admin REST behavior, real social login, MFA or production rollout.
