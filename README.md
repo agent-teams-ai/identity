@@ -36,3 +36,5 @@ Implementation begins with the plan's P0/P1 gates and substantive source.
 Read [AGENTS.md](AGENTS.md) and [BOOTSTRAP.md](BOOTSTRAP.md) before implementation.
 Architecture proposals become accepted through the repository owner's explicit
 decision; a planning document or automated review does not confer that status.
+
+See the [documentation map](docs/README.md) for task-oriented navigation.

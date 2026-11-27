@@ -1,5 +1,7 @@
 # Repository instructions
 
+Use the [documentation map](docs/README.md) to select the relevant plan or research evidence.
+
 ## Current scope
 
 This is a planning-stage repository for the expanded Identity service. Read the
