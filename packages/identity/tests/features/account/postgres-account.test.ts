@@ -454,23 +454,32 @@ void test("outbox dispatch acknowledges only after recipient success and preserv
   const outbox = createPostgresOutboxDelivery(pool, "gettok");
   let delivered = 0;
   await assert.rejects(
-    deliverAccountEvent(outbox, async () => {
-      delivered += 1;
-      throw new Error("recipient transport failed with an unsafe secret");
-    }, 1000),
+    deliverAccountEvent(
+      outbox,
+      async () => {
+        delivered += 1;
+        throw new Error("recipient transport failed with an unsafe secret");
+      },
+      1000,
+    ),
     /Identity consumer delivery failed/,
   );
-  const claimed = await pool.query<{ readonly event_id: string; readonly published_at_ms: string | null }>(
-    "SELECT event_id, published_at_ms FROM identity_outbox",
-  );
+  const claimed = await pool.query<{
+    readonly event_id: string;
+    readonly published_at_ms: string | null;
+  }>("SELECT event_id, published_at_ms FROM identity_outbox");
   assert.equal(claimed.rows.length, 1);
   assert.equal(claimed.rows[0]?.published_at_ms, null, "A failed send never publishes the event");
   await pool.query("UPDATE identity_outbox SET claimed_until_ms = 0");
   const observed: string[] = [];
   assert.equal(
-    await deliverAccountEvent(outbox, async (event) => {
-      observed.push(event.eventId);
-    }, 1000),
+    await deliverAccountEvent(
+      outbox,
+      async (event) => {
+        observed.push(event.eventId);
+      },
+      1000,
+    ),
     "acknowledged",
   );
   assert.equal(observed.length, 1);

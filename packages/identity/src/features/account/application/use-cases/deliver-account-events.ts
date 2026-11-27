@@ -1,7 +1,4 @@
-import type {
-  AccountOutboxDelivery,
-  ClaimedAccountEvent,
-} from "../ports/account-outbox.js";
+import type { AccountOutboxDelivery, ClaimedAccountEvent } from "../ports/account-outbox.js";
 
 /**
  * One finite at-least-once dispatch. The caller owns scheduling and the
