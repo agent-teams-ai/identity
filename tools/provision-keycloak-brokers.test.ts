@@ -40,30 +40,30 @@ async function fixture() {
         chunks.push(value);
       }
       assert.equal(request.headers.authorization, "Bearer disposable-admin-token");
-    if (request.url === "/admin/realms/test-realm/authentication/flows") {
-      response.setHeader("content-type", "application/json");
-      response.end(JSON.stringify([{ alias: "reviewed-no-email-link" }]));
-      return;
-    }
-    const providerPath = "/admin/realms/test-realm/identity-provider/instances";
-    if (request.url === providerPath && request.method === "GET") {
-      response.setHeader("content-type", "application/json");
-      response.end(JSON.stringify(created));
-      return;
-    }
-    if (request.url === providerPath && request.method === "POST") {
-      const value: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8"));
-      assert.ok(typeof value === "object" && value !== null && "alias" in value);
-      if (value.alias === "gitlab" && rejectSecond) {
-        response.writeHead(409);
+      if (request.url === "/admin/realms/test-realm/authentication/flows") {
+        response.setHeader("content-type", "application/json");
+        response.end(JSON.stringify([{ alias: "reviewed-no-email-link" }]));
+        return;
+      }
+      const providerPath = "/admin/realms/test-realm/identity-provider/instances";
+      if (request.url === providerPath && request.method === "GET") {
+        response.setHeader("content-type", "application/json");
+        response.end(JSON.stringify(created));
+        return;
+      }
+      if (request.url === providerPath && request.method === "POST") {
+        const value: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+        assert.ok(typeof value === "object" && value !== null && "alias" in value);
+        if (value.alias === "gitlab" && rejectSecond) {
+          response.writeHead(409);
+          response.end();
+          return;
+        }
+        created.push(value as BrokerRecord);
+        response.writeHead(201);
         response.end();
         return;
       }
-      created.push(value as BrokerRecord);
-      response.writeHead(201);
-      response.end();
-      return;
-    }
       response.writeHead(404);
       response.end();
     })().catch(() => {

@@ -47,7 +47,8 @@ function endpoint(input: BrokerProvisioning): string {
   }
   const loopback = url.hostname === "127.0.0.1" || url.hostname === "[::1]";
   if (
-    (url.protocol !== "https:" && !(input.allowTestLoopback === true && url.protocol === "http:" && loopback)) ||
+    (url.protocol !== "https:" &&
+      !(input.allowTestLoopback === true && url.protocol === "http:" && loopback)) ||
     !url.hostname ||
     url.username ||
     url.password ||
@@ -165,7 +166,10 @@ export async function provisionKeycloakBrokers(
     existing.length > 32 ||
     existing.some(
       (item: unknown) =>
-        typeof item !== "object" || item === null || !("alias" in item) || typeof item.alias !== "string",
+        typeof item !== "object" ||
+        item === null ||
+        !("alias" in item) ||
+        typeof item.alias !== "string",
     ) ||
     existing.some((item: { alias?: string }) => brokers.some((name) => item.alias === name))
   ) {
@@ -186,7 +190,9 @@ export async function provisionKeycloakBrokers(
       await call(route, "POST", JSON.stringify(representation));
       created.push(alias);
     } catch {
-      throw new Error("Broker provisioning stopped; created disabled: " + (created.join(",") || "none"));
+      throw new Error(
+        "Broker provisioning stopped; created disabled: " + (created.join(",") || "none"),
+      );
     }
   }
   const observed = await call(route, "GET");
@@ -217,7 +223,10 @@ export async function provisionKeycloakBrokers(
   return created;
 }
 
-if (process.argv[1] !== undefined && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
+if (
+  process.argv[1] !== undefined &&
+  pathToFileURL(resolve(process.argv[1])).href === import.meta.url
+) {
   try {
     const env = process.env;
     const created = await provisionKeycloakBrokers({
@@ -238,7 +247,9 @@ if (process.argv[1] !== undefined && pathToFileURL(resolve(process.argv[1])).hre
     });
     process.stdout.write("Created disabled Keycloak brokers: " + created.join(",") + "\n");
   } catch {
-    process.stderr.write("Keycloak broker provisioning refused; inspect provider state securely.\n");
+    process.stderr.write(
+      "Keycloak broker provisioning refused; inspect provider state securely.\n",
+    );
     process.exitCode = 1;
   }
 }

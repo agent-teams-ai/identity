@@ -97,7 +97,6 @@ theme cannot substitute for this enforcement. See the
 [qualification decision record](../../docs/reviews/keycloak-profile-qualification-2026-11-26.md)
 for the bounded implementation options and required falsifying scenarios.
 
-
 ## Direct GitHub/GitLab broker setup — operator-only, initially disabled
 
 GetTok already distinguishes the allowlisted `github` and `gitlab`
