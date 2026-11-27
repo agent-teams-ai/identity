@@ -59,6 +59,25 @@ jobs:
           go install connectrpc.com/connect/cmd/protoc-gen-connect-go@v1.21.1
       - name: Verify the complete native route
         run: pnpm check
+      - name: Diagnose native fixture formatting on failure
+        if: failure()
+        shell: bash
+        run: |
+          set -euo pipefail
+          stack="$(node -p 'require.resolve("stack-toolchain/package.json")')"
+          fmt="$(node -p 'require("node:module").createRequire(process.argv[1]).resolve("oxfmt/package.json")' "$stack")"
+          temp="$(mktemp -d)"
+          trap 'rm -rf "$temp"' EXIT
+          for file in \
+            apps/server/tests/features/http/keycloak-service.native.ts \
+            deploy/keycloak/README.md \
+            deploy/keycloak/realm-test.json \
+            packages/identity/tests/features/account/keycloak-browser-fixture.ts \
+            packages/identity/tests/features/account/keycloak-credentials.native.ts \
+            tools/check-native-keycloak.ts; do
+            node "$(dirname "$fmt")/bin/oxfmt" --config "$(dirname "$stack")/presets/format.json" --disable-nested-config --stdin-filepath "$file" < "$file" > "$temp/formatted"
+            diff -u --label "$file" --label "$file (formatted)" "$file" "$temp/formatted" || test "$?" -eq 1
+          done
 
   native-authentication:
     name: native-authentication
