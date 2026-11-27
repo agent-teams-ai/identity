@@ -331,7 +331,10 @@ void test("outbox claims are recipient-scoped and exclusive across actual Postgr
   const primary = createPostgresOutboxDelivery(pool, "gettok");
   const competitor = createPostgresOutboxDelivery(replica, "gettok");
   const otherConsumer = createPostgresOutboxDelivery(replica, "other-product");
-  const [first, second] = await Promise.all([primary.claimNext(60_000), competitor.claimNext(60_000)]);
+  const [first, second] = await Promise.all([
+    primary.claimNext(60_000),
+    competitor.claimNext(60_000),
+  ]);
   const event = first ?? second;
   assert.ok(event !== undefined, "Exactly one worker claims an event");
   assert.equal(first === undefined || second === undefined, true, "No duplicate concurrent claim");
@@ -367,10 +370,9 @@ void test("outbox lease expiry advances generation and rejects stale acknowledge
   assert.throws(() => createPostgresOutboxDelivery(pool, "gettok; DROP TABLE"), TypeError);
   const initial = await firstWorker.claimNext(60_000);
   assert.ok(initial !== undefined);
-  await pool.query(
-    "UPDATE identity_outbox SET claimed_until_ms = 0 WHERE event_id = $1",
-    [initial.eventId],
-  );
+  await pool.query("UPDATE identity_outbox SET claimed_until_ms = 0 WHERE event_id = $1", [
+    initial.eventId,
+  ]);
   const reassigned = await secondWorker.claimNext(60_000);
   assert.ok(reassigned !== undefined);
   assert.equal(reassigned.eventId, initial.eventId);

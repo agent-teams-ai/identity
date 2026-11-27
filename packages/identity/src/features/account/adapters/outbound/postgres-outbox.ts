@@ -38,7 +38,10 @@ const toEvent = (row: StoredOutboxEvent): ClaimedAccountEvent => ({
  * Concurrent workers may observe events out of order: consumers must enforce the
  * account/attachment revision and epoch fences carried by each event.
  */
-export function createPostgresOutboxDelivery(pool: Pool, consumerId: string): AccountOutboxDelivery {
+export function createPostgresOutboxDelivery(
+  pool: Pool,
+  consumerId: string,
+): AccountOutboxDelivery {
   if (!/^[a-z0-9][a-z0-9._-]{0,127}$/u.test(consumerId)) {
     throw new TypeError("Invalid trusted outbox consumer");
   }
