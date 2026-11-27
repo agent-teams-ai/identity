@@ -91,6 +91,8 @@ const environment = {
   ...process.env,
   IDENTITY_TEST_SECOND_CLIENT_SECRET: randomBytes(32).toString("hex"),
   IDENTITY_TEST_SECOND_WORKLOAD_SECRET: randomBytes(32).toString("hex"),
+  KC_BOOTSTRAP_ADMIN_CLIENT_ID: "identity-disposable-native-admin",
+  KC_BOOTSTRAP_ADMIN_CLIENT_SECRET: randomBytes(32).toString("hex"),
   JAVA_OPTS:
     "-Xms64m -Xmx256m -XX:MaxMetaspaceSize=192m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=32m -XX:-UseBASE64Intrinsics -XX:+UseSerialGC",
   KC_DB: "postgres",
@@ -351,6 +353,9 @@ try {
   try {
     await awaitReady(provider);
     for (const entry of [
+      ...(process.env.IDENTITY_TEST_NATIVE_BROKER_ADMIN === "true"
+        ? ["tools/provision-keycloak-brokers.native.js"]
+        : []),
       "packages/identity/tests/features/account/keycloak-profile.native.js",
       "apps/server/tests/features/http/keycloak-service.native.js",
       ...(withGetTok ? ["apps/server/tests/features/http/gettok-consumer.native.js"] : []),

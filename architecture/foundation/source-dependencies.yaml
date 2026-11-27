@@ -347,6 +347,7 @@ boundaries:
       - tools/run-tests.ts
       - tools/provision-keycloak-brokers.ts
       - tools/provision-keycloak-brokers.test.ts
+      - tools/provision-keycloak-brokers.native.ts
     dependencyMode: development
     allow:
       boundaries: []

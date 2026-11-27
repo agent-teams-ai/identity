@@ -136,3 +136,20 @@ The command intentionally has **no enable switch**, no automatic account
 linking by email and no provider update/delete operation. Mock-admin unit tests
 prove request shape and fail-closed behavior; they do not qualify Keycloak
 Admin REST behavior, real social login, MFA or production rollout.
+
+## Real Keycloak Admin REST TEST qualification
+
+The separate native optional TEST profile (`IDENTITY_TEST_NATIVE_BROKER_ADMIN=true`)
+uses a disposable master-realm bootstrap service account created by the
+Keycloak launcher on fresh `keycloak_test` PostgreSQL. It creates an isolated,
+**empty and non-production** first-broker test flow, prepares both provider
+entries disabled through the real Admin REST API, verifies their stored state,
+and rejects replay. No external GitHub/GitLab login is attempted; the empty
+test flow must **never** be enabled for real users. The ordinary native
+provider and GetTok suites still execute and prove their own login boundaries.
+The runner prints only coarse status and cannot publish admin access tokens.
+
+This optional check qualifies only Keycloak REST representation and disabled
+provisioning under the exact current archive. It does not qualify the custom
+first-broker flow for production, actual provider callback/consent, protected
+organizational proof or the central authority's independent-factor profile.
