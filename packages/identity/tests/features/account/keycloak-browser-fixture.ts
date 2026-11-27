@@ -42,7 +42,9 @@ export const nativeConfiguration = (
     consumer === "gettok" ? "IDENTITY_TEST_CLIENT_SECRET" : "IDENTITY_TEST_SECOND_CLIENT_SECRET",
   ),
   workloadSecret: environmentValue(
-    consumer === "gettok" ? "IDENTITY_TEST_WORKLOAD_SECRET" : "IDENTITY_TEST_SECOND_WORKLOAD_SECRET",
+    consumer === "gettok"
+      ? "IDENTITY_TEST_WORKLOAD_SECRET"
+      : "IDENTITY_TEST_SECOND_WORKLOAD_SECRET",
   ),
   password: environmentValue("IDENTITY_TEST_USER_PASSWORD"),
 });
