@@ -33,8 +33,10 @@ const fixture = async (name: string, args: readonly string[] = []): Promise<unkn
   }
 };
 
-const credentials = async (): Promise<{ readonly human: string; readonly workload: string }> => {
-  const result = await fixture("keycloak-credentials");
+const credentials = async (
+  consumer: "gettok" | "second-product" = "gettok",
+): Promise<{ readonly human: string; readonly workload: string }> => {
+  const result = await fixture("keycloak-credentials", [consumer]);
   assert.ok(
     typeof result === "object" &&
       result !== null &&
@@ -76,6 +78,42 @@ const transition = async (
   );
 };
 
+const denied = (error: unknown): boolean =>
+  error instanceof ConnectError && error.code === Code.PermissionDenied;
+
+const exerciseSecondConsumer = async (
+  client: Client<typeof IdentityService>,
+  account: AccountReference,
+  command: { readonly idempotencyKey: string },
+) => {
+  const tokens = await credentials("second-product");
+  const human = { headers: { authorization: `Bearer ${tokens.human}` } };
+  const machine = { headers: { authorization: `Bearer ${tokens.workload}` } };
+  await assert.rejects(client.getAccountStatus({ account }, machine), denied);
+  await assert.rejects(
+    client.getSelfStatus({}, human),
+    rejection(IdentityErrorReason.REATTACHMENT_REQUIRED),
+  );
+  const second = await client.resolveSelf(command, human);
+  assert.deepEqual(second.status?.account, account, "Both consumers share the same account");
+  assert.equal(second.status?.consumerId, "second-product");
+  assert.equal(second.status?.eligibility, AccountEligibility.ACTIVE);
+  assert.equal(second.admission?.policyId, "second-product-ordinary-login");
+  assert.deepEqual(
+    await client.resolveSelf(command, human),
+    second,
+    "The same key has a separate receipt in the second consumer",
+  );
+  assert.equal((await client.getSelfStatus({}, human)).status?.consumerId, "second-product");
+  assert.equal(
+    (await client.getAccountStatus({ account }, machine)).status?.consumerId,
+    "second-product",
+  );
+  await assert.rejects(client.resolveSelf(command, machine), denied);
+  await assert.rejects(client.getAccountStatus({ account }, human), denied);
+  return { human, machine };
+};
+
 const exercise = async (client: Client<typeof IdentityService>): Promise<void> => {
   const tokens = await credentials();
   const human = { headers: { authorization: `Bearer ${tokens.human}` } };
@@ -89,6 +127,7 @@ const exercise = async (client: Client<typeof IdentityService>): Promise<void> =
   const account = first.status.account;
   assert.equal(first.status.eligibility, AccountEligibility.ACTIVE);
   assert.equal(first.admission.policyId, "gettok-ordinary-login");
+  assert.equal(first.status.consumerId, "gettok");
   assert.deepEqual(
     await client.resolveSelf(command, human),
     first,
@@ -104,6 +143,9 @@ const exercise = async (client: Client<typeof IdentityService>): Promise<void> =
     client.getAccountStatus({ account }, human),
     (error: unknown) => error instanceof ConnectError && error.code === Code.PermissionDenied,
   );
+  const second = await exerciseSecondConsumer(client, account, command);
+  assert.equal((await client.getSelfStatus({}, human)).status?.consumerId, "gettok");
+  assert.equal((await client.getAccountStatus({ account }, machine)).status?.consumerId, "gettok");
   await transition(account, "suspend", first.status.accountRevision);
   const suspended = (await client.getAccountStatus({ account }, machine)).status;
   assert.ok(suspended !== undefined && suspended.eligibility === AccountEligibility.SUSPENDED);
@@ -113,6 +155,13 @@ const exercise = async (client: Client<typeof IdentityService>): Promise<void> =
   );
   await assert.rejects(
     client.resolveSelf(command, human),
+    rejection(IdentityErrorReason.ACCOUNT_SUSPENDED),
+  );
+  const secondSuspended = (await client.getAccountStatus({ account }, second.machine)).status;
+  assert.equal(secondSuspended?.eligibility, AccountEligibility.SUSPENDED);
+  assert.equal(secondSuspended?.securityEpoch, suspended.securityEpoch);
+  await assert.rejects(
+    client.resolveSelf(command, second.human),
     rejection(IdentityErrorReason.ACCOUNT_SUSPENDED),
   );
   await transition(account, "enable", suspended.accountRevision);
@@ -127,6 +176,13 @@ const exercise = async (client: Client<typeof IdentityService>): Promise<void> =
     client.resolveSelf({ idempotencyKey: "native-provider-old-token-new-key" }, human),
     rejection(IdentityErrorReason.AUTHENTICATION_REQUIRED_AFTER_CUTOFF),
   );
+  const secondEnabled = (await client.getAccountStatus({ account }, second.machine)).status;
+  assert.equal(secondEnabled?.eligibility, AccountEligibility.ACTIVE);
+  assert.equal(secondEnabled?.securityEpoch, enabled.securityEpoch);
+  await assert.rejects(
+    client.resolveSelf(command, second.human),
+    rejection(IdentityErrorReason.AUTHENTICATION_REQUIRED_AFTER_CUTOFF),
+  );
   await transition(account, "close", enabled.accountRevision);
   assert.equal(
     (await client.getAccountStatus({ account }, machine)).status?.eligibility,
@@ -134,6 +190,14 @@ const exercise = async (client: Client<typeof IdentityService>): Promise<void> =
   );
   await assert.rejects(
     client.resolveSelf(command, human),
+    rejection(IdentityErrorReason.ACCOUNT_CLOSED),
+  );
+  assert.equal(
+    (await client.getAccountStatus({ account }, second.machine)).status?.eligibility,
+    AccountEligibility.CLOSED,
+  );
+  await assert.rejects(
+    client.resolveSelf(command, second.human),
     rejection(IdentityErrorReason.ACCOUNT_CLOSED),
   );
 };
@@ -159,6 +223,18 @@ const server = await startServer({
         policyVersion: "1",
       },
       { kind: "workload", clientId: "gettok-test-workload", consumerId: "gettok" },
+      {
+        kind: "human",
+        clientId: "second-product-test-bff",
+        consumerId: "second-product",
+        providerControlPolicyId: "second-product-ordinary-login",
+        policyVersion: "1",
+      },
+      {
+        kind: "workload",
+        clientId: "second-product-test-workload",
+        consumerId: "second-product",
+      },
     ],
   },
 });
@@ -176,6 +252,7 @@ try {
       transport: "actual-connect-tcp",
       persistence: "actual-postgresql",
       lifecycleRevocation: "passed",
+      multiConsumer: "passed",
       staleReceiptRejected: true,
       independentContinuity: "not-admitted",
     })}\n`,

@@ -2,7 +2,7 @@
 
 `realm-test.json` is a non-production realm for the real provider qualification
 fixture. Its credentials come from environment substitution; it contains only
-the synthetic `fixture-person` account. Never import it into a real identity
+the synthetic `fixture-person` and `fixture-gettok` accounts. Never import it into a real identity
 realm or replace production secrets with these fixtures.
 
 ## Pinned provider
@@ -66,6 +66,15 @@ no token, password or client secret is logged by the fixture. Missing configurat
 fails rather than skips. The fixture uses a disposable local password to
 exercise the OIDC boundary; GitHub/GitLab broker login and GetTok's actual BFF
 callback require their own complete integration checks.
+
+The same native service test admits an independent second TEST consumer
+with its own confidential human/workload clients, generated disposable
+client secrets and exact callback. Both authenticate the same fixture
+person over the real provider and use the same Identity HTTP/Connect
+and PostgreSQL service. It checks one account reference, separate
+consumer policies and receipts, denial before attachment, and global
+lifecycle revocation observed by both consumers. This is not a second
+production integration or browser SSO qualification.
 
 The human client also admits the exact GetTok TEST callback
 `http://127.0.0.1:18182/api/v1/auth/central/callback`. Its assigned default

@@ -3,6 +3,9 @@ import { createHash, randomBytes } from "node:crypto";
 
 export interface NativeKeycloakConfiguration {
   readonly issuer: string;
+  readonly humanClientId: string;
+  readonly workloadClientId: string;
+  readonly callback: string;
   readonly humanSecret: string;
   readonly workloadSecret: string;
   readonly password: string;
@@ -26,10 +29,22 @@ const environmentValue = (name: string): string => {
   return value;
 };
 
-export const nativeConfiguration = (): NativeKeycloakConfiguration => ({
+export type FixtureConsumer = "gettok" | "second-product";
+
+export const nativeConfiguration = (
+  consumer: FixtureConsumer = "gettok",
+): NativeKeycloakConfiguration => ({
   issuer: environmentValue("IDENTITY_TEST_ISSUER"),
-  humanSecret: environmentValue("IDENTITY_TEST_CLIENT_SECRET"),
-  workloadSecret: environmentValue("IDENTITY_TEST_WORKLOAD_SECRET"),
+  humanClientId: consumer === "gettok" ? HUMAN_CLIENT : "second-product-test-bff",
+  workloadClientId: consumer === "gettok" ? WORKLOAD_CLIENT : "second-product-test-workload",
+  callback:
+    consumer === "gettok" ? CALLBACK : "http://127.0.0.1:18181/second-product-callback",
+  humanSecret: environmentValue(
+    consumer === "gettok" ? "IDENTITY_TEST_CLIENT_SECRET" : "IDENTITY_TEST_SECOND_CLIENT_SECRET",
+  ),
+  workloadSecret: environmentValue(
+    consumer === "gettok" ? "IDENTITY_TEST_WORKLOAD_SECRET" : "IDENTITY_TEST_SECOND_WORKLOAD_SECRET",
+  ),
   password: environmentValue("IDENTITY_TEST_USER_PASSWORD"),
 });
 
@@ -81,8 +96,8 @@ export const authorizationUrl = (
 ): string => {
   const url = new URL(`${configuration.issuer}/protocol/openid-connect/auth`);
   url.search = new URLSearchParams({
-    client_id: HUMAN_CLIENT,
-    redirect_uri: CALLBACK,
+    client_id: configuration.humanClientId,
+    redirect_uri: configuration.callback,
     response_type: "code",
     scope: "openid email profile",
     state,
@@ -128,7 +143,11 @@ export const authorize = async (
   const location = response.headers.get("location");
   assert.ok(location !== null, "Native callback location is present");
   const callback = new URL(location);
-  assert.equal(`${callback.origin}${callback.pathname}`, CALLBACK, "Exact callback is preserved");
+  assert.equal(
+    `${callback.origin}${callback.pathname}`,
+    configuration.callback,
+    "Exact callback is preserved",
+  );
   assert.ok(callback.searchParams.get("state") === state, "State binds the callback");
   const code = callback.searchParams.get("code");
   assert.ok(code !== null && code.length > 0, "Native authorization code exists");
@@ -156,9 +175,9 @@ export const exchangeCode = (
   configuration: NativeKeycloakConfiguration,
   authorization: AuthorizationResult,
 ): Promise<Response> =>
-  tokenRequest(configuration, HUMAN_CLIENT, configuration.humanSecret, {
+  tokenRequest(configuration, configuration.humanClientId, configuration.humanSecret, {
     grant_type: "authorization_code",
-    redirect_uri: CALLBACK,
+    redirect_uri: configuration.callback,
     code: authorization.code,
     code_verifier: authorization.verifier,
   });

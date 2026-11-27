@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile, spawn, type ChildProcess } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import {
   appendFile,
   copyFile,
@@ -89,6 +89,8 @@ const logs = await mkdtemp(join(tmpdir(), "identity-keycloak-native-"));
 const gettokBinary = withGetTok ? join(logs, "gettok-native.test") : undefined;
 const environment = {
   ...process.env,
+  IDENTITY_TEST_SECOND_CLIENT_SECRET: randomBytes(32).toString("hex"),
+  IDENTITY_TEST_SECOND_WORKLOAD_SECRET: randomBytes(32).toString("hex"),
   JAVA_OPTS:
     "-Xms64m -Xmx256m -XX:MaxMetaspaceSize=192m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=32m -XX:-UseBASE64Intrinsics -XX:+UseSerialGC",
   KC_DB: "postgres",
