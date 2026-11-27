@@ -104,7 +104,11 @@ and durable back-channel logout/reconciliation before extending it.
 policy is `gettok-protected-organizational`, version 1, with an explicitly
 configured resource/action scope. Neither `acr`, `amr`, current factor count,
 `mfaEnabled`, a requested `acr_values`, nor a fresh token issuance upgrades an
-ordinary receipt. A future version cannot widen old receipts' scope.
+ordinary receipt. The current account admission policy explicitly refuses a
+synthetic `INDEPENDENT_CONTINUITY_V1` value even if a test or future inbound
+adapter accidentally supplies one: issuance requires a separately qualified
+provider proof, historical factor custody, monotone recovery policy and a
+reviewed future policy change. A future version cannot widen old receipts' scope.
 
 The selected D3-A requirement is a previously admitted independent local
 factor for the declared protected operations. First-factor enrollment is

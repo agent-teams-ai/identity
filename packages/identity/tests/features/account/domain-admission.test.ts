@@ -94,6 +94,12 @@ await test("re-entry requires proof strictly newer than each cutoff including un
   }, reason("AUTHENTICATION_REQUIRED_AFTER_CUTOFF"));
   validateAdmission(actor, revoked);
   assert.throws(() => {
+    validateAdmission(
+      { ...actor, proof: { ...actor.proof, profile: "independent-continuity-v1" } },
+      observation,
+    );
+  }, reason("INSUFFICIENT_PROOF"));
+  assert.throws(() => {
     validateAdmission(actor, {
       ...revoked,
       attachment: { ...observation.attachment, reattachmentCutoffMs: 95_000 },
