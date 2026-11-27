@@ -2,6 +2,7 @@ import type { Pool } from "pg";
 import type {
   AccountOutboxDelivery,
   ClaimedAccountEvent,
+  ClosureOutcome,
 } from "../../application/ports/account-outbox.js";
 import { milliseconds } from "./postgres-codecs.js";
 
@@ -81,6 +82,41 @@ export function createPostgresOutboxDelivery(pool: Pool, consumerId: string): Ac
           AND claimed_until_ms > floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint
         RETURNING event_id`,
         [consumerId, claim.eventId, claim.claimGeneration.toString()],
+      );
+      return result.rows.length === 1;
+    },
+    reportClosure: async (report) => {
+      const allowed: readonly ClosureOutcome[] = [
+        "not-provisioned",
+        "erased",
+        "retained-by-policy",
+        "repair-required",
+      ];
+      if (!allowed.includes(report.outcome)) {
+        throw new TypeError("Invalid closure outcome");
+      }
+      if (report.closureRevision <= 0n || report.participantGeneration <= 0n) {
+        return false;
+      }
+      const result = await pool.query<{ readonly account_id: string }>(
+        `UPDATE identity_closure_participants AS item
+        SET status = $5
+        WHERE item.consumer_id = $1 AND item.account_id = $2
+          AND item.closure_revision = $3 AND item.participant_generation = $4
+          AND item.status = 'pending'
+          AND EXISTS (
+            SELECT 1 FROM identity_accounts AS account
+            WHERE account.account_id = item.account_id AND account.eligibility = 'closed'
+              AND account.revision = item.closure_revision
+          )
+        RETURNING item.account_id`,
+        [
+          consumerId,
+          report.accountId,
+          report.closureRevision.toString(),
+          report.participantGeneration.toString(),
+          report.outcome,
+        ],
       );
       return result.rows.length === 1;
     },

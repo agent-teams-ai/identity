@@ -379,3 +379,55 @@ void test("outbox lease expiry advances generation and rejects stale acknowledge
   assert.equal(await secondWorker.acknowledge(reassigned), true);
   assert.equal(await firstWorker.claimNext(60_000), undefined);
 });
+
+void test("closure outcomes require exact terminal account, generation and trusted recipient", async () => {
+  const opened = await accounts.api.resolveSelf(human(), "closure-receipt-gettok");
+  await accounts.api.resolveSelf(human("other-product"), "closure-receipt-other");
+  await accounts.administration.transition(opened.status.account, "close", 1n);
+  const rows = await pool.query<{
+    readonly consumer_id: string;
+    readonly closure_revision: string;
+    readonly participant_generation: string;
+  }>(
+    "SELECT consumer_id, closure_revision, participant_generation FROM identity_closure_participants ORDER BY consumer_id",
+  );
+  assert.equal(rows.rows.length, 2);
+  const owned = rows.rows.find((row) => row.consumer_id === "gettok");
+  assert.ok(owned !== undefined);
+  const report = {
+    accountId: opened.status.account.accountId,
+    closureRevision: BigInt(owned.closure_revision),
+    participantGeneration: BigInt(owned.participant_generation),
+    outcome: "retained-by-policy" as const,
+  };
+  const gettok = createPostgresOutboxDelivery(pool, "gettok");
+  const other = createPostgresOutboxDelivery(replica, "other-product");
+  assert.equal(await other.reportClosure(report), false, "Foreign consumer cannot report");
+  assert.equal(
+    await gettok.reportClosure({ ...report, closureRevision: report.closureRevision + 1n }),
+    false,
+    "Wrong terminal revision cannot settle",
+  );
+  assert.equal(
+    await gettok.reportClosure({
+      ...report,
+      participantGeneration: report.participantGeneration + 1n,
+    }),
+    false,
+    "Wrong participant generation cannot settle",
+  );
+  assert.equal(await gettok.reportClosure(report), true);
+  assert.equal(await gettok.reportClosure(report), false, "No duplicate terminal receipt");
+  const status = await pool.query<{ readonly consumer_id: string; readonly status: string }>(
+    "SELECT consumer_id, status FROM identity_closure_participants ORDER BY consumer_id",
+  );
+  assert.deepEqual(status.rows, [
+    { consumer_id: "gettok", status: "retained-by-policy" },
+    { consumer_id: "other-product", status: "pending" },
+  ]);
+  assert.equal(
+    await other.reportClosure({ ...report, outcome: "erased" }),
+    false,
+    "Another recipient cannot claim the first participant",
+  );
+});
