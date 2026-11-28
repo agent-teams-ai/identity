@@ -22,7 +22,10 @@ export async function deliverAccountEvent(
     // Do not expose potentially sensitive downstream errors.
     throw new Error("Identity consumer delivery failed");
   }
-  if (!(await outbox.acknowledge(event))) {
+  // A database error can mean the acknowledgement committed but its response was lost.
+  // Never claim success or expose storage details when settlement is uncertain.
+  const acknowledged = await outbox.acknowledge(event).catch(() => false);
+  if (!acknowledged) {
     throw new Error("Identity consumer acknowledgement uncertain");
   }
   return "acknowledged";

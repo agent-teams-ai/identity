@@ -21,6 +21,7 @@ interface OutboxFixtures {
 export function registerOutboxTests(fixtures: OutboxFixtures): void {
   registerClaimsAndClosure(fixtures);
   registerDispatchAndRevocation(fixtures);
+  registerUncertainSettlement(fixtures);
 }
 
 function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixtures): void {
@@ -256,5 +257,66 @@ function registerDispatchAndRevocation({ pool, accounts, human, workload }: Outb
       assert.equal(current.accountRevision, 3n);
       assert.equal(current.securityEpoch, 2n, "Enable never clears the prior revocation fence");
     }
+  });
+}
+
+function registerUncertainSettlement({ pool, replica, accounts, human }: OutboxFixtures): void {
+  void test("successful dispatch with an expired lease refuses settlement and permits same-ID redelivery", async () => {
+    await accounts.api.resolveSelf(human(), "dispatch-expired-admission");
+    const first = createPostgresOutboxDelivery(pool, "gettok");
+    const second = createPostgresOutboxDelivery(replica, "gettok");
+    const observed: string[] = [];
+    await assert.rejects(
+      deliverAccountEvent(
+        first,
+        async (event) => {
+          observed.push(event.eventId);
+          await pool.query("UPDATE identity_outbox SET claimed_until_ms = 0 WHERE event_id = $1", [
+            event.eventId,
+          ]);
+        },
+        60_000,
+      ),
+      { message: "Identity consumer acknowledgement uncertain" },
+    );
+    assert.equal(
+      await deliverAccountEvent(
+        second,
+        async (event) => {
+          observed.push(event.eventId);
+          assert.equal(event.claimGeneration, 2n);
+        },
+        60_000,
+      ),
+      "acknowledged",
+    );
+    assert.equal(observed.length, 2);
+    assert.equal(observed[0], observed[1], "Redelivery retains the original idempotency key");
+    assert.equal(await second.claimNext(60_000), undefined);
+  });
+
+  void test("a lost acknowledgement response never reports success or leaks storage errors", async () => {
+    await accounts.api.resolveSelf(human(), "dispatch-uncertain-admission");
+    const first = createPostgresOutboxDelivery(pool, "gettok");
+    const second = createPostgresOutboxDelivery(replica, "gettok");
+    let dispatched = 0;
+    await assert.rejects(
+      deliverAccountEvent(
+        {
+          ...first,
+          acknowledge: async (claim) => {
+            assert.equal(await first.acknowledge(claim), true);
+            throw new Error("unsafe database transport detail");
+          },
+        },
+        async () => {
+          dispatched += 1;
+        },
+        60_000,
+      ),
+      { message: "Identity consumer acknowledgement uncertain" },
+    );
+    assert.equal(dispatched, 1);
+    assert.equal(await second.claimNext(60_000), undefined, "Committed settlement stays durable");
   });
 }
