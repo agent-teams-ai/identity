@@ -1,0 +1,32 @@
+name: Observe pinned Oxfmt documentation delta
+on:
+  push:
+    branches: [qualification/identity-docs-oxfmt-20261128]
+permissions:
+  contents: read
+jobs:
+  read-only-format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: 11.20.0
+          run_install: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - name: Read-only exact installed Oxfmt source diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --ignore-scripts
+          stack="$(node -p 'require.resolve("stack-toolchain/package.json")')"
+          fmt="$(node -p 'require("node:module").createRequire(process.argv[1]).resolve("oxfmt/package.json")' "$stack")"
+          output="$(mktemp)"
+          trap 'rm -f "$output"' EXIT
+          node "$(dirname "$fmt")/bin/oxfmt" --config "$(dirname "$stack")/presets/format.json" --disable-nested-config --stdin-filepath docs/README.md < docs/README.md > "$output"
+          diff -u --label docs/README.md --label docs/README.md.formatted docs/README.md "$output" || test "$?" -eq 1
