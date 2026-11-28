@@ -18,12 +18,16 @@ interface OutboxFixtures {
 }
 
 /** Registers outbox scenarios against the owner's single PostgreSQL test lifecycle. */
-export function registerOutboxTests({
+export function registerOutboxTests(fixtures: OutboxFixtures): void {
+  registerClaimsAndClosure(fixtures);
+  registerDispatchAndRevocation(fixtures);
+}
+
+function registerClaimsAndClosure({
   pool,
   replica,
   accounts,
   human,
-  workload,
 }: OutboxFixtures): void {
   void test("outbox claims are recipient-scoped and exclusive across actual PostgreSQL replicas", async () => {
     const admitted = await accounts.api.resolveSelf(human(), "outbox-first-admission");
@@ -147,6 +151,14 @@ export function registerOutboxTests({
     );
   });
 
+}
+
+function registerDispatchAndRevocation({
+  pool,
+  accounts,
+  human,
+  workload,
+}: OutboxFixtures): void {
   void test("outbox dispatch acknowledges only after recipient success and preserves redelivery", async () => {
     await accounts.api.resolveSelf(human(), "dispatch-first-admission");
     const outbox = createPostgresOutboxDelivery(pool, "gettok");
