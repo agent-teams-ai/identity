@@ -39,4 +39,5 @@ export {
 export type {
   PinnedConsumerSession,
   ConsumerEvidencePolicy,
+  ConsumerResolutionOrigin,
 } from "./features/protocol/contracts/consumer-status.js";

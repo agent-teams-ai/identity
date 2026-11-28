@@ -32,6 +32,12 @@ export interface ConsumerEvidencePolicy {
   readonly clockUncertaintyMs: number;
 }
 
+/** Retain with the logical ResolveSelf request and its idempotency key across retries. */
+export interface ConsumerResolutionOrigin {
+  readonly clockInstanceId: string;
+  readonly firstAttemptStartedMonotonicMs: number;
+}
+
 /** Never expose untrusted authority state or token data in denial diagnostics. */
 export class IdentityStatusDenied extends Error {
   constructor() {
@@ -129,14 +135,18 @@ function statusOf(status: AccountStatusEvidence, policy: ConsumerEvidencePolicy)
   };
 }
 
-/** Only the authenticated human ResolveSelf operation may establish this pin. */
+/** Only authenticated human resolution with its original request timing may establish a pin. */
 export function pinConsumerSession(
   response: ResolveSelfResponse,
   policy: ConsumerEvidencePolicy,
-  requestStartedMonotonicMs: number,
+  origin: ConsumerResolutionOrigin | undefined,
   receivedMonotonicMs: number,
 ): PinnedConsumerSession {
   policyOf(policy);
+  if (origin === undefined || origin.clockInstanceId !== policy.clockInstanceId) {
+    return deny();
+  }
+  const requestStartedMonotonicMs = origin.firstAttemptStartedMonotonicMs;
   monotonic(requestStartedMonotonicMs, receivedMonotonicMs);
   const { status, admission } = response;
   if (
@@ -165,8 +175,10 @@ export function pinConsumerSession(
   }
   const proofDeadlineMonotonicMs =
     requestStartedMonotonicMs + proofValidUntilMs - bounds.observedMs - policy.clockUncertaintyMs;
-  const statusDeadlineMonotonicMs =
-    requestStartedMonotonicMs + bounds.validUntilMs - bounds.observedMs - policy.clockUncertaintyMs;
+  const statusDeadlineMonotonicMs = Math.min(
+    proofDeadlineMonotonicMs,
+    requestStartedMonotonicMs + bounds.validUntilMs - bounds.observedMs - policy.clockUncertaintyMs,
+  );
   if (receivedMonotonicMs >= Math.min(proofDeadlineMonotonicMs, statusDeadlineMonotonicMs)) {
     return deny();
   }

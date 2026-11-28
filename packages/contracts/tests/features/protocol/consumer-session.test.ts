@@ -18,6 +18,10 @@ const policy = {
   maximumStatusAgeMs: 60_000,
   clockUncertaintyMs: 5_000,
 };
+const origin = {
+  clockInstanceId: policy.clockInstanceId,
+  firstAttemptStartedMonotonicMs: 100,
+};
 const initialStatus = {
   account: {
     accountId: "019abcde-0000-7000-8000-000000000001",
@@ -54,7 +58,7 @@ const rejects = (run: () => unknown): void => {
 };
 
 void test("human admission pins proof separately from renewable status observations", () => {
-  const original = pinConsumerSession(response(), policy, 100, 200);
+  const original = pinConsumerSession(response(), policy, origin, 200);
   assert.equal(original.issuedSecurityEpoch, 1n);
   assert.equal(original.issuedAttachmentGeneration, 1n);
   assert.equal(original.proofDeadlineMonotonicMs, 235_100);
@@ -98,7 +102,7 @@ void test("human admission pins proof separately from renewable status observati
 });
 
 void test("status from another consumer or prior account fences never authorizes a session", () => {
-  const session = pinConsumerSession(response(), policy, 100, 200);
+  const session = pinConsumerSession(response(), policy, origin, 200);
   rejects(() =>
     observeConsumerStatus(
       session,
@@ -168,13 +172,13 @@ void test("unqualified strong profiles and expired, malformed or unbounded proof
     pinConsumerSession(
       response({ profile: "ADMISSION_PROFILE_INDEPENDENT_CONTINUITY_V1" }),
       policy,
-      100,
+      origin,
       200,
     ),
   );
-  rejects(() => pinConsumerSession(response({ policyId: "another-policy" }), policy, 100, 200));
-  rejects(() => pinConsumerSession(response(), policy, 100, 50));
-  rejects(() => pinConsumerSession(response(), policy, 100, 70_000));
+  rejects(() => pinConsumerSession(response({ policyId: "another-policy" }), policy, origin, 200));
+  rejects(() => pinConsumerSession(response(), policy, origin, 50));
+  rejects(() => pinConsumerSession(response(), policy, origin, 70_000));
   rejects(() =>
     pinConsumerSession(
       fromJsonString(
@@ -185,7 +189,7 @@ void test("unqualified strong profiles and expired, malformed or unbounded proof
         }),
       ),
       policy,
-      100,
+      origin,
       200,
     ),
   );
@@ -196,8 +200,36 @@ void test("unqualified strong profiles and expired, malformed or unbounded proof
         JSON.stringify({ status: { ...initialStatus, eligibility: 99 }, admission: baseAdmission }),
       ),
       policy,
-      100,
+      origin,
       200,
     ),
   );
+});
+
+void test("logical resolution retries retain their first attempt and refuse lost clock origin", () => {
+  const receipt = response();
+  const original = pinConsumerSession(receipt, policy, origin, 200);
+  const retry = pinConsumerSession(receipt, policy, origin, 40_200);
+  assert.equal(retry.statusDeadlineMonotonicMs, 50_100);
+  assert.equal(retry.proofDeadlineMonotonicMs, 235_100);
+  assert.equal(retry.statusDeadlineMonotonicMs, original.statusDeadlineMonotonicMs);
+  assert.equal(retry.proofDeadlineMonotonicMs, original.proofDeadlineMonotonicMs);
+  rejects(() => pinConsumerSession(receipt, policy, origin, 50_100));
+  rejects(() => pinConsumerSession(receipt, policy, undefined, 40_200));
+  rejects(() =>
+    pinConsumerSession(
+      receipt,
+      { ...policy, clockInstanceId: "restarted-process-clock" },
+      origin,
+      200,
+    ),
+  );
+});
+
+void test("initial status freshness never exceeds the shorter human proof deadline", () => {
+  const receipt = response({ validUntil: "2026-11-28T00:00:20Z" });
+  const session = pinConsumerSession(receipt, policy, origin, 200);
+  assert.equal(session.proofDeadlineMonotonicMs, 15_100);
+  assert.equal(session.statusDeadlineMonotonicMs, 15_100);
+  rejects(() => pinConsumerSession(receipt, policy, origin, 15_100));
 });

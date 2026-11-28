@@ -1,5 +1,7 @@
 # Repository instructions
 
+Use the [documentation map](docs/README.md) to select the relevant plan or research evidence.
+
 ## Current scope
 
 Identity is under implementation with GetTok as its first consumer. Read the

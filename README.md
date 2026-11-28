@@ -42,3 +42,5 @@ Database and provider checks require their actual disposable services.
 Central admission, managed Docs adoption, native qualification and production
 rollout are separate evidence. Their current state is recorded in BOOTSTRAP and
 the owning PR checks; local source or a static profile alone does not prove them.
+
+See the [documentation map](docs/README.md) for task-oriented navigation.

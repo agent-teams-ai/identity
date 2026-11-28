@@ -3,6 +3,18 @@
   "required": [
     {
       "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
+      "names": [
+        "logical resolution retries retain their first attempt and refuse lost clock origin"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
+      "names": ["initial status freshness never exceeds the shorter human proof deadline"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
       "names": ["human admission pins proof separately from renewable status observations"],
       "kind": "test"
     },
