@@ -71,8 +71,11 @@ jobs:
           fi
           stack="$(node -p 'require.resolve("stack-toolchain/package.json")')"
           fmt="$(node -p 'require("node:module").createRequire(process.argv[1]).resolve("oxfmt/package.json")' "$stack")"
+          temp="$(mktemp -d)"
+          trap 'rm -rf "$temp"' EXIT
           for file in packages/contracts/src/features/protocol/contracts/consumer-status.ts packages/contracts/tests/features/protocol/consumer-session.test.ts; do
-            node "$(dirname "$fmt")/bin/oxfmt" --check --config "$(dirname "$stack")/presets/format.json" --disable-nested-config -- "$file" || true
+            node "$(dirname "$fmt")/bin/oxfmt" --config "$(dirname "$stack")/presets/format.json" --disable-nested-config --stdin-filepath "$file" < "$file" > "$temp/formatted"
+            diff -u --label "$file" --label "$file (formatted)" "$file" "$temp/formatted" || test "$?" -eq 1
           done
 
   native-authentication:

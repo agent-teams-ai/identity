@@ -3,11 +3,17 @@
   "required": [
     {
       "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
-      "names": [
-        "human admission pins proof separately from renewable status observations",
-        "status from another consumer or prior account fences never authorizes a session",
-        "unqualified strong profiles and expired, malformed or unbounded proof refuse"
-      ],
+      "names": ["human admission pins proof separately from renewable status observations"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
+      "names": ["status from another consumer or prior account fences never authorizes a session"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
+      "names": ["unqualified strong profiles and expired, malformed or unbounded proof refuse"],
       "kind": "test"
     },
     {
