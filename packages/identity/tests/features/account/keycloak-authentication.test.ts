@@ -50,6 +50,7 @@ const signingFixture = async (context: TestContext) => {
         policyVersion: "1",
       },
       { kind: "workload", clientId: "gettok-workload", consumerId: "gettok" },
+      { kind: "terminal-workload", clientId: "gettok-terminal", consumerId: "gettok" },
     ],
   });
   const sign = (overrides: Record<string, unknown> = {}) =>
@@ -98,6 +99,61 @@ await test("Keycloak token boundary rejects wrong authority kind scope and age",
       );
     });
   }
+});
+
+await test("Keycloak terminal purpose requires its admitted client and exact permission", async (context) => {
+  const { adapter, sign, nowMs } = await signingFixture(context);
+  const signal = new AbortController().signal;
+  const token = {
+    azp: "gettok-terminal",
+    scope: "identity.closure:participate",
+    sid: undefined,
+    auth_time: undefined,
+  };
+  assert.deepEqual(await adapter.authenticate(await sign(token), signal), {
+    kind: "terminal-workload",
+    clientId: "gettok-terminal",
+    consumerId: "gettok",
+    credentialExpiresAtMs: nowMs + 300_000,
+  });
+  await assert.rejects(
+    adapter.authenticate(await sign({ ...token, scope: "identity.status:read" }), signal),
+    { reason: "UNAUTHENTICATED" },
+  );
+  assert.equal(
+    (
+      await adapter.authenticate(
+        await sign({
+          ...token,
+          azp: "gettok-workload",
+          scope: "identity.status:read identity.closure:participate",
+        }),
+        signal,
+      )
+    ).kind,
+    "workload",
+  );
+  assert.equal(
+    (
+      await adapter.authenticate(
+        await sign({ scope: "openid identity.resolve:self identity.closure:participate" }),
+        signal,
+      )
+    ).kind,
+    "human",
+  );
+  assert.throws(
+    () =>
+      createKeycloakAuthentication({
+        issuer: "https://identity.test/realms/test",
+        authorityId: "test",
+        authorityIncarnation: "test-v1",
+        clients: [
+          { kind: "terminal-workload", clientId: "test-terminal", consumerId: "invalid;consumer" },
+        ],
+      }),
+    { message: "Invalid terminal consumer identity" },
+  );
 });
 
 await test("Keycloak proof stays ordinary and expires with its original human credential", async (context) => {

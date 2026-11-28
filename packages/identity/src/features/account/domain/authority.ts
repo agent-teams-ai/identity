@@ -25,4 +25,11 @@ export interface VerifiedWorkload {
   readonly credentialExpiresAtMs: number;
 }
 
-export type VerifiedActor = VerifiedHuman | VerifiedWorkload;
+export interface VerifiedTerminalWorkload {
+  readonly kind: "terminal-workload";
+  readonly clientId: string;
+  readonly consumerId: string;
+  readonly credentialExpiresAtMs: number;
+}
+
+export type VerifiedActor = VerifiedHuman | VerifiedWorkload | VerifiedTerminalWorkload;

@@ -1,0 +1,172 @@
+name: Identity Terminal Preflight Diagnostics
+
+on:
+  push:
+    branches: [qualification/identity-contract-candidate-20261128]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: identity-terminal-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GOTOOLCHAIN: local
+      GOWORK: "off"
+      SOURCE_REVISION: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Bind diagnostics to the original tracked source
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_REVISION"
+          mkdir "$RUNNER_TEMP/identity-terminal-preflight"
+          cp architecture/foundation/quality-source-topology.json "$RUNNER_TEMP/identity-terminal-preflight/topology.original.json"
+          git ls-files -z | xargs -0 sha256sum | \
+            jq -Rn '[inputs | capture("^(?<sha256>[0-9a-f]{64})  (?<path>.+)$")]' \
+            > "$RUNNER_TEMP/identity-terminal-source-inputs.json"
+          : > "$RUNNER_TEMP/identity-terminal-results.tsv"
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: 11.20.0
+          run_install: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: "1.27.4"
+          check-latest: false
+          cache-dependency-path: packages/contracts/gen/go/go.sum
+      - name: Install the immutable dependency graph
+        id: install
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install pinned native generators
+        id: generators
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.12
+          go install connectrpc.com/connect/cmd/protoc-gen-connect-go@v1.21.1
+      - name: Project topology and collect independent native diagnostics
+        id: diagnostics
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.generators.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          preflight_dir="$RUNNER_TEMP/identity-terminal-preflight"
+          preflight_failed=0
+          preflight_last_status=0
+          capture() {
+            local preflight_name="$1" preflight_budget="$2" preflight_suffix="$3"
+            shift 3
+            local preflight_raw="$RUNNER_TEMP/identity-terminal-$preflight_name.raw"
+            local preflight_code=0
+            timeout --kill-after=5s "$preflight_budget" "$@" > "$preflight_raw" 2>&1 || preflight_code=$?
+            head -c 262144 "$preflight_raw" > "$preflight_dir/$preflight_name.$preflight_suffix"
+            local preflight_bytes
+            preflight_bytes="$(stat -c%s "$preflight_raw")"
+            printf '%s\t%s\t%s\n' "$preflight_name" "$preflight_code" "$preflight_bytes" >> "$RUNNER_TEMP/identity-terminal-results.tsv"
+            if test "$preflight_code" -ne 0 || test "$preflight_bytes" -gt 262144; then
+              preflight_failed=1
+            fi
+            preflight_last_status="$preflight_code"
+          }
+          capture project-topology 30s log node tools/project-topology.ts --write
+          if test "$preflight_last_status" -eq 0; then
+            if test "$(stat -c%s architecture/foundation/quality-source-topology.json)" -le 262144; then
+              cp architecture/foundation/quality-source-topology.json "$preflight_dir/topology.projected.json"
+              capture topology 30s diff git diff --no-ext-diff --no-color -- architecture/foundation/quality-source-topology.json
+              capture topology-compare 30s log bash -euc '
+                jq -S . "$1" > "$RUNNER_TEMP/identity-terminal-original.canonical.json"
+                jq -S . "$2" > "$RUNNER_TEMP/identity-terminal-projected.canonical.json"
+                diff -u "$RUNNER_TEMP/identity-terminal-original.canonical.json" "$RUNNER_TEMP/identity-terminal-projected.canonical.json"
+              ' -- "$preflight_dir/topology.original.json" "$preflight_dir/topology.projected.json"
+            else
+              preflight_failed=1
+              printf 'projection-size\t1\t0\n' >> "$RUNNER_TEMP/identity-terminal-results.tsv"
+            fi
+          fi
+          cp "$preflight_dir/topology.original.json" architecture/foundation/quality-source-topology.json
+          capture build 180s log pnpm build
+          capture static 180s log pnpm check:static
+          capture contracts 180s log pnpm contracts:check
+          capture format-qualify 180s log pnpm format:qualify
+          capture format 120s log pnpm format:check
+          capture gofmt 30s diff bash -euc '
+            difference="$(gofmt -d "$@")"
+            printf "%s" "$difference"
+            test -z "$difference"
+          ' -- \
+            packages/contracts/gen/go/identity/v1/identity.pb.go \
+            packages/contracts/gen/go/identity/v1/identityv1connect/identity.connect.go \
+            packages/contracts/gen/go/identity/v1/identity_vectors_test.go
+          capture buf 30s diff bash -euc '
+            cd packages/contracts
+            ../../node_modules/.bin/buf format --diff --exit-code
+          '
+          capture source 30s diff git diff --no-ext-diff --no-color
+          preflight_changed="$(git diff --name-only)"
+          if test -n "$preflight_changed"; then
+            preflight_failed=1
+            printf 'source-custody\t1\t0\n' >> "$RUNNER_TEMP/identity-terminal-results.tsv"
+          fi
+          exit "$preflight_failed"
+      - name: Seal available diagnostics even when a check failed
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        shell: bash
+        env:
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          GENERATORS_OUTCOME: ${{ steps.generators.outcome }}
+          DIAGNOSTICS_OUTCOME: ${{ steps.diagnostics.outcome }}
+        run: |
+          set -euo pipefail
+          preflight_dir="$RUNNER_TEMP/identity-terminal-preflight"
+          jq -Rn '[inputs | split("\t") | {name: .[0], exitCode: (.[1] | tonumber), logBytes: (.[2] | tonumber), logTruncated: ((.[2] | tonumber) > 262144)}]' \
+            < "$RUNNER_TEMP/identity-terminal-results.tsv" > "$preflight_dir/results.json"
+          (
+            cd "$preflight_dir"
+            for path in topology.original.json topology.projected.json topology.diff topology-compare.log project-topology.log build.log static.log contracts.log format-qualify.log format.log gofmt.diff buf.diff source.diff results.json; do
+              if test -f "$path"; then sha256sum "$path"; fi
+            done
+          ) | jq -Rn '[inputs | capture("^(?<sha256>[0-9a-f]{64})  (?<path>.+)$")]' \
+            > "$RUNNER_TEMP/identity-terminal-output-digests.json"
+          jq -n --arg sourceRevision "$SOURCE_REVISION" \
+            --arg install "$INSTALL_OUTCOME" --arg generators "$GENERATORS_OUTCOME" --arg diagnostics "$DIAGNOSTICS_OUTCOME" \
+            --slurpfile sourceInputs "$RUNNER_TEMP/identity-terminal-source-inputs.json" \
+            --slurpfile outputs "$RUNNER_TEMP/identity-terminal-output-digests.json" \
+            --slurpfile results "$preflight_dir/results.json" \
+            '{schemaVersion: 1, sourceRevision: $sourceRevision, qualification: "diagnostics-only", sourceInputs: $sourceInputs[0], outputs: $outputs[0], results: $results[0], setup: {install: $install, generators: $generators, diagnostics: $diagnostics}, projection: "raw public FMS output compared semantically; exact original topology restored before ordinary checks"}' \
+            > "$preflight_dir/manifest.json"
+      - name: Upload only bounded preflight evidence
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: identity-terminal-preflight-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/identity-terminal-preflight/topology.original.json
+            ${{ runner.temp }}/identity-terminal-preflight/topology.projected.json
+            ${{ runner.temp }}/identity-terminal-preflight/topology.diff
+            ${{ runner.temp }}/identity-terminal-preflight/topology-compare.log
+            ${{ runner.temp }}/identity-terminal-preflight/project-topology.log
+            ${{ runner.temp }}/identity-terminal-preflight/build.log
+            ${{ runner.temp }}/identity-terminal-preflight/static.log
+            ${{ runner.temp }}/identity-terminal-preflight/contracts.log
+            ${{ runner.temp }}/identity-terminal-preflight/format-qualify.log
+            ${{ runner.temp }}/identity-terminal-preflight/format.log
+            ${{ runner.temp }}/identity-terminal-preflight/gofmt.diff
+            ${{ runner.temp }}/identity-terminal-preflight/buf.diff
+            ${{ runner.temp }}/identity-terminal-preflight/source.diff
+            ${{ runner.temp }}/identity-terminal-preflight/results.json
+            ${{ runner.temp }}/identity-terminal-preflight/manifest.json
+          if-no-files-found: error
+          retention-days: 7

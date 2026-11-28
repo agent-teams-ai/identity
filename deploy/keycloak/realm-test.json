@@ -18,7 +18,10 @@
     {
       "name": "email",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" },
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
       "protocolMappers": [
         {
           "name": "email",
@@ -53,7 +56,10 @@
     {
       "name": "profile",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" },
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
       "protocolMappers": [
         {
           "name": "username",
@@ -157,6 +163,27 @@
           }
         }
       ]
+    },
+    {
+      "name": "identity.closure:participate",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "identity-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "identity-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
     }
   ],
   "clients": [
@@ -238,6 +265,44 @@
       "serviceAccountsEnabled": true,
       "fullScopeAllowed": false,
       "defaultClientScopes": ["basic", "identity.status:read"],
+      "optionalClientScopes": [],
+      "attributes": {
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false",
+        "standard.token.exchange.enabled": "false"
+      }
+    },
+    {
+      "clientId": "gettok-test-terminal",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${IDENTITY_TEST_TERMINAL_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "fullScopeAllowed": false,
+      "defaultClientScopes": ["basic", "identity.closure:participate"],
+      "optionalClientScopes": [],
+      "attributes": {
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false",
+        "standard.token.exchange.enabled": "false"
+      }
+    },
+    {
+      "clientId": "second-product-test-terminal",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${IDENTITY_TEST_SECOND_TERMINAL_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "fullScopeAllowed": false,
+      "defaultClientScopes": ["basic", "identity.closure:participate"],
       "optionalClientScopes": [],
       "attributes": {
         "oauth2.device.authorization.grant.enabled": "false",

@@ -16,6 +16,7 @@ import type {
   VerifiedWorkload,
 } from "../../../src/features/account/domain/authority.js";
 import { registerOutboxTests } from "./postgres-outbox.tests.js";
+import { registerClosureApiTests } from "./postgres-closure-api.tests.js";
 
 const connectionString = process.env.IDENTITY_TEST_DATABASE_URL;
 if (connectionString === undefined || new URL(connectionString).pathname !== "/identity_test") {
@@ -328,6 +329,7 @@ void test(
 );
 
 registerOutboxTests({ pool, replica, accounts, human, workload });
+registerClosureApiTests({ pool, replica, accounts, human });
 
 void test(
   "outbox acknowledgement refuses a held row lock without waiting or publishing",

@@ -9,4 +9,12 @@ export type {
   FailureReason,
   HumanAuthority,
   WorkloadAuthority,
+  TerminalWorkloadAuthority,
 } from "./features/account/contracts/account.js";
+export type {
+  AccountClosureApi,
+  ClosurePage,
+  ClosurePageRequest,
+  ClosureParticipantReference,
+  ClosureReceipt,
+} from "./features/account/contracts/closure.js";

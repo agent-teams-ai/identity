@@ -40,23 +40,23 @@
     },
     {
       "path": "packages/contracts/gen/go/identity/v1/identity.pb.go",
-      "sha256": "c7758e928237c7bf384b2c83e2258444d5071b052ef097f48aca0551ef9354e7"
+      "sha256": "6fd79aa4ccc3f899ebbb729ddb7b717b475414540542ef02a975407477106ea6"
     },
     {
       "path": "packages/contracts/gen/go/identity/v1/identity_vectors_test.go",
-      "sha256": "63bff0cd52081e3a570a0e617797708e3819d2a088850c197a2b493fb4cd5e28"
+      "sha256": "a0ba5ac4c497c1dae69e66c09e000ad0c4bcd4bba0f56696bde3137fe291cddd"
     },
     {
       "path": "packages/contracts/gen/go/identity/v1/identityv1connect/identity.connect.go",
-      "sha256": "79beab6bd877219b05cc5a49071ef6ca623537b83ff84aea2de302133b31ab75"
+      "sha256": "853c3341df63e49a925f5b89b6852f50137462199d8582137e8afd4c7bcd2549"
     },
     {
       "path": "packages/contracts/proto/identity/v1/identity.proto",
-      "sha256": "3b2b7bbabcc9636031c92a049adeca026ba5ba11abaf3a149f94025cc370180b"
+      "sha256": "543c240b8b935fca270d86455dd80f0b484603807f219e6cfbd02f7c7b3e37f0"
     },
     {
       "path": "packages/contracts/src/features/protocol/contracts/gen/identity/v1/identity_pb.ts",
-      "sha256": "c8d891eab60e7c4a784afdc28164a04bf8b9b25593aa8ed9a87689be0713e4ca"
+      "sha256": "f7a46608c89a5c767e1aea0d8f776e5925d13c8f427c93c04b701f73cc16768e"
     },
     {
       "path": "packages/identity/src/features/account/adapters/outbound/migrations/0001_accounts.sql",

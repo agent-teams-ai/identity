@@ -11,6 +11,9 @@ The authoritative wire source is
 Generated TS and Go bindings derive from it; applications must not maintain
 lookalike DTOs. The initial schema SHA-256 is
 `3b2b7bbabcc9636031c92a049adeca026ba5ba11abaf3a149f94025cc370180b`.
+The terminal-purpose extension has schema SHA-256
+`543c240b8b935fca270d86455dd80f0b484603807f219e6cfbd02f7c7b3e37f0`;
+its bindings are produced by the same pinned native generators.
 
 ## Actor and operation boundary
 
@@ -32,6 +35,55 @@ it provides no account directory.
 authenticated subject and consumer. It identifies one attempted admission,
 not a refresh mechanism. Stable references are opaque, bounded to 256 UTF-8
 bytes, case-sensitive and never derived from email or mutable usernames.
+
+## Terminal-purpose cleanup participation
+
+`IdentityClosureService` exposes `ListPendingClosures`,
+`ListRepairRequiredClosures` and `ReportClosure` through the existing account
+capability and HTTP Host. The operator admits a separate client with
+`kind: "terminal-workload"`, a fixed consumer and the narrow
+`identity.closure:participate` permission. The exact issuer, `identity-api`
+audience and token lifetime checks remain required. Human clients, ordinary
+status clients and terminal clients cannot substitute for one another, even
+when a token contains an additional scope string. This permission does not
+grant ordinary status, account management or a global directory.
+
+Each list is scoped to that authenticated consumer's frozen manifest. A detached
+consumer retains its own terminal obligation while ordinary live status remains
+denied. Requests require `limit` from 1 through 16 and an empty or canonical
+account-ID cursor. Responses stay within the Host's existing 16 KiB limit.
+`next_after_account_id` is the final account ID when a page is full; a full final
+page can be followed by an empty page. Restart later sweeps from the beginning.
+Pages are observations of pending/repair items, not a complete erasure report
+or settlement instruction. No retention TTL or destructive purge is introduced.
+
+The participant reference contains the account/authority incarnation, closure
+revision, captured participant generation and `manifest_version = 1`. The
+account/incarnation/revision tuple identifies the existing closure operation;
+version 1 describes its captured manifest contract. There is no second operation
+ledger. Positive revision/generation values must fit PostgreSQL signed bigint;
+zero, overflow, missing references and unknown manifest versions are rejected.
+The consumer is never selected by a request field.
+
+`ReportClosure` records only `not-provisioned`, `erased` or `repair-required`.
+The first two are assertions by the admitted product: that product must first
+commit its own closed-account fence and settle work that could recreate data.
+Identity does not perform or prove physical product erasure. `retained-by-policy`
+is reserved and rejected until the owner qualifies the class/obligation/owner
+evidence contract. A repair receipt remains visible and cannot be changed to
+an erasure receipt by ordinary replay.
+
+The database accepts only CLOSED state, exact authority/revision/generation and
+either a pending item or the identical previously recorded outcome. The same
+receipt can recover a lost response; a different outcome never overwrites it.
+Unknown, foreign, stale, conflicting or contended reports receive the same
+non-enumerating permission denial. Uncertain transport failure does not prove
+that a report was rolled back; retry only the exact original receipt.
+Workload expiry includes the configured clock allowance: read authorization is
+checked against database time after the bounded read, and mutation authorization
+is checked after nonblocking receipt-row acquisition. Waiting never renews a
+credential. Detailed cross-product/operator progress and product cleanup
+handlers remain separately qualified work.
 
 ## Status, fences and observation bounds
 
@@ -134,8 +186,8 @@ The complete lifecycle's external mutation protocol separately needs a
 durable `outcome_unknown` state. A worker lease expiry or one readback cannot
 fence a delayed provider write that opposes a newer operation. Admission
 remains denied until an actual supported barrier, settlement or explicit
-repair establishes safety. This status-only transport must not pretend to
-implement those later mutation endpoints.
+repair establishes safety. The status and terminal receipt transport does not
+implement those provider mutation endpoints.
 
 ## Minimum falsifying scenarios
 

@@ -22,6 +22,63 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ClosureReceiptOutcome int32
+
+const (
+	ClosureReceiptOutcome_CLOSURE_RECEIPT_OUTCOME_UNSPECIFIED     ClosureReceiptOutcome = 0
+	ClosureReceiptOutcome_CLOSURE_RECEIPT_OUTCOME_NOT_PROVISIONED ClosureReceiptOutcome = 1
+	ClosureReceiptOutcome_CLOSURE_RECEIPT_OUTCOME_ERASED          ClosureReceiptOutcome = 2
+	// Reserved semantics: rejected until retention class/obligation/owner evidence
+	// is qualified. It must never stand in for complete erasure.
+	ClosureReceiptOutcome_CLOSURE_RECEIPT_OUTCOME_RETAINED_BY_POLICY ClosureReceiptOutcome = 3
+	ClosureReceiptOutcome_CLOSURE_RECEIPT_OUTCOME_REPAIR_REQUIRED    ClosureReceiptOutcome = 4
+)
+
+// Enum value maps for ClosureReceiptOutcome.
+var (
+	ClosureReceiptOutcome_name = map[int32]string{
+		0: "CLOSURE_RECEIPT_OUTCOME_UNSPECIFIED",
+		1: "CLOSURE_RECEIPT_OUTCOME_NOT_PROVISIONED",
+		2: "CLOSURE_RECEIPT_OUTCOME_ERASED",
+		3: "CLOSURE_RECEIPT_OUTCOME_RETAINED_BY_POLICY",
+		4: "CLOSURE_RECEIPT_OUTCOME_REPAIR_REQUIRED",
+	}
+	ClosureReceiptOutcome_value = map[string]int32{
+		"CLOSURE_RECEIPT_OUTCOME_UNSPECIFIED":        0,
+		"CLOSURE_RECEIPT_OUTCOME_NOT_PROVISIONED":    1,
+		"CLOSURE_RECEIPT_OUTCOME_ERASED":             2,
+		"CLOSURE_RECEIPT_OUTCOME_RETAINED_BY_POLICY": 3,
+		"CLOSURE_RECEIPT_OUTCOME_REPAIR_REQUIRED":    4,
+	}
+)
+
+func (x ClosureReceiptOutcome) Enum() *ClosureReceiptOutcome {
+	p := new(ClosureReceiptOutcome)
+	*p = x
+	return p
+}
+
+func (x ClosureReceiptOutcome) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ClosureReceiptOutcome) Descriptor() protoreflect.EnumDescriptor {
+	return file_identity_v1_identity_proto_enumTypes[0].Descriptor()
+}
+
+func (ClosureReceiptOutcome) Type() protoreflect.EnumType {
+	return &file_identity_v1_identity_proto_enumTypes[0]
+}
+
+func (x ClosureReceiptOutcome) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ClosureReceiptOutcome.Descriptor instead.
+func (ClosureReceiptOutcome) EnumDescriptor() ([]byte, []int) {
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{0}
+}
+
 type AccountEligibility int32
 
 const (
@@ -58,11 +115,11 @@ func (x AccountEligibility) String() string {
 }
 
 func (AccountEligibility) Descriptor() protoreflect.EnumDescriptor {
-	return file_identity_v1_identity_proto_enumTypes[0].Descriptor()
+	return file_identity_v1_identity_proto_enumTypes[1].Descriptor()
 }
 
 func (AccountEligibility) Type() protoreflect.EnumType {
-	return &file_identity_v1_identity_proto_enumTypes[0]
+	return &file_identity_v1_identity_proto_enumTypes[1]
 }
 
 func (x AccountEligibility) Number() protoreflect.EnumNumber {
@@ -71,7 +128,7 @@ func (x AccountEligibility) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AccountEligibility.Descriptor instead.
 func (AccountEligibility) EnumDescriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{0}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{1}
 }
 
 type AdmissionProfile int32
@@ -109,11 +166,11 @@ func (x AdmissionProfile) String() string {
 }
 
 func (AdmissionProfile) Descriptor() protoreflect.EnumDescriptor {
-	return file_identity_v1_identity_proto_enumTypes[1].Descriptor()
+	return file_identity_v1_identity_proto_enumTypes[2].Descriptor()
 }
 
 func (AdmissionProfile) Type() protoreflect.EnumType {
-	return &file_identity_v1_identity_proto_enumTypes[1]
+	return &file_identity_v1_identity_proto_enumTypes[2]
 }
 
 func (x AdmissionProfile) Number() protoreflect.EnumNumber {
@@ -122,7 +179,7 @@ func (x AdmissionProfile) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AdmissionProfile.Descriptor instead.
 func (AdmissionProfile) EnumDescriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{1}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{2}
 }
 
 // Stable, non-sensitive Connect error detail. Unknown reasons fail closed.
@@ -181,11 +238,11 @@ func (x IdentityErrorReason) String() string {
 }
 
 func (IdentityErrorReason) Descriptor() protoreflect.EnumDescriptor {
-	return file_identity_v1_identity_proto_enumTypes[2].Descriptor()
+	return file_identity_v1_identity_proto_enumTypes[3].Descriptor()
 }
 
 func (IdentityErrorReason) Type() protoreflect.EnumType {
-	return &file_identity_v1_identity_proto_enumTypes[2]
+	return &file_identity_v1_identity_proto_enumTypes[3]
 }
 
 func (x IdentityErrorReason) Number() protoreflect.EnumNumber {
@@ -194,7 +251,391 @@ func (x IdentityErrorReason) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use IdentityErrorReason.Descriptor instead.
 func (IdentityErrorReason) EnumDescriptor() ([]byte, []int) {
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{3}
+}
+
+type ListPendingClosuresRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Explicit bounded page size: 1..16. No unbounded/default directory scan.
+	Limit uint32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	// Last account ID from a previous page, or empty to start a new sweep.
+	AfterAccountId string `protobuf:"bytes,2,opt,name=after_account_id,json=afterAccountId,proto3" json:"after_account_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ListPendingClosuresRequest) Reset() {
+	*x = ListPendingClosuresRequest{}
+	mi := &file_identity_v1_identity_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPendingClosuresRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPendingClosuresRequest) ProtoMessage() {}
+
+func (x *ListPendingClosuresRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_identity_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPendingClosuresRequest.ProtoReflect.Descriptor instead.
+func (*ListPendingClosuresRequest) Descriptor() ([]byte, []int) {
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ListPendingClosuresRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListPendingClosuresRequest) GetAfterAccountId() string {
+	if x != nil {
+		return x.AfterAccountId
+	}
+	return ""
+}
+
+type ListPendingClosuresResponse struct {
+	state        protoimpl.MessageState         `protogen:"open.v1"`
+	Participants []*ClosureParticipantReference `protobuf:"bytes,1,rep,name=participants,proto3" json:"participants,omitempty"`
+	// Empty when the bounded page is exhausted. A full final page may be followed
+	// by an empty page. Restart a later sweep; paging never settles obligations.
+	NextAfterAccountId string `protobuf:"bytes,2,opt,name=next_after_account_id,json=nextAfterAccountId,proto3" json:"next_after_account_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ListPendingClosuresResponse) Reset() {
+	*x = ListPendingClosuresResponse{}
+	mi := &file_identity_v1_identity_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPendingClosuresResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPendingClosuresResponse) ProtoMessage() {}
+
+func (x *ListPendingClosuresResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_identity_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPendingClosuresResponse.ProtoReflect.Descriptor instead.
+func (*ListPendingClosuresResponse) Descriptor() ([]byte, []int) {
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ListPendingClosuresResponse) GetParticipants() []*ClosureParticipantReference {
+	if x != nil {
+		return x.Participants
+	}
+	return nil
+}
+
+func (x *ListPendingClosuresResponse) GetNextAfterAccountId() string {
+	if x != nil {
+		return x.NextAfterAccountId
+	}
+	return ""
+}
+
+type ListRepairRequiredClosuresRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Limit          uint32                 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	AfterAccountId string                 `protobuf:"bytes,2,opt,name=after_account_id,json=afterAccountId,proto3" json:"after_account_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ListRepairRequiredClosuresRequest) Reset() {
+	*x = ListRepairRequiredClosuresRequest{}
+	mi := &file_identity_v1_identity_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRepairRequiredClosuresRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRepairRequiredClosuresRequest) ProtoMessage() {}
+
+func (x *ListRepairRequiredClosuresRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_identity_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRepairRequiredClosuresRequest.ProtoReflect.Descriptor instead.
+func (*ListRepairRequiredClosuresRequest) Descriptor() ([]byte, []int) {
 	return file_identity_v1_identity_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ListRepairRequiredClosuresRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListRepairRequiredClosuresRequest) GetAfterAccountId() string {
+	if x != nil {
+		return x.AfterAccountId
+	}
+	return ""
+}
+
+type ListRepairRequiredClosuresResponse struct {
+	state              protoimpl.MessageState         `protogen:"open.v1"`
+	Participants       []*ClosureParticipantReference `protobuf:"bytes,1,rep,name=participants,proto3" json:"participants,omitempty"`
+	NextAfterAccountId string                         `protobuf:"bytes,2,opt,name=next_after_account_id,json=nextAfterAccountId,proto3" json:"next_after_account_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ListRepairRequiredClosuresResponse) Reset() {
+	*x = ListRepairRequiredClosuresResponse{}
+	mi := &file_identity_v1_identity_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRepairRequiredClosuresResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRepairRequiredClosuresResponse) ProtoMessage() {}
+
+func (x *ListRepairRequiredClosuresResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_identity_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRepairRequiredClosuresResponse.ProtoReflect.Descriptor instead.
+func (*ListRepairRequiredClosuresResponse) Descriptor() ([]byte, []int) {
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ListRepairRequiredClosuresResponse) GetParticipants() []*ClosureParticipantReference {
+	if x != nil {
+		return x.Participants
+	}
+	return nil
+}
+
+func (x *ListRepairRequiredClosuresResponse) GetNextAfterAccountId() string {
+	if x != nil {
+		return x.NextAfterAccountId
+	}
+	return ""
+}
+
+type ClosureParticipantReference struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Account *AccountReference      `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	// (authority incarnation, account ID, closure revision) identifies the
+	// existing terminal operation. This is not a new operation/authority ledger.
+	ClosureRevision       uint64 `protobuf:"varint,2,opt,name=closure_revision,json=closureRevision,proto3" json:"closure_revision,omitempty"`
+	ParticipantGeneration uint64 `protobuf:"varint,3,opt,name=participant_generation,json=participantGeneration,proto3" json:"participant_generation,omitempty"`
+	// Version 1 is the captured manifest contract. Unknown/zero versions deny.
+	ManifestVersion uint32 `protobuf:"varint,4,opt,name=manifest_version,json=manifestVersion,proto3" json:"manifest_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ClosureParticipantReference) Reset() {
+	*x = ClosureParticipantReference{}
+	mi := &file_identity_v1_identity_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClosureParticipantReference) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClosureParticipantReference) ProtoMessage() {}
+
+func (x *ClosureParticipantReference) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_identity_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClosureParticipantReference.ProtoReflect.Descriptor instead.
+func (*ClosureParticipantReference) Descriptor() ([]byte, []int) {
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ClosureParticipantReference) GetAccount() *AccountReference {
+	if x != nil {
+		return x.Account
+	}
+	return nil
+}
+
+func (x *ClosureParticipantReference) GetClosureRevision() uint64 {
+	if x != nil {
+		return x.ClosureRevision
+	}
+	return 0
+}
+
+func (x *ClosureParticipantReference) GetParticipantGeneration() uint64 {
+	if x != nil {
+		return x.ParticipantGeneration
+	}
+	return 0
+}
+
+func (x *ClosureParticipantReference) GetManifestVersion() uint32 {
+	if x != nil {
+		return x.ManifestVersion
+	}
+	return 0
+}
+
+type ReportClosureRequest struct {
+	state       protoimpl.MessageState       `protogen:"open.v1"`
+	Participant *ClosureParticipantReference `protobuf:"bytes,1,opt,name=participant,proto3" json:"participant,omitempty"`
+	// Before NOT_PROVISIONED/ERASED the product commits its own closed-account
+	// fence and settles late provisioning/effects. This API records the product's
+	// exact assertion; it neither deletes product data nor proves physical erasure.
+	Outcome       ClosureReceiptOutcome `protobuf:"varint,2,opt,name=outcome,proto3,enum=identity.v1.ClosureReceiptOutcome" json:"outcome,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportClosureRequest) Reset() {
+	*x = ReportClosureRequest{}
+	mi := &file_identity_v1_identity_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportClosureRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportClosureRequest) ProtoMessage() {}
+
+func (x *ReportClosureRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_identity_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportClosureRequest.ProtoReflect.Descriptor instead.
+func (*ReportClosureRequest) Descriptor() ([]byte, []int) {
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ReportClosureRequest) GetParticipant() *ClosureParticipantReference {
+	if x != nil {
+		return x.Participant
+	}
+	return nil
+}
+
+func (x *ReportClosureRequest) GetOutcome() ClosureReceiptOutcome {
+	if x != nil {
+		return x.Outcome
+	}
+	return ClosureReceiptOutcome_CLOSURE_RECEIPT_OUTCOME_UNSPECIFIED
+}
+
+type ReportClosureResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// True only for the exact accepted outcome or its identical replay. Unknown,
+	// foreign, stale or conflicting reports receive one non-enumerating denial.
+	Accepted      bool `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportClosureResponse) Reset() {
+	*x = ReportClosureResponse{}
+	mi := &file_identity_v1_identity_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportClosureResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportClosureResponse) ProtoMessage() {}
+
+func (x *ReportClosureResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_identity_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportClosureResponse.ProtoReflect.Descriptor instead.
+func (*ReportClosureResponse) Descriptor() ([]byte, []int) {
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ReportClosureResponse) GetAccepted() bool {
+	if x != nil {
+		return x.Accepted
+	}
+	return false
 }
 
 type ResolveSelfRequest struct {
@@ -208,7 +649,7 @@ type ResolveSelfRequest struct {
 
 func (x *ResolveSelfRequest) Reset() {
 	*x = ResolveSelfRequest{}
-	mi := &file_identity_v1_identity_proto_msgTypes[0]
+	mi := &file_identity_v1_identity_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -220,7 +661,7 @@ func (x *ResolveSelfRequest) String() string {
 func (*ResolveSelfRequest) ProtoMessage() {}
 
 func (x *ResolveSelfRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_identity_proto_msgTypes[0]
+	mi := &file_identity_v1_identity_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -233,7 +674,7 @@ func (x *ResolveSelfRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveSelfRequest.ProtoReflect.Descriptor instead.
 func (*ResolveSelfRequest) Descriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{0}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ResolveSelfRequest) GetIdempotencyKey() string {
@@ -251,7 +692,7 @@ type GetSelfStatusRequest struct {
 
 func (x *GetSelfStatusRequest) Reset() {
 	*x = GetSelfStatusRequest{}
-	mi := &file_identity_v1_identity_proto_msgTypes[1]
+	mi := &file_identity_v1_identity_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -263,7 +704,7 @@ func (x *GetSelfStatusRequest) String() string {
 func (*GetSelfStatusRequest) ProtoMessage() {}
 
 func (x *GetSelfStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_identity_proto_msgTypes[1]
+	mi := &file_identity_v1_identity_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -276,7 +717,7 @@ func (x *GetSelfStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSelfStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetSelfStatusRequest) Descriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{1}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{8}
 }
 
 type GetSelfStatusResponse struct {
@@ -288,7 +729,7 @@ type GetSelfStatusResponse struct {
 
 func (x *GetSelfStatusResponse) Reset() {
 	*x = GetSelfStatusResponse{}
-	mi := &file_identity_v1_identity_proto_msgTypes[2]
+	mi := &file_identity_v1_identity_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -300,7 +741,7 @@ func (x *GetSelfStatusResponse) String() string {
 func (*GetSelfStatusResponse) ProtoMessage() {}
 
 func (x *GetSelfStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_identity_proto_msgTypes[2]
+	mi := &file_identity_v1_identity_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -313,7 +754,7 @@ func (x *GetSelfStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSelfStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetSelfStatusResponse) Descriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{2}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetSelfStatusResponse) GetStatus() *AccountStatusEvidence {
@@ -332,7 +773,7 @@ type GetAccountStatusRequest struct {
 
 func (x *GetAccountStatusRequest) Reset() {
 	*x = GetAccountStatusRequest{}
-	mi := &file_identity_v1_identity_proto_msgTypes[3]
+	mi := &file_identity_v1_identity_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -344,7 +785,7 @@ func (x *GetAccountStatusRequest) String() string {
 func (*GetAccountStatusRequest) ProtoMessage() {}
 
 func (x *GetAccountStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_identity_proto_msgTypes[3]
+	mi := &file_identity_v1_identity_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -357,7 +798,7 @@ func (x *GetAccountStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAccountStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetAccountStatusRequest) Descriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{3}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetAccountStatusRequest) GetAccount() *AccountReference {
@@ -376,7 +817,7 @@ type GetAccountStatusResponse struct {
 
 func (x *GetAccountStatusResponse) Reset() {
 	*x = GetAccountStatusResponse{}
-	mi := &file_identity_v1_identity_proto_msgTypes[4]
+	mi := &file_identity_v1_identity_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -388,7 +829,7 @@ func (x *GetAccountStatusResponse) String() string {
 func (*GetAccountStatusResponse) ProtoMessage() {}
 
 func (x *GetAccountStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_identity_proto_msgTypes[4]
+	mi := &file_identity_v1_identity_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -401,7 +842,7 @@ func (x *GetAccountStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAccountStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetAccountStatusResponse) Descriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{4}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetAccountStatusResponse) GetStatus() *AccountStatusEvidence {
@@ -422,7 +863,7 @@ type AccountReference struct {
 
 func (x *AccountReference) Reset() {
 	*x = AccountReference{}
-	mi := &file_identity_v1_identity_proto_msgTypes[5]
+	mi := &file_identity_v1_identity_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -434,7 +875,7 @@ func (x *AccountReference) String() string {
 func (*AccountReference) ProtoMessage() {}
 
 func (x *AccountReference) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_identity_proto_msgTypes[5]
+	mi := &file_identity_v1_identity_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -447,7 +888,7 @@ func (x *AccountReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AccountReference.ProtoReflect.Descriptor instead.
 func (*AccountReference) Descriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{5}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *AccountReference) GetAccountId() string {
@@ -474,7 +915,7 @@ type ResolveSelfResponse struct {
 
 func (x *ResolveSelfResponse) Reset() {
 	*x = ResolveSelfResponse{}
-	mi := &file_identity_v1_identity_proto_msgTypes[6]
+	mi := &file_identity_v1_identity_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -486,7 +927,7 @@ func (x *ResolveSelfResponse) String() string {
 func (*ResolveSelfResponse) ProtoMessage() {}
 
 func (x *ResolveSelfResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_identity_proto_msgTypes[6]
+	mi := &file_identity_v1_identity_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -499,7 +940,7 @@ func (x *ResolveSelfResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveSelfResponse.ProtoReflect.Descriptor instead.
 func (*ResolveSelfResponse) Descriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{6}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ResolveSelfResponse) GetStatus() *AccountStatusEvidence {
@@ -538,7 +979,7 @@ type AccountStatusEvidence struct {
 
 func (x *AccountStatusEvidence) Reset() {
 	*x = AccountStatusEvidence{}
-	mi := &file_identity_v1_identity_proto_msgTypes[7]
+	mi := &file_identity_v1_identity_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -550,7 +991,7 @@ func (x *AccountStatusEvidence) String() string {
 func (*AccountStatusEvidence) ProtoMessage() {}
 
 func (x *AccountStatusEvidence) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_identity_proto_msgTypes[7]
+	mi := &file_identity_v1_identity_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -563,7 +1004,7 @@ func (x *AccountStatusEvidence) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AccountStatusEvidence.ProtoReflect.Descriptor instead.
 func (*AccountStatusEvidence) Descriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{7}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *AccountStatusEvidence) GetAccount() *AccountReference {
@@ -656,7 +1097,7 @@ type SessionAdmission struct {
 
 func (x *SessionAdmission) Reset() {
 	*x = SessionAdmission{}
-	mi := &file_identity_v1_identity_proto_msgTypes[8]
+	mi := &file_identity_v1_identity_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -668,7 +1109,7 @@ func (x *SessionAdmission) String() string {
 func (*SessionAdmission) ProtoMessage() {}
 
 func (x *SessionAdmission) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_identity_proto_msgTypes[8]
+	mi := &file_identity_v1_identity_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -681,7 +1122,7 @@ func (x *SessionAdmission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionAdmission.ProtoReflect.Descriptor instead.
 func (*SessionAdmission) Descriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{8}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *SessionAdmission) GetAuthoritySessionId() string {
@@ -735,7 +1176,7 @@ type IdentityErrorDetail struct {
 
 func (x *IdentityErrorDetail) Reset() {
 	*x = IdentityErrorDetail{}
-	mi := &file_identity_v1_identity_proto_msgTypes[9]
+	mi := &file_identity_v1_identity_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -747,7 +1188,7 @@ func (x *IdentityErrorDetail) String() string {
 func (*IdentityErrorDetail) ProtoMessage() {}
 
 func (x *IdentityErrorDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_identity_proto_msgTypes[9]
+	mi := &file_identity_v1_identity_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -760,7 +1201,7 @@ func (x *IdentityErrorDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IdentityErrorDetail.ProtoReflect.Descriptor instead.
 func (*IdentityErrorDetail) Descriptor() ([]byte, []int) {
-	return file_identity_v1_identity_proto_rawDescGZIP(), []int{9}
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *IdentityErrorDetail) GetReason() IdentityErrorReason {
@@ -774,7 +1215,29 @@ var File_identity_v1_identity_proto protoreflect.FileDescriptor
 
 const file_identity_v1_identity_proto_rawDesc = "" +
 	"\n" +
-	"\x1aidentity/v1/identity.proto\x12\videntity.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"=\n" +
+	"\x1aidentity/v1/identity.proto\x12\videntity.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\\\n" +
+	"\x1aListPendingClosuresRequest\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\rR\x05limit\x12(\n" +
+	"\x10after_account_id\x18\x02 \x01(\tR\x0eafterAccountId\"\x9e\x01\n" +
+	"\x1bListPendingClosuresResponse\x12L\n" +
+	"\fparticipants\x18\x01 \x03(\v2(.identity.v1.ClosureParticipantReferenceR\fparticipants\x121\n" +
+	"\x15next_after_account_id\x18\x02 \x01(\tR\x12nextAfterAccountId\"c\n" +
+	"!ListRepairRequiredClosuresRequest\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\rR\x05limit\x12(\n" +
+	"\x10after_account_id\x18\x02 \x01(\tR\x0eafterAccountId\"\xa5\x01\n" +
+	"\"ListRepairRequiredClosuresResponse\x12L\n" +
+	"\fparticipants\x18\x01 \x03(\v2(.identity.v1.ClosureParticipantReferenceR\fparticipants\x121\n" +
+	"\x15next_after_account_id\x18\x02 \x01(\tR\x12nextAfterAccountId\"\xe3\x01\n" +
+	"\x1bClosureParticipantReference\x127\n" +
+	"\aaccount\x18\x01 \x01(\v2\x1d.identity.v1.AccountReferenceR\aaccount\x12)\n" +
+	"\x10closure_revision\x18\x02 \x01(\x04R\x0fclosureRevision\x125\n" +
+	"\x16participant_generation\x18\x03 \x01(\x04R\x15participantGeneration\x12)\n" +
+	"\x10manifest_version\x18\x04 \x01(\rR\x0fmanifestVersion\"\xa0\x01\n" +
+	"\x14ReportClosureRequest\x12J\n" +
+	"\vparticipant\x18\x01 \x01(\v2(.identity.v1.ClosureParticipantReferenceR\vparticipant\x12<\n" +
+	"\aoutcome\x18\x02 \x01(\x0e2\".identity.v1.ClosureReceiptOutcomeR\aoutcome\"3\n" +
+	"\x15ReportClosureResponse\x12\x1a\n" +
+	"\baccepted\x18\x01 \x01(\bR\baccepted\"=\n" +
 	"\x12ResolveSelfRequest\x12'\n" +
 	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\"\x16\n" +
 	"\x14GetSelfStatusRequest\"S\n" +
@@ -815,7 +1278,13 @@ const file_identity_v1_identity_proto_rawDesc = "" +
 	"\vvalid_until\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"validUntil\"O\n" +
 	"\x13IdentityErrorDetail\x128\n" +
-	"\x06reason\x18\x01 \x01(\x0e2 .identity.v1.IdentityErrorReasonR\x06reason*\x9c\x01\n" +
+	"\x06reason\x18\x01 \x01(\x0e2 .identity.v1.IdentityErrorReasonR\x06reason*\xee\x01\n" +
+	"\x15ClosureReceiptOutcome\x12'\n" +
+	"#CLOSURE_RECEIPT_OUTCOME_UNSPECIFIED\x10\x00\x12+\n" +
+	"'CLOSURE_RECEIPT_OUTCOME_NOT_PROVISIONED\x10\x01\x12\"\n" +
+	"\x1eCLOSURE_RECEIPT_OUTCOME_ERASED\x10\x02\x12.\n" +
+	"*CLOSURE_RECEIPT_OUTCOME_RETAINED_BY_POLICY\x10\x03\x12+\n" +
+	"'CLOSURE_RECEIPT_OUTCOME_REPAIR_REQUIRED\x10\x04*\x9c\x01\n" +
 	"\x12AccountEligibility\x12#\n" +
 	"\x1fACCOUNT_ELIGIBILITY_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aACCOUNT_ELIGIBILITY_ACTIVE\x10\x01\x12!\n" +
@@ -839,7 +1308,11 @@ const file_identity_v1_identity_proto_rawDesc = "" +
 	"\x0fIdentityService\x12P\n" +
 	"\vResolveSelf\x12\x1f.identity.v1.ResolveSelfRequest\x1a .identity.v1.ResolveSelfResponse\x12V\n" +
 	"\rGetSelfStatus\x12!.identity.v1.GetSelfStatusRequest\x1a\".identity.v1.GetSelfStatusResponse\x12_\n" +
-	"\x10GetAccountStatus\x12$.identity.v1.GetAccountStatusRequest\x1a%.identity.v1.GetAccountStatusResponseBUZSgithub.com/agent-teams-ai/identity/packages/contracts/gen/go/identity/v1;identityv1b\x06proto3"
+	"\x10GetAccountStatus\x12$.identity.v1.GetAccountStatusRequest\x1a%.identity.v1.GetAccountStatusResponse2\xd9\x02\n" +
+	"\x16IdentityClosureService\x12h\n" +
+	"\x13ListPendingClosures\x12'.identity.v1.ListPendingClosuresRequest\x1a(.identity.v1.ListPendingClosuresResponse\x12}\n" +
+	"\x1aListRepairRequiredClosures\x12..identity.v1.ListRepairRequiredClosuresRequest\x1a/.identity.v1.ListRepairRequiredClosuresResponse\x12V\n" +
+	"\rReportClosure\x12!.identity.v1.ReportClosureRequest\x1a\".identity.v1.ReportClosureResponseBUZSgithub.com/agent-teams-ai/identity/packages/contracts/gen/go/identity/v1;identityv1b\x06proto3"
 
 var (
 	file_identity_v1_identity_proto_rawDescOnce sync.Once
@@ -853,51 +1326,70 @@ func file_identity_v1_identity_proto_rawDescGZIP() []byte {
 	return file_identity_v1_identity_proto_rawDescData
 }
 
-var file_identity_v1_identity_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_identity_v1_identity_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_identity_v1_identity_proto_goTypes = []any{
-	(AccountEligibility)(0),          // 0: identity.v1.AccountEligibility
-	(AdmissionProfile)(0),            // 1: identity.v1.AdmissionProfile
-	(IdentityErrorReason)(0),         // 2: identity.v1.IdentityErrorReason
-	(*ResolveSelfRequest)(nil),       // 3: identity.v1.ResolveSelfRequest
-	(*GetSelfStatusRequest)(nil),     // 4: identity.v1.GetSelfStatusRequest
-	(*GetSelfStatusResponse)(nil),    // 5: identity.v1.GetSelfStatusResponse
-	(*GetAccountStatusRequest)(nil),  // 6: identity.v1.GetAccountStatusRequest
-	(*GetAccountStatusResponse)(nil), // 7: identity.v1.GetAccountStatusResponse
-	(*AccountReference)(nil),         // 8: identity.v1.AccountReference
-	(*ResolveSelfResponse)(nil),      // 9: identity.v1.ResolveSelfResponse
-	(*AccountStatusEvidence)(nil),    // 10: identity.v1.AccountStatusEvidence
-	(*SessionAdmission)(nil),         // 11: identity.v1.SessionAdmission
-	(*IdentityErrorDetail)(nil),      // 12: identity.v1.IdentityErrorDetail
-	(*timestamppb.Timestamp)(nil),    // 13: google.protobuf.Timestamp
+	(ClosureReceiptOutcome)(0),                 // 0: identity.v1.ClosureReceiptOutcome
+	(AccountEligibility)(0),                    // 1: identity.v1.AccountEligibility
+	(AdmissionProfile)(0),                      // 2: identity.v1.AdmissionProfile
+	(IdentityErrorReason)(0),                   // 3: identity.v1.IdentityErrorReason
+	(*ListPendingClosuresRequest)(nil),         // 4: identity.v1.ListPendingClosuresRequest
+	(*ListPendingClosuresResponse)(nil),        // 5: identity.v1.ListPendingClosuresResponse
+	(*ListRepairRequiredClosuresRequest)(nil),  // 6: identity.v1.ListRepairRequiredClosuresRequest
+	(*ListRepairRequiredClosuresResponse)(nil), // 7: identity.v1.ListRepairRequiredClosuresResponse
+	(*ClosureParticipantReference)(nil),        // 8: identity.v1.ClosureParticipantReference
+	(*ReportClosureRequest)(nil),               // 9: identity.v1.ReportClosureRequest
+	(*ReportClosureResponse)(nil),              // 10: identity.v1.ReportClosureResponse
+	(*ResolveSelfRequest)(nil),                 // 11: identity.v1.ResolveSelfRequest
+	(*GetSelfStatusRequest)(nil),               // 12: identity.v1.GetSelfStatusRequest
+	(*GetSelfStatusResponse)(nil),              // 13: identity.v1.GetSelfStatusResponse
+	(*GetAccountStatusRequest)(nil),            // 14: identity.v1.GetAccountStatusRequest
+	(*GetAccountStatusResponse)(nil),           // 15: identity.v1.GetAccountStatusResponse
+	(*AccountReference)(nil),                   // 16: identity.v1.AccountReference
+	(*ResolveSelfResponse)(nil),                // 17: identity.v1.ResolveSelfResponse
+	(*AccountStatusEvidence)(nil),              // 18: identity.v1.AccountStatusEvidence
+	(*SessionAdmission)(nil),                   // 19: identity.v1.SessionAdmission
+	(*IdentityErrorDetail)(nil),                // 20: identity.v1.IdentityErrorDetail
+	(*timestamppb.Timestamp)(nil),              // 21: google.protobuf.Timestamp
 }
 var file_identity_v1_identity_proto_depIdxs = []int32{
-	10, // 0: identity.v1.GetSelfStatusResponse.status:type_name -> identity.v1.AccountStatusEvidence
-	8,  // 1: identity.v1.GetAccountStatusRequest.account:type_name -> identity.v1.AccountReference
-	10, // 2: identity.v1.GetAccountStatusResponse.status:type_name -> identity.v1.AccountStatusEvidence
-	10, // 3: identity.v1.ResolveSelfResponse.status:type_name -> identity.v1.AccountStatusEvidence
-	11, // 4: identity.v1.ResolveSelfResponse.admission:type_name -> identity.v1.SessionAdmission
-	8,  // 5: identity.v1.AccountStatusEvidence.account:type_name -> identity.v1.AccountReference
-	0,  // 6: identity.v1.AccountStatusEvidence.eligibility:type_name -> identity.v1.AccountEligibility
-	13, // 7: identity.v1.AccountStatusEvidence.authentication_cutoff:type_name -> google.protobuf.Timestamp
-	13, // 8: identity.v1.AccountStatusEvidence.reattachment_cutoff:type_name -> google.protobuf.Timestamp
-	13, // 9: identity.v1.AccountStatusEvidence.observed_at:type_name -> google.protobuf.Timestamp
-	13, // 10: identity.v1.AccountStatusEvidence.valid_until:type_name -> google.protobuf.Timestamp
-	1,  // 11: identity.v1.SessionAdmission.profile:type_name -> identity.v1.AdmissionProfile
-	13, // 12: identity.v1.SessionAdmission.authenticated_at:type_name -> google.protobuf.Timestamp
-	13, // 13: identity.v1.SessionAdmission.valid_until:type_name -> google.protobuf.Timestamp
-	2,  // 14: identity.v1.IdentityErrorDetail.reason:type_name -> identity.v1.IdentityErrorReason
-	3,  // 15: identity.v1.IdentityService.ResolveSelf:input_type -> identity.v1.ResolveSelfRequest
-	4,  // 16: identity.v1.IdentityService.GetSelfStatus:input_type -> identity.v1.GetSelfStatusRequest
-	6,  // 17: identity.v1.IdentityService.GetAccountStatus:input_type -> identity.v1.GetAccountStatusRequest
-	9,  // 18: identity.v1.IdentityService.ResolveSelf:output_type -> identity.v1.ResolveSelfResponse
-	5,  // 19: identity.v1.IdentityService.GetSelfStatus:output_type -> identity.v1.GetSelfStatusResponse
-	7,  // 20: identity.v1.IdentityService.GetAccountStatus:output_type -> identity.v1.GetAccountStatusResponse
-	18, // [18:21] is the sub-list for method output_type
-	15, // [15:18] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	8,  // 0: identity.v1.ListPendingClosuresResponse.participants:type_name -> identity.v1.ClosureParticipantReference
+	8,  // 1: identity.v1.ListRepairRequiredClosuresResponse.participants:type_name -> identity.v1.ClosureParticipantReference
+	16, // 2: identity.v1.ClosureParticipantReference.account:type_name -> identity.v1.AccountReference
+	8,  // 3: identity.v1.ReportClosureRequest.participant:type_name -> identity.v1.ClosureParticipantReference
+	0,  // 4: identity.v1.ReportClosureRequest.outcome:type_name -> identity.v1.ClosureReceiptOutcome
+	18, // 5: identity.v1.GetSelfStatusResponse.status:type_name -> identity.v1.AccountStatusEvidence
+	16, // 6: identity.v1.GetAccountStatusRequest.account:type_name -> identity.v1.AccountReference
+	18, // 7: identity.v1.GetAccountStatusResponse.status:type_name -> identity.v1.AccountStatusEvidence
+	18, // 8: identity.v1.ResolveSelfResponse.status:type_name -> identity.v1.AccountStatusEvidence
+	19, // 9: identity.v1.ResolveSelfResponse.admission:type_name -> identity.v1.SessionAdmission
+	16, // 10: identity.v1.AccountStatusEvidence.account:type_name -> identity.v1.AccountReference
+	1,  // 11: identity.v1.AccountStatusEvidence.eligibility:type_name -> identity.v1.AccountEligibility
+	21, // 12: identity.v1.AccountStatusEvidence.authentication_cutoff:type_name -> google.protobuf.Timestamp
+	21, // 13: identity.v1.AccountStatusEvidence.reattachment_cutoff:type_name -> google.protobuf.Timestamp
+	21, // 14: identity.v1.AccountStatusEvidence.observed_at:type_name -> google.protobuf.Timestamp
+	21, // 15: identity.v1.AccountStatusEvidence.valid_until:type_name -> google.protobuf.Timestamp
+	2,  // 16: identity.v1.SessionAdmission.profile:type_name -> identity.v1.AdmissionProfile
+	21, // 17: identity.v1.SessionAdmission.authenticated_at:type_name -> google.protobuf.Timestamp
+	21, // 18: identity.v1.SessionAdmission.valid_until:type_name -> google.protobuf.Timestamp
+	3,  // 19: identity.v1.IdentityErrorDetail.reason:type_name -> identity.v1.IdentityErrorReason
+	11, // 20: identity.v1.IdentityService.ResolveSelf:input_type -> identity.v1.ResolveSelfRequest
+	12, // 21: identity.v1.IdentityService.GetSelfStatus:input_type -> identity.v1.GetSelfStatusRequest
+	14, // 22: identity.v1.IdentityService.GetAccountStatus:input_type -> identity.v1.GetAccountStatusRequest
+	4,  // 23: identity.v1.IdentityClosureService.ListPendingClosures:input_type -> identity.v1.ListPendingClosuresRequest
+	6,  // 24: identity.v1.IdentityClosureService.ListRepairRequiredClosures:input_type -> identity.v1.ListRepairRequiredClosuresRequest
+	9,  // 25: identity.v1.IdentityClosureService.ReportClosure:input_type -> identity.v1.ReportClosureRequest
+	17, // 26: identity.v1.IdentityService.ResolveSelf:output_type -> identity.v1.ResolveSelfResponse
+	13, // 27: identity.v1.IdentityService.GetSelfStatus:output_type -> identity.v1.GetSelfStatusResponse
+	15, // 28: identity.v1.IdentityService.GetAccountStatus:output_type -> identity.v1.GetAccountStatusResponse
+	5,  // 29: identity.v1.IdentityClosureService.ListPendingClosures:output_type -> identity.v1.ListPendingClosuresResponse
+	7,  // 30: identity.v1.IdentityClosureService.ListRepairRequiredClosures:output_type -> identity.v1.ListRepairRequiredClosuresResponse
+	10, // 31: identity.v1.IdentityClosureService.ReportClosure:output_type -> identity.v1.ReportClosureResponse
+	26, // [26:32] is the sub-list for method output_type
+	20, // [20:26] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_identity_v1_identity_proto_init() }
@@ -910,10 +1402,10 @@ func file_identity_v1_identity_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_identity_v1_identity_proto_rawDesc), len(file_identity_v1_identity_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   10,
+			NumEnums:      4,
+			NumMessages:   17,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_identity_v1_identity_proto_goTypes,
 		DependencyIndexes: file_identity_v1_identity_proto_depIdxs,

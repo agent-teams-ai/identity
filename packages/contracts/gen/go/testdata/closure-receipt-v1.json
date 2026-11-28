@@ -1,0 +1,12 @@
+{
+  "participant": {
+    "account": {
+      "accountId": "019acf27-a591-7000-8000-000000000001",
+      "authorityIncarnation": "fixture-authority-v1"
+    },
+    "closureRevision": "9007199254740997",
+    "participantGeneration": "9007199254740995",
+    "manifestVersion": 1
+  },
+  "outcome": "CLOSURE_RECEIPT_OUTCOME_REPAIR_REQUIRED"
+}

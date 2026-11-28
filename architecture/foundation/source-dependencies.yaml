@@ -38,6 +38,7 @@ boundaries:
       - packages/identity/src/features/account/application/ports/account-api.ts
       - packages/identity/src/features/account/application/ports/account-store.ts
       - packages/identity/src/features/account/application/ports/account-outbox.ts
+      - packages/identity/src/features/account/application/ports/account-closure.ts
       - packages/identity/src/features/account/application/ports/authentication.ts
       - packages/identity/src/features/account/application/use-cases/deliver-account-events.ts
       - packages/identity/src/features/account/application/use-cases/get-account-status.ts
@@ -45,6 +46,7 @@ boundaries:
       - packages/identity/src/features/account/application/use-cases/read-bound-account.ts
       - packages/identity/src/features/account/application/use-cases/resolve-self.ts
       - packages/identity/src/features/account/application/use-cases/transition-account.ts
+      - packages/identity/src/features/account/application/use-cases/participate-in-closure.ts
     dependencyMode: runtime
     allow:
       boundaries:
@@ -57,6 +59,7 @@ boundaries:
       - packages/identity/src/features/account/contracts
     entrypoints:
       - packages/identity/src/features/account/contracts/account.ts
+      - packages/identity/src/features/account/contracts/closure.ts
     dependencyMode: runtime
     allow:
       boundaries: []
@@ -68,12 +71,14 @@ boundaries:
       - packages/identity/src/features/account/adapters
     entrypoints:
       - packages/identity/src/features/account/adapters/inbound/direct-api.ts
+      - packages/identity/src/features/account/adapters/inbound/direct-closure-api.ts
       - packages/identity/src/features/account/adapters/inbound/keycloak-authentication.ts
       - packages/identity/src/features/account/adapters/inbound/keycloak-jwks.ts
       - packages/identity/src/features/account/adapters/inbound/keycloak-profile.ts
       - packages/identity/src/features/account/adapters/outbound/postgres-codecs.ts
       - packages/identity/src/features/account/adapters/outbound/postgres-store.ts
       - packages/identity/src/features/account/adapters/outbound/postgres-outbox.ts
+      - packages/identity/src/features/account/adapters/outbound/postgres-closures.ts
     dependencyMode: runtime
     allow:
       boundaries:
@@ -186,6 +191,8 @@ boundaries:
       - apps/server/src/features/http/adapters
     entrypoints:
       - apps/server/src/features/http/adapters/inbound/connect-routes.ts
+      - apps/server/src/features/http/adapters/inbound/closure-routes.ts
+      - apps/server/src/features/http/adapters/inbound/rpc-context.ts
       - apps/server/src/features/http/adapters/inbound/fastify-host.ts
       - apps/server/src/features/http/adapters/inbound/rpc-errors.ts
       - apps/server/src/features/http/adapters/inbound/wire-mapping.ts

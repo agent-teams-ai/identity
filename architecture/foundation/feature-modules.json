@@ -56,7 +56,10 @@
         }
       ],
       "surfaces": {
-        "public": ["packages/identity/src/features/account/contracts/account.ts"],
+        "public": [
+          "packages/identity/src/features/account/contracts/account.ts",
+          "packages/identity/src/features/account/contracts/closure.ts"
+        ],
         "compositionContract": [
           "packages/identity/src/features/account/composition/account.contracts.ts"
         ],
