@@ -2,6 +2,7 @@
 export interface ClaimedAccountEvent {
   readonly eventId: string;
   readonly accountId: string;
+  readonly authorityIncarnation: string;
   readonly consumerId: string;
   readonly kind: "account.attached" | "account.eligibility-changed";
   readonly accountRevision: bigint;

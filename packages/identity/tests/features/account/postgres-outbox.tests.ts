@@ -43,6 +43,7 @@ function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixt
       "No duplicate concurrent claim",
     );
     assert.equal(event.accountId, admitted.status.account.accountId);
+    assert.equal(event.authorityIncarnation, admitted.status.account.authorityIncarnation);
     assert.equal(event.consumerId, "gettok");
     assert.equal(event.kind, "account.attached");
     assert.equal(event.accountRevision, 1n);
@@ -63,6 +64,7 @@ function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixt
     assert.ok(next !== undefined);
     assert.equal(next.consumerId, "other-product");
     assert.equal(next.accountId, event.accountId);
+    assert.equal(next.authorityIncarnation, event.authorityIncarnation);
     assert.equal(await otherConsumer.acknowledge(next), true);
   });
 
@@ -80,6 +82,7 @@ function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixt
     const reassigned = await secondWorker.claimNext(60_000);
     assert.ok(reassigned !== undefined);
     assert.equal(reassigned.eventId, initial.eventId);
+    assert.equal(reassigned.authorityIncarnation, initial.authorityIncarnation);
     assert.equal(reassigned.claimGeneration, initial.claimGeneration + 1n);
     assert.equal(await firstWorker.acknowledge(initial), false, "Expired ownership cannot settle");
     assert.equal(await secondWorker.acknowledge(reassigned), true);
@@ -216,6 +219,7 @@ function registerDispatchAndRevocation({ pool, accounts, human, workload }: Outb
         const event = await outbox.claimNext(60_000);
         assert.ok(event !== undefined, "Each recipient has three durable events");
         assert.equal(event.consumerId, consumerId, "Events never cross the consumer boundary");
+        assert.equal(event.authorityIncarnation, admitted.status.account.authorityIncarnation);
         observed.push({
           kind: event.kind,
           accountRevision: event.accountRevision,

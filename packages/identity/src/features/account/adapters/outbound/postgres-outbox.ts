@@ -10,6 +10,7 @@ import { milliseconds } from "./postgres-codecs.js";
 type StoredOutboxEvent = {
   readonly event_id: string;
   readonly account_id: string;
+  readonly authority_incarnation: string;
   readonly consumer_id: string;
   readonly kind: ClaimedAccountEvent["kind"];
   readonly account_revision: string;
@@ -23,6 +24,7 @@ type StoredOutboxEvent = {
 const toEvent = (row: StoredOutboxEvent): ClaimedAccountEvent => ({
   eventId: row.event_id,
   accountId: row.account_id,
+  authorityIncarnation: row.authority_incarnation,
   consumerId: row.consumer_id,
   kind: row.kind,
   accountRevision: BigInt(row.account_revision),
@@ -94,7 +96,9 @@ export function createPostgresOutboxDelivery(
       }
       const result = await pool.query<StoredOutboxEvent>(
         `WITH candidate AS (
-          SELECT pending.event_id FROM identity_outbox AS pending
+          SELECT pending.event_id, account.authority_incarnation
+          FROM identity_outbox AS pending
+          JOIN identity_accounts AS account ON account.account_id = pending.account_id
           WHERE pending.consumer_id = $1 AND pending.published_at_ms IS NULL
             AND (pending.claimed_until_ms IS NULL OR pending.claimed_until_ms <=
               floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint)
@@ -106,14 +110,15 @@ export function createPostgresOutboxDelivery(
                 AND attachment.generation = pending.attachment_generation
             )
           ORDER BY pending.observed_at_ms, pending.event_id
-          LIMIT 1 FOR UPDATE SKIP LOCKED
+          LIMIT 1 FOR UPDATE OF pending SKIP LOCKED
         )
         UPDATE identity_outbox AS event
         SET claim_generation = event.claim_generation + 1,
             claimed_until_ms = floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint + $2
         FROM candidate
         WHERE event.event_id = candidate.event_id
-        RETURNING event.event_id, event.account_id, event.consumer_id, event.kind,
+        RETURNING event.event_id, event.account_id, candidate.authority_incarnation,
+          event.consumer_id, event.kind,
           event.account_revision, event.security_epoch, event.attachment_generation,
           event.observed_at_ms, event.claim_generation, event.claimed_until_ms`,
         [consumerId, leaseMs],
