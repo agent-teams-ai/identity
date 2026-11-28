@@ -1,0 +1,331 @@
+# gettok-candidate-format.yml prepares native formatter and Wire outputs from a
+# reviewed, immutable candidate without creating a GetTok commit. The artifact
+# records the exact source and tools; normal consumer checks remain required.
+name: GetTok Candidate Formatting
+
+on:
+  push:
+    branches: [qualification/gettok-format-candidate-20261128]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gettok-candidate-format-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    if: github.repository == 'agent-teams-ai/identity'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      GOTOOLCHAIN: local
+      GOWORK: "off"
+      GOFLAGS: -mod=readonly
+      GOMAXPROCS: "2"
+      SOURCE_REVISION: ecc0f349aa0830992cc0b7713e2b3bcd852d1215
+      CANDIDATE_BLOB_SHA: 5da5f35e82893f2834a9203919bf37fcefb668e5
+      CANDIDATE_SHA256: 4a5c131f6f48829a984e54c19d748c28a593c453efaab59c233f4c13c2f54fba
+      PRODUCER_REVISION: a5cb13ddcf8208aba4aafea4cb5e42aa7fff70e6
+      CANDIDATE_PATHS: |
+        backend/internal/app/assembly_runtime_wire.go
+        backend/internal/app/identity_central_integration_test.go
+        backend/internal/app/runtime.go
+        backend/internal/app/runtime_identity.go
+        backend/internal/config/config.go
+        backend/internal/identity/authconfig/central.go
+        backend/internal/identity/authconfig/central_test.go
+        backend/internal/identity/central_closure.go
+        backend/internal/identity/central_closure_consumer.go
+        backend/internal/identity/central_closure_consumer_test.go
+        backend/internal/identity/central_closure_test.go
+        backend/internal/identity/central_login.go
+        backend/internal/identity/postgres/central_session.go
+        backend/internal/identity/postgres/central_session_integration_test.go
+        backend/internal/identity/provider/central_closure.go
+        backend/internal/identity/provider/central_closure_test.go
+        backend/internal/identity/provider/central_identity.go
+        backend/internal/identity/provider/doc.go
+        backend/migrations/309_central_identity_closures.sql
+        docs/architecture/system_architecture.md
+        docs/domains/identity_and_tenancy.md
+        docs/interfaces/configuration.md
+        docs/operations/shared_identity_deployment.md
+    steps:
+      - name: Check out the exact consumer baseline
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: 777genius/get-tok
+          ref: ecc0f349aa0830992cc0b7713e2b3bcd852d1215
+          path: gettok
+          persist-credentials: false
+      - name: Read and verify the immutable reviewed candidate
+        id: candidate
+        env:
+          CANDIDATE_READ_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$CANDIDATE_BLOB_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$CANDIDATE_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$PRODUCER_REVISION" =~ ^[0-9a-f]{40}$ ]]
+          curl --fail --silent --show-error --proto '=https' --tlsv1.2 \
+            --connect-timeout 10 --max-time 60 --max-filesize 4194304 \
+            -H "Authorization: Bearer $CANDIDATE_READ_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            --output "$RUNNER_TEMP/gettok-candidate-response.json" \
+            "https://api.github.com/repos/agent-teams-ai/identity/git/blobs/$CANDIDATE_BLOB_SHA"
+          unset CANDIDATE_READ_TOKEN
+          python3 - <<'PY'
+          import base64, hashlib, json, os, re, subprocess
+          from pathlib import Path
+
+          root = Path("gettok").resolve()
+          temporary = Path(os.environ["RUNNER_TEMP"])
+          artifact = temporary / "gettok-native-format"
+          artifact.mkdir()
+          response = json.loads((temporary / "gettok-candidate-response.json").read_text())
+          assert response["encoding"] == "base64"
+          content = base64.b64decode("".join(response["content"].split()), validate=True)
+          assert len(content) <= 2_097_152, "Candidate exceeds the reviewed size bound"
+          object_bytes = b"blob " + str(len(content)).encode() + b"\0" + content
+          assert hashlib.sha1(object_bytes).hexdigest() == os.environ["CANDIDATE_BLOB_SHA"]
+          assert hashlib.sha256(content).hexdigest() == os.environ["CANDIDATE_SHA256"]
+          candidate = json.loads(content)
+          assert set(candidate) == {"repository", "baseCommit", "files"}
+          assert candidate["repository"] == "777genius/get-tok"
+          assert candidate["baseCommit"] == os.environ["SOURCE_REVISION"]
+          revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+          assert revision == candidate["baseCommit"]
+          assert not subprocess.check_output(["git", "status", "--porcelain"], cwd=root)
+          paths = os.environ["CANDIDATE_PATHS"].splitlines()
+          assert 1 <= len(paths) <= 40 and len(paths) == len(set(paths))
+          assert all(re.fullmatch(r"(?:backend|docs|\.github)/[a-zA-Z0-9_./-]+", path) for path in paths)
+          assert all(".." not in Path(path).parts for path in paths)
+          native_paths = ["backend/go.mod", "backend/go.sum", "backend/internal/app/wire_gen.go"]
+          assert not set(paths).intersection(native_paths)
+          assert not set(paths).intersection({"backend/.golangci.yml", "backend/cmd/server/main.go"})
+          files = candidate["files"]
+          assert len(files) == len(paths) and {item["path"] for item in files} == set(paths)
+          originals = {}
+          for path in paths + native_paths:
+              target = root / path
+              assert not any(parent.is_symlink() for parent in [target, *target.parents])
+              entry = subprocess.check_output(["git", "ls-tree", "-z", "HEAD", "--", path], cwd=root)
+              if entry:
+                  mode, kind, identity = entry.split(b"\t", 1)[0].decode().split()
+                  assert mode == "100644" and kind == "blob"
+                  assert subprocess.check_output(["git", "hash-object", "--", path], cwd=root, text=True).strip() == identity
+                  originals[path] = identity
+              else:
+                  assert not target.exists()
+                  originals[path] = None
+              assert subprocess.run(["git", "check-ignore", "-q", "--", path], cwd=root).returncode == 1
+          for item in files:
+              assert set(item) == {"path", "oldBlobSha", "content"}
+              assert item["oldBlobSha"] == originals[item["path"]]
+              assert isinstance(item["content"], str) and len(item["content"].encode()) <= 262_144
+          # Every original is checked before the first candidate file is materialized.
+          subprocess.run(["make", "hooks"], cwd=root, check=True)
+          assert subprocess.check_output(["git", "config", "--local", "core.hooksPath"], cwd=root, text=True).strip() == ".githooks"
+          for item in files:
+              target = root / item["path"]
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_bytes(item["content"].encode())
+          (temporary / "gettok-candidate.json").write_bytes(content)
+          source = {
+              "repository": candidate["repository"], "baseCommit": revision,
+              "baseTree": subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], cwd=root, text=True).strip(),
+              "helperCommit": os.environ["GITHUB_SHA"], "producerCommit": os.environ["PRODUCER_REVISION"],
+              "candidateBlobSha": os.environ["CANDIDATE_BLOB_SHA"], "candidateSha256": os.environ["CANDIDATE_SHA256"],
+              "hooksInstalled": True, "outputs": originals,
+              "submitted": [{"path": item["path"], "sha256": hashlib.sha256(item["content"].encode()).hexdigest()} for item in files],
+          }
+          (artifact / "candidate-source.json").write_text(json.dumps(source, indent=2) + "\n")
+          PY
+      - name: Install the exact consumer Go runtime
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: gettok/backend/go.mod
+          check-latest: false
+          cache: false
+      - name: Install the exact consumer package manager
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: gettok/frontend/package.json
+          run_install: false
+      - name: Install the exact consumer Node runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: gettok/.node-version
+          cache: pnpm
+          cache-dependency-path: |
+            gettok/frontend/pnpm-lock.yaml
+            gettok/plugin-sdk/web/pnpm-lock.yaml
+      - name: Install the exact consumer formatter
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.14.0
+          install-only: true
+          skip-cache: true
+      - name: Resolve the producer, generate Wire and run the owned format commands
+        id: native
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, subprocess
+          from pathlib import Path
+
+          root = Path("gettok").resolve()
+          temporary = Path(os.environ["RUNNER_TEMP"])
+          artifact = temporary / "gettok-native-format"
+          results = {"phases": [], "prePushChecks": "not-run", "runtimeChecks": "not-run"}
+
+          def phase(name, command, directory, budget=600):
+              """Run one bounded native command and retain its actual result."""
+              raw = temporary / ("gettok-" + name + ".log")
+              with raw.open("wb") as output:
+                  result = subprocess.run(["timeout", "--kill-after=5s", str(budget), *command], cwd=directory, stdout=output, stderr=subprocess.STDOUT)
+              size = raw.stat().st_size
+              with raw.open("rb") as output:
+                  log = output.read(262_144).decode(errors="replace")
+              results["phases"].append({"name": name, "command": command, "exitCode": result.returncode, "logBytes": size, "logTruncated": size > 262_144, "log": log})
+              if name == "quick-check":
+                  results["prePushChecks"] = "passed" if result.returncode == 0 else "failed"
+              (artifact / "native-results.json").write_text(json.dumps(results, indent=2) + "\n")
+              assert result.returncode == 0 and size <= 262_144, "Native phase failed: " + name
+              return log
+
+          def observe(command, directory=root):
+              """Read a short native tool result without exposing process environment."""
+              return subprocess.check_output(["timeout", "120", *command], cwd=directory, text=True).strip()
+
+          versions = {
+              "go": observe(["go", "env", "GOVERSION"]),
+              "node": observe(["node", "--version"]),
+              "pnpm": observe(["pnpm", "--version"]),
+              "golangci": observe(["bash", "tools/golangci-lint.sh", "version", "--short"]),
+          }
+          assert versions["go"] == "go1.27.4" and versions["node"] == "v26.12.1"
+          assert versions["pnpm"] == "12.9.1" and versions["golangci"].lstrip("v") == "2.14.0"
+          results["toolVersions"] = versions
+          phase("frontend-install", ["pnpm", "--dir", "frontend", "install", "--frozen-lockfile", "--ignore-scripts"], root)
+          phase("sdk-install", ["pnpm", "--dir", "plugin-sdk/web", "install", "--frozen-lockfile", "--ignore-scripts"], root)
+          versions["frontendPrettier"] = observe(["pnpm", "--dir", "frontend", "exec", "prettier", "--version"])
+          versions["sdkPrettier"] = observe(["pnpm", "--dir", "plugin-sdk/web", "exec", "prettier", "--version"])
+          assert versions["frontendPrettier"] == versions["sdkPrettier"] == "3.9.10"
+          phase("declorder-download", ["go", "mod", "download"], root / "tools/declorder")
+          phase("backend-download", ["go", "mod", "download"], root / "backend")
+          assert not subprocess.check_output(["git", "diff", "--name-only", "--", "backend/go.mod", "backend/go.sum", "tools/declorder/go.mod", "tools/declorder/go.sum", "frontend/pnpm-lock.yaml", "plugin-sdk/web/pnpm-lock.yaml"], cwd=root)
+          original_module = json.loads(observe(["go", "mod", "edit", "-json"], root / "backend"))
+          original_sums = set((root / "backend/go.sum").read_text().splitlines())
+          module_path = "github.com/agent-teams-ai/identity/packages/contracts/gen/go"
+          scratch = temporary / "gettok-producer-resolution"
+          scratch.mkdir()
+          phase("producer-init", ["go", "mod", "init", "qualification.invalid/identity-contract"], scratch)
+          module = json.loads(phase("producer-resolution", ["go", "mod", "download", "-json", module_path + "@" + os.environ["PRODUCER_REVISION"]], scratch, 180))
+          assert module["Path"] == module_path
+          assert module.get("Origin", {}).get("Hash") == os.environ["PRODUCER_REVISION"], "Native module origin must equal the qualified producer commit"
+          assert module["Sum"].startswith("h1:") and module["GoModSum"].startswith("h1:")
+          results["producerModule"] = {key: module[key] for key in ["Path", "Version", "Sum", "GoModSum", "Origin"]}
+          phase("producer-pin", ["go", "mod", "edit", "-require=" + module_path + "@" + module["Version"]], root / "backend")
+          phase("producer-download", ["go", "mod", "download", module_path + "@" + module["Version"]], root / "backend")
+          expected_module = json.loads(json.dumps(original_module))
+          required = [item for item in expected_module["Require"] if item["Path"] == module_path]
+          assert len(required) == 1 and not required[0].get("Indirect", False)
+          required[0]["Version"] = module["Version"]
+          assert json.loads(observe(["go", "mod", "edit", "-json"], root / "backend")) == expected_module
+          expected_sums = original_sums | {module_path + " " + module["Version"] + " " + module["Sum"], module_path + " " + module["Version"] + "/go.mod " + module["GoModSum"]}
+          assert set((root / "backend/go.sum").read_text().splitlines()) == expected_sums
+          wire = json.loads(observe(["go", "list", "-m", "-json", "github.com/google/wire"], root / "backend"))
+          assert wire["Version"] == "v0.7.0" and "Replace" not in wire
+          versions["wire"] = wire["Version"]
+          phase("wire", ["go", "generate", "./cmd/server"], root / "backend")
+          source = json.loads((artifact / "candidate-source.json").read_text())
+          before = {path: (root / path).read_text() for path in source["outputs"]}
+          (temporary / "gettok-before-format.json").write_text(json.dumps(before))
+          phase("fmt", ["make", "fmt"], root)
+          formatted = {path: hashlib.sha256((root / path).read_bytes()).hexdigest() for path in source["outputs"]}
+          phase("fmt-check", ["make", "fmt-check"], root)
+          assert formatted == {path: hashlib.sha256((root / path).read_bytes()).hexdigest() for path in source["outputs"]}, "Formatting check changed candidate source"
+          results["formattedOutputs"] = formatted
+          assert json.loads(observe(["go", "mod", "edit", "-json"], root / "backend")) == expected_module
+          assert set((root / "backend/go.sum").read_text().splitlines()) == expected_sums
+          phase("diff-check", ["git", "diff", "--check"], root, 30)
+          # The owned selector includes untracked files and expands dependency changes to all backend packages.
+          phase("quick-check", ["make", "check", "BASE=" + os.environ["SOURCE_REVISION"]], root, 1800)
+          assert formatted == {path: hashlib.sha256((root / path).read_bytes()).hexdigest() for path in source["outputs"]}, "Quick checks changed candidate source"
+          PY
+      - name: Seal only the bounded candidate outputs
+        if: ${{ !cancelled() && steps.candidate.outcome == 'success' }}
+        env:
+          NATIVE_OUTCOME: ${{ steps.native.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import difflib, hashlib, json, os, subprocess
+          from pathlib import Path
+
+          root = Path("gettok").resolve()
+          temporary = Path(os.environ["RUNNER_TEMP"])
+          artifact = temporary / "gettok-native-format"
+          source = json.loads((artifact / "candidate-source.json").read_text())
+          changed = set()
+          for command in [
+              ["git", "diff", "--name-only", "-z"],
+              ["git", "ls-files", "--others", "--exclude-standard", "-z"],
+          ]:
+              changed.update(path.decode() for path in subprocess.check_output(command, cwd=root).split(b"\0") if path)
+          assert changed <= set(source["outputs"]), "Native tools changed a path outside the reviewed output inventory"
+          subprocess.run(["git", "diff", "--cached", "--exit-code"], cwd=root, check=True)
+          files = []
+          for path, original in sorted(source["outputs"].items()):
+              target = root / path
+              assert target.is_file() and not any(parent.is_symlink() for parent in [target, *target.parents])
+              data = target.read_bytes()
+              assert len(data) <= 262_144
+              files.append({"path": path, "oldBlobSha": original, "content": data.decode(), "sha256": hashlib.sha256(data).hexdigest()})
+          payload = {"repository": source["repository"], "baseCommit": source["baseCommit"], "files": files}
+          encoded = (json.dumps(payload, indent=2) + "\n").encode()
+          assert len(encoded) <= 2_097_152
+          (artifact / "candidate-files.json").write_bytes(encoded)
+          before_path = temporary / "gettok-before-format.json"
+          before = json.loads(before_path.read_text()) if before_path.exists() else {}
+          difference = "".join(line for item in files if item["path"] in before for line in difflib.unified_diff(before[item["path"]].splitlines(True), item["content"].splitlines(True), fromfile="before/" + item["path"], tofile="after/" + item["path"]))
+          assert len(difference.encode()) <= 1_048_576
+          (artifact / "formatter.diff").write_text(difference)
+          results_path = artifact / "native-results.json"
+          if not results_path.exists():
+              results_path.write_text(json.dumps({"phases": [], "prePushChecks": "not-run", "runtimeChecks": "not-run"}) + "\n")
+          results = json.loads(results_path.read_text())
+          exact_formatted_output = results.get("formattedOutputs") == {item["path"]: item["sha256"] for item in files}
+          outputs = []
+          for name in ["candidate-source.json", "candidate-files.json", "native-results.json", "formatter.diff"]:
+              data = (artifact / name).read_bytes()
+              assert len(data) <= 2_097_152
+              outputs.append({"path": name, "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)})
+          manifest = {
+              "source": source, "nativeOutcome": os.environ["NATIVE_OUTCOME"],
+              "formatQualified": exact_formatted_output,
+              "quickCheckPassed": exact_formatted_output and results["prePushChecks"] == "passed",
+              "nativeE2E": "not-run", "outputs": outputs,
+          }
+          (artifact / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+          PY
+      - name: Preserve the reviewed formatter and generator outputs
+        if: ${{ !cancelled() && steps.candidate.outcome == 'success' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: gettok-native-format-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/gettok-native-format/candidate-source.json
+            ${{ runner.temp }}/gettok-native-format/candidate-files.json
+            ${{ runner.temp }}/gettok-native-format/native-results.json
+            ${{ runner.temp }}/gettok-native-format/formatter.diff
+            ${{ runner.temp }}/gettok-native-format/manifest.json
+          if-no-files-found: error
+          retention-days: 7
