@@ -150,7 +150,6 @@ function registerClaimsAndClosure({
       "Each recipient alone can report its own terminal item",
     );
   });
-
 }
 
 function registerDispatchAndRevocation({
