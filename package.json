@@ -28,6 +28,7 @@
     "test": "node tools/run-tests.ts",
     "test:native-authentication": "node tools/check-native-keycloak.ts",
     "test:native-gettok": "node tools/check-native-keycloak.ts --consumer=gettok",
+    "test:postgresql-recovery": "node tools/check-postgresql-recovery.ts",
     "check:static": "pnpm toolchain:doctor && pnpm foundation:assert-dev-only && pnpm foundation:assert-registry && pnpm topology:check && pnpm architecture:check && pnpm quality:coverage:scope && pnpm typecheck && pnpm lint:typed && pnpm quality:coverage && pnpm foundation:check",
     "check": "pnpm build && pnpm check:static && pnpm contracts:check && pnpm specifications:mutation && pnpm test && pnpm format:qualify && pnpm format:check",
     "check:fast": "pnpm check",

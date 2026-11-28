@@ -4,7 +4,15 @@ on:
   pull_request:
     paths:
       - ".github/workflows/identity-postgres-restore.yml"
-      - "packages/identity/src/features/account/adapters/outbound/migrations/**"
+      - ".node-version"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig*.json"
+      - "packages/**"
+      - "apps/**"
+      - "tools/**"
+      - "architecture/foundation/**"
 
 permissions:
   contents: read
@@ -31,6 +39,18 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1; fixed bootstrap
+        with:
+          version: 11.20.0
+          run_install: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install and compile the exact source graph
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm build
       - name: Restore closed-world disposable Identity state
         shell: bash
         run: |
@@ -44,48 +64,8 @@ jobs:
               --set=ON_ERROR_STOP=1 --dbname="$database" "$@"
           }
           db identity_test < packages/identity/src/features/account/adapters/outbound/migrations/0001_accounts.sql
-          db identity_test <<'SQL'
-          INSERT INTO identity_accounts(
-            account_id, authority_incarnation, eligibility, revision, security_epoch,
-            authentication_cutoff_ms, created_at_ms, updated_at_ms
-          ) VALUES (
-            'a0000000-0000-4000-8000-000000000001','realm-v1','suspended',2,2,
-            1700000000000,1699990000000,1700000000000
-          );
-          INSERT INTO identity_authority_bindings(
-            authority_id, issuer, subject, authority_incarnation, account_id, revision, state
-          ) VALUES (
-            'primary','https://test.example.com/realms/example','durable-subject','realm-v1',
-            'a0000000-0000-4000-8000-000000000001',1,'active'
-          );
-          INSERT INTO identity_consumer_attachments(
-            account_id, consumer_id, generation, revision, state, reattachment_cutoff_ms, created_at_ms
-          ) VALUES (
-            'a0000000-0000-4000-8000-000000000001','gettok',1,1,'active',0,1699990000000
-          );
-          INSERT INTO identity_resolution_receipts(
-            authority_id, issuer, subject, consumer_id, receipt_key, request_fingerprint,
-            account_id, authority_incarnation, account_revision, security_epoch, authentication_cutoff_ms,
-            attachment_generation, reattachment_cutoff_ms, observed_at_ms, status_valid_until_ms,
-            authority_session_id, proof_profile, proof_authenticated_at_ms, proof_valid_until_ms,
-            proof_policy_version, proof_scope
-          ) VALUES (
-            'primary','https://test.example.com/realms/example','durable-subject','gettok',
-            'disposable-login-receipt','digest-test',
-            'a0000000-0000-4000-8000-000000000001','realm-v1',1,1,0,
-            1,0,1699991000000,1699991001000,
-            'test-session','provider-session-control-v1',1699991000000,1699991001000,
-            '1','gettok-ordinary-login'
-          );
-          INSERT INTO identity_outbox(
-            event_id, account_id, consumer_id, kind, account_revision,
-            security_epoch, attachment_generation, observed_at_ms
-          ) VALUES (
-            'e0000000-0000-4000-8000-000000000001',
-            'a0000000-0000-4000-8000-000000000001',
-            'gettok','account.eligibility-changed',2,2,1,1700000000000
-          );
-          SQL
+          IDENTITY_RECOVERY_DATABASE_URL=postgres://identity_test:identity_test@127.0.0.1:5432/identity_test \
+            pnpm test:postgresql-recovery seed
           snapshot_dir="$(mktemp -d "$RUNNER_TEMP/identity-pg-restore.XXXXXX")"
           trap 'rm -rf "$snapshot_dir"' EXIT
           docker run --rm --network host -e PGPASSWORD=identity_test "$image" \
@@ -97,12 +77,17 @@ jobs:
           docker run --rm -i --network host -e PGPASSWORD=identity_test "$image" \
             pg_restore --host=127.0.0.1 --user=identity_test --dbname=identity_restore_test \
               --no-owner --no-privileges --exit-on-error < "$snapshot_dir/state.dump"
+          IDENTITY_RECOVERY_DATABASE_URL=postgres://identity_test:identity_test@127.0.0.1:5432/identity_restore_test \
+            pnpm test:postgresql-recovery verify
           state="$(db identity_restore_test --tuples-only --no-align \
             --command="SELECT (SELECT max(version) FROM identity_schema_migrations)::text || '|' ||
-              (SELECT eligibility FROM identity_accounts) || '|' ||
-              (SELECT security_epoch FROM identity_accounts)::text || '|' ||
-              (SELECT count(*) FROM identity_resolution_receipts)::text || '|' ||
+              (SELECT string_agg(eligibility, ',' ORDER BY eligibility) FROM identity_accounts) || '|' ||
+              (SELECT count(*) FROM identity_accounts WHERE revision = 2 AND security_epoch = 2)::text || '|' ||
+              (SELECT count(*) FROM identity_resolution_receipts WHERE security_epoch = 1)::text || '|' ||
               (SELECT count(*) FROM identity_outbox WHERE published_at_ms IS NULL)::text || '|' ||
-              (SELECT count(*) FROM identity_consumer_attachments)::text")"
-          test "$state" = "1|suspended|2|1|1|1"
-          printf '%s\n' '{"postgres18Restore":"passed","suspendedFence":"retained","oldReceipt":"retained","outbox":"retained","productionRecovery":"not-qualified"}'
+              (SELECT count(*) FROM identity_consumer_attachments)::text || '|' ||
+              (SELECT count(*) FROM identity_authority_bindings)::text || '|' ||
+              (SELECT count(*) FROM identity_closure_participants WHERE status = 'pending')::text || '|' ||
+              (SELECT count(*) FROM identity_security_audit)::text")"
+          test "$state" = "1|active,closed,suspended|3|3|6|3|3|1|6"
+          printf '%s\n' '{"postgres18Restore":"passed","accountApiFences":"passed","oldReceipts":"retained-and-denied","outbox":"retained","productionRecovery":"not-qualified"}'

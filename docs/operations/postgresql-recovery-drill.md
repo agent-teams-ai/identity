@@ -3,25 +3,33 @@
 The [native recovery workflow](../../.github/workflows/identity-postgres-restore.yml)
 uses the exact PostgreSQL 18.7 container digest already exercised by Identity
 CI. It applies the actual versioned `0001_accounts.sql` migration to an
-isolated `identity_test` database, inserts one deliberately suspended account,
-a historical ACTIVE login receipt, its consumer attachment and an unacknowledged
-outbox event, then performs a physical `pg_dump --format=custom` /
-`pg_restore` into a separate `identity_restore_test` database.
+isolated `identity_test` database. A package-owned native fixture calls the
+production account API and PostgreSQL adapter to admit three accounts, verifies
+each original receipt can replay, then applies real suspend, close and global
+logout transitions. The workflow uses `pg_dump --format=custom` / `pg_restore`
+to restore this state into a separate `identity_restore_test` database.
 
-The check verifies that the restored schema-migration version, suspended
-eligibility, security epoch, historical receipt, attachment and undelivered
-outbox are all retained. It never treats an old ACTIVE receipt as a grant.
-All credentials are disposable test fixtures, the snapshot remains in the
-runner's temporary directory, and the workflow does not touch external
-databases. Source and destination database names are explicit.
+The restored production API must expose the original lifecycle state, revision,
+security epoch and attachment to its owner and attached workload. It must reject
+each original receipt and a new admission attempt using the same pre-transition
+actor, return `PERMISSION_DENIED` to an unattached consumer, and refuse to enable
+the closed account. Suspended/closed status remains readable under the existing
+contract; that observation does not grant admission. Original proof timestamps
+and deadlines are read from the restored receipts, without renewing authority.
 
-This tests one **database-level** recovery property, not Keycloak realm
-restoration, authority incarnation migration, credential-custody backups,
-provider key rotation, application reactivation or recovery point/time
-objectives. A production release still requires the P6 runbook, full multi-
-service recovery exercise, approved retention policy and live credential/
-provider profile. A successful dump alone cannot authorize account access
-or bypass the closed/suspended security fences.
+Separate SQL checks retain the schema version, all three accounts and old
+receipts, bindings, attachments, six undelivered events, six audit records and
+the closed account's pending cleanup participant. The disposable fixture actors
+enter at the already verified account boundary; this drill does not authenticate
+them through Keycloak. Source and destination names are explicit loopback TEST
+databases. The snapshot stays in the runner's temporary directory.
+
+This qualifies the restored database's account fences through the production
+account API. Keycloak realm restoration, authority incarnation migration,
+credential-custody backups, provider key rotation, application reactivation and
+recovery point/time objectives remain unqualified. A production release still
+requires the P6 runbook, full multi-service recovery exercise, approved retention
+policy and live credential/provider profile.
 
 ## HTTP shutdown qualification
 

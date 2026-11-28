@@ -259,6 +259,7 @@ boundaries:
     entrypoints:
       - packages/identity/tests/features/account/keycloak-authentication.test.ts
       - packages/identity/tests/features/account/keycloak-browser-fixture.ts
+      - packages/identity/tests/features/account/postgres-recovery.native.ts
     dependencyMode: development
     allow:
       boundaries:
@@ -342,6 +343,7 @@ boundaries:
     entrypoints:
       - tools/build-evidence.ts
       - tools/check-feature-modules.ts
+      - tools/check-postgresql-recovery.ts
       - tools/clean-build.ts
       - tools/project-topology.ts
       - tools/record-build-evidence.ts
