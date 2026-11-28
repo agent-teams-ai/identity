@@ -39,3 +39,53 @@ Before a consumer adopts the artifact, record its real source commit, schema
 digest and compatibility evidence. A later release must provide the normal
 immutable version and provenance rather than pretending this local candidate
 is already published.
+
+## Pure TypeScript consumer status guard — private TEST candidate
+
+The `pinConsumerSession` and `observeConsumerStatus` helpers consume the
+existing versioned protobuf DTOs without provider credentials, network calls,
+transport, database or mutable global clocks. An authenticated **human**
+`ResolveSelf` response establishes immutable account identity, consumer,
+security epoch, attachment generation, admission policy and original
+human-proof deadline. A separately authenticated workload status observation
+may renew **status freshness only**, never that original human proof.
+The supported ordinary policy version is `1`; unknown versions are refused.
+
+The caller must capture first-attempt request-start and response-received values
+from the **same monotonic clock**. Before the first `ResolveSelf` request, retain
+one `ConsumerResolutionOrigin` with its logical operation and idempotency key.
+Pass that same original timing to `pinConsumerSession` on every retry: the
+producer deliberately replays its original receipt, including `observedAt`
+and deadlines. A retry start cannot replace `firstAttemptStartedMonotonicMs`.
+If that origin is lost, pass `undefined` and refuse the result; an origin from
+another clock instance also refuses. Do not reconstruct timing from response
+arrival or reuse the receipt after process restart.
+
+This origin is trusted, caller-owned transport metadata, never request input
+from an end user. The pure DTO helper cannot detect a caller relabeling an old
+receipt with an invented origin, or authenticate a response's relationship to
+its request. The owning transport must preserve that relationship and the
+original timing for the same idempotency key. Losing them requires a new
+explicit resolution with a fresh key, subject to ordinary producer admission;
+it does not authorize reusing the old receipt under a new clock origin.
+
+The helper spends transport time and a configured
+clock uncertainty inside the source's exact validity window, bounds status
+leases to at most 60 seconds, anchors **all future evidence deadlines** to
+the original human request/observed timestamp rather than reminting a cached
+response's lifetime, and requires a fresh clock instance ID after process
+restart or handoff. It rejects unknown/foreign/expired evidence,
+contradictory equal revisions, lost revocation, changed attachment generation,
+and any attempt to issue the unqualified independent-continuity profile.
+A denial must invalidate the calling product's session/use authorization;
+discarding the exception and reusing stale cached authority is forbidden.
+Both the initial and renewed status deadline are capped at the immutable human
+proof deadline, including when the proof is shorter than the status lease.
+
+The helper is intentionally a pure typed guard, not a credential validator.
+The owning BFF/worker must authenticate the actual response channel, persist
+its local revocation high-water mark and closed-owner fences, apply local
+roles/SCM permissions, coordinate concurrent refresh and handle provider
+logout/unknown external effects. No helper call upgrades product access.
+Consumer integration and a published signed SDK artifact remain separate
+qualification gates; this package is still private and version `0.0.0`.

@@ -2,6 +2,33 @@
   "schemaVersion": 1,
   "required": [
     {
+      "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
+      "names": [
+        "logical resolution retries retain their first attempt and refuse lost clock origin"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
+      "names": ["initial status freshness never exceeds the shorter human proof deadline"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
+      "names": ["human admission pins proof separately from renewable status observations"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
+      "names": ["status from another consumer or prior account fences never authorizes a session"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/consumer-session.test.js",
+      "names": ["unqualified strong profiles and expired, malformed or unbounded proof refuse"],
+      "kind": "test"
+    },
+    {
       "file": ".test-build/packages/contracts/tests/features/protocol/wire.test.js",
       "names": ["identity v1 wire preserves 64-bit revisions and timestamp precision"],
       "kind": "test"

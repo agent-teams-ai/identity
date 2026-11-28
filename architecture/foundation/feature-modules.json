@@ -88,6 +88,7 @@
       ],
       "surfaces": {
         "public": [
+          "packages/contracts/src/features/protocol/contracts/consumer-status.ts",
           "packages/contracts/src/features/protocol/contracts/gen/identity/v1/identity_pb.ts"
         ]
       },
