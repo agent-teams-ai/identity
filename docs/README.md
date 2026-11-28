@@ -4,12 +4,12 @@ Read the [repository instructions](../AGENTS.md) first. This index separates pro
 
 ## Choose a task
 
-| Task | Start here |
-| --- | --- |
-| Understand the service scope and current entry point | [Repository README](../README.md), [bootstrap plan](../BOOTSTRAP.md) |
-| Plan or resume the implementation | [identity service implementation plan](plans/identity-service-implementation-plan.md) |
-| Review source and dependency assumptions | [modules and http source audit 2026 11 26](research/modules-and-http-source-audit-2026-11-26.md); [modules source freshness 2026 11 26](research/modules-source-freshness-2026-11-26.md) |
-| Review historical checkpoints | [identity plan review 2026 11 26](reviews/identity-plan-review-2026-11-26.md) |
+| Task                                                 | Start here                                                                                                                                                                               |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Understand the service scope and current entry point | [Repository README](../README.md), [bootstrap plan](../BOOTSTRAP.md)                                                                                                                     |
+| Plan or resume the implementation                    | [identity service implementation plan](plans/identity-service-implementation-plan.md)                                                                                                    |
+| Review source and dependency assumptions             | [modules and http source audit 2026 11 26](research/modules-and-http-source-audit-2026-11-26.md); [modules source freshness 2026 11 26](research/modules-source-freshness-2026-11-26.md) |
+| Review historical checkpoints                        | [identity plan review 2026 11 26](reviews/identity-plan-review-2026-11-26.md)                                                                                                            |
 
 ## Document organization
 
