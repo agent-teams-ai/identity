@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 env:
-  GETTOK_REVISION: ecc0f349aa0830992cc0b7713e2b3bcd852d1215
+  GETTOK_REVISION: de136a7f92d97ef052e2dc8b11e82d03e55e86e2
 
 concurrency:
   group: identity-gettok-conformance-${{ github.ref }}

@@ -53,6 +53,7 @@ const server = await startServer({
         policyVersion: "1",
       },
       { kind: "workload", clientId: "gettok-test-workload", consumerId: "gettok" },
+      { kind: "terminal-workload", clientId: "gettok-test-terminal", consumerId: "gettok" },
     ],
   },
 });
@@ -131,6 +132,7 @@ try {
   );
   let completed = 0;
   let browser = false;
+  let closure = false;
   for (const line of stdout.trim().split("\n")) {
     const event: unknown = JSON.parse(line);
     assert.ok(event !== null && typeof event === "object" && "Action" in event);
@@ -147,16 +149,25 @@ try {
       ) {
         browser = true;
       }
+      if (
+        "Output" in event &&
+        typeof event.Output === "string" &&
+        event.Output.includes('"nativeGetTokClosure":"passed"')
+      ) {
+        closure = true;
+      }
     }
   }
   assert.equal(completed, 1, "The exact native GetTok test must finish successfully once");
   assert.ok(browser, "The actual browser must publish its bounded completion witness");
+  assert.ok(closure, "Actual terminal delivery must publish its bounded closure witness");
   process.stdout.write(
     `${JSON.stringify({
       nativeGetTokConsumer: "passed",
       identity: "production-composition",
       transport: "actual-connect-and-http",
       browser: "actual-chromium",
+      terminalClosure: "passed",
       independentContinuity: "not-admitted",
     })}\n`,
   );
