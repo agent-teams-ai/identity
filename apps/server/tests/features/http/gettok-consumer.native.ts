@@ -15,6 +15,57 @@ const required = (name: string): string => {
   assert.ok(value !== undefined && value.length > 0, `Native consumer requires ${name}`);
   return value;
 };
+// Surface only GetTok's fixed domain labels after a NoError assertion in the
+// exact native test. Parsing test2json keeps unrelated output and arbitrary
+// error text private, including labels embedded in provider response bodies.
+const nativeFailureKinds = (output: string): string[] => {
+  const labels = new Map([
+    ["central identity evidence is invalid", "evidence_invalid"],
+    ["central identity session requires authentication", "session_expired"],
+    ["central identity account is not active", "account_inactive"],
+    ["central identity continuity proof is required", "proof_required"],
+    ["central identity observation is stale", "evidence_stale"],
+    ["central identity binding conflicts", "conflict"],
+    ["central identity is unavailable", "unavailable"],
+  ]);
+  const kinds = new Set<string>();
+  let unexpectedError = false;
+  for (const line of output.split("\n")) {
+    let event: unknown;
+    try {
+      event = JSON.parse(line);
+    } catch {
+      unexpectedError = false;
+      continue;
+    }
+    if (
+      event === null ||
+      typeof event !== "object" ||
+      !("Action" in event) ||
+      event.Action !== "output" ||
+      !("Package" in event) ||
+      event.Package !== "github.com/TokenFlux/TokenRouter/internal/app" ||
+      !("Test" in event) ||
+      event.Test !== "TestCentralNativeBFFCookieFlow" ||
+      !("Output" in event) ||
+      typeof event.Output !== "string"
+    ) {
+      unexpectedError = false;
+      continue;
+    }
+    for (const part of event.Output.trimEnd().split("\n")) {
+      const text = part.trim();
+      if (unexpectedError) {
+        const kind = labels.get(text);
+        if (kind !== undefined) {
+          kinds.add(kind);
+        }
+      }
+      unexpectedError = /^Error:\s+Received unexpected error:$/u.test(text);
+    }
+  }
+  return [...kinds];
+};
 const databaseUrl = required("IDENTITY_TEST_DATABASE_URL");
 const database = new URL(databaseUrl);
 assert.ok(
@@ -114,6 +165,7 @@ try {
       `${JSON.stringify({
         nativeGetTokConsumer: "failed",
         diagnostics: directory,
+        failureKinds: nativeFailureKinds(diagnostic("stdout")),
         locations: [...new Set(output.match(/[\w./-]+\.go:\d+(?::\d+)?/g) ?? [])],
         stages: [
           ...new Set(
