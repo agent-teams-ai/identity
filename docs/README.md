@@ -13,8 +13,8 @@ Read the [repository instructions](../AGENTS.md) first. This index separates pro
 
 ## Document organization
 
-- [Plans](plans/): implementation intent, sequencing and explicit remaining work.
-- [Research](research/): source observations and architectural inputs; not accepted policy by default.
-- [Reviews](reviews/): dated review findings and evidence; do not infer implementation completion.
+- [Plans](plans/identity-service-implementation-plan.md): implementation intent, sequencing and explicit remaining work.
+- [Research](research/modules-and-http-source-audit-2026-11-26.md): source observations and architectural inputs; not accepted policy by default.
+- [Reviews](reviews/identity-plan-review-2026-11-26.md): dated review findings and evidence; do not infer implementation completion.
 
 Place new documents by responsibility, link them from the owning route, and keep existing references stable. Do not copy plans into agent instructions, equate a proposal with a decision, or treat earlier verification as current runtime evidence.
