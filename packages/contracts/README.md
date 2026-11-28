@@ -49,6 +49,7 @@ transport, database or mutable global clocks. An authenticated **human**
 security epoch, attachment generation, admission policy and original
 human-proof deadline. A separately authenticated workload status observation
 may renew **status freshness only**, never that original human proof.
+The supported ordinary policy version is `1`; unknown versions are refused.
 
 The caller must capture first-attempt request-start and response-received values
 from the **same monotonic clock**. Before the first `ResolveSelf` request, retain

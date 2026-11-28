@@ -168,6 +168,19 @@ void test("status from another consumer or prior account fences never authorizes
 });
 
 void test("unqualified strong profiles and expired, malformed or unbounded proof refuse", () => {
+  for (const policyVersion of [0, 2]) {
+    rejects(() =>
+      pinConsumerSession(
+        fromJsonString(
+          ResolveSelfResponseSchema,
+          JSON.stringify({ status: initialStatus, admission: { ...baseAdmission, policyVersion } }),
+        ),
+        policy,
+        origin,
+        200,
+      ),
+    );
+  }
   rejects(() =>
     pinConsumerSession(
       response({ profile: "ADMISSION_PROFILE_INDEPENDENT_CONTINUITY_V1" }),

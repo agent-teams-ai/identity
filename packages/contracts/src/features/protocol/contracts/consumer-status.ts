@@ -155,8 +155,7 @@ export function pinConsumerSession(
     admission.profile !== AdmissionProfile.PROVIDER_SESSION_CONTROL_V1 ||
     !admission.authoritySessionId ||
     admission.policyId !== policy.policyId ||
-    admission.policyVersion <= 0 ||
-    admission.policyVersion > 999_999_999
+    admission.policyVersion !== 1
   ) {
     return deny();
   }
