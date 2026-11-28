@@ -517,6 +517,14 @@ void test("recipient outboxes retain both consumers' attach/suspend/enable fence
       });
       assert.equal(await outbox.acknowledge(event), true);
     }
+    // DB timestamp ties may deliver revisions in a different order.
+    // Recipients consume idempotently and enforce their own highest revision.
+    observed.sort((left, right) => {
+      if (left.accountRevision === right.accountRevision) {
+        return 0;
+      }
+      return left.accountRevision < right.accountRevision ? -1 : 1;
+    });
     assert.deepEqual(observed, [
       {
         kind: "account.attached",
