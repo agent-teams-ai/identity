@@ -368,7 +368,7 @@ function registerTerminalFeed({ pool, replica, accounts, human, workload }: Outb
     const otherItems = await foreign.listPendingClosures(10);
     assert.equal(otherItems.length, 1);
     assert.equal(otherItems[0]?.accountId, opened.status.account.accountId);
-    assert.equal(otherItems[0]?.consumerId, "other-product");
+    assert.equal(otherItems[0].consumerId, "other-product");
 
     const firstPage = await recipient.listPendingClosures(1);
     const first = firstPage[0];
@@ -380,8 +380,8 @@ function registerTerminalFeed({ pool, replica, accounts, human, workload }: Outb
     assert.equal(secondPage.length, 1);
     assert.deepEqual(await recipient.listPendingClosures(1, next.accountId), []);
     assert.deepEqual(
-      [first.accountId, next.accountId].sort(),
-      [opened.status.account.accountId, second.status.account.accountId].sort(),
+      [first.accountId, next.accountId].toSorted(),
+      [opened.status.account.accountId, second.status.account.accountId].toSorted(),
     );
     assert.deepEqual(await competitor.listPendingClosures(10), [first, next]);
     assert.equal(first.consumerId, "gettok");
