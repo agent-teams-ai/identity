@@ -115,6 +115,45 @@
         "oversized requests never reach account use cases and readiness failure is visible"
       ],
       "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/wire.test.js",
+      "names": ["identity v1 closure receipt preserves exact generations and unknown outcomes"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/keycloak-authentication.test.js",
+      "names": ["Keycloak terminal purpose requires its admitted client and exact permission"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": ["terminal closure capability pages only its frozen consumer membership"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": [
+        "terminal closure receipts reject foreign stale and conflicting assertions and recover a lost response"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": [
+        "terminal receipt locks before expiry validation and never waits into an unauthorized write"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/apps/server/tests/features/http/connect-http.test.js",
+      "names": ["terminal Connect methods isolate authority and reject unknown receipt contracts"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/apps/server/tests/features/http/connect-http.test.js",
+      "names": ["maximum terminal page fits the existing bounded Connect response"],
+      "kind": "test"
     }
   ],
   "exceptions": []

@@ -23,6 +23,7 @@
     "format:support:check": "node scripts/check-format-inputs.ts --check",
     "format:qualify": "node tools/qualify-format-authority.ts",
     "contracts:check": "node tools/check-contracts.ts",
+    "contracts:generate": "node tools/generate-contracts.ts",
     "specifications:mutation": "node tools/check-account-mutations.ts",
     "build": "node tools/clean-build.ts && stack-toolchain compile --build tsconfig.build.json && stack-toolchain compile --project tsconfig.tests.json && node tools/record-build-evidence.ts",
     "test": "node tools/run-tests.ts",

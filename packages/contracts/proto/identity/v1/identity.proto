@@ -21,6 +21,73 @@ service IdentityService {
   rpc GetAccountStatus(GetAccountStatusRequest) returns (GetAccountStatusResponse);
 }
 
+// A separately admitted workload client with terminal-purpose permission only.
+// Consumer identity comes from authenticated server configuration, never a body.
+// Detached participants retain only their own frozen obligation/reporting scope.
+service IdentityClosureService {
+  rpc ListPendingClosures(ListPendingClosuresRequest) returns (ListPendingClosuresResponse);
+  rpc ListRepairRequiredClosures(ListRepairRequiredClosuresRequest) returns (ListRepairRequiredClosuresResponse);
+  rpc ReportClosure(ReportClosureRequest) returns (ReportClosureResponse);
+}
+
+message ListPendingClosuresRequest {
+  // Explicit bounded page size: 1..16. No unbounded/default directory scan.
+  uint32 limit = 1;
+  // Last account ID from a previous page, or empty to start a new sweep.
+  string after_account_id = 2;
+}
+
+message ListPendingClosuresResponse {
+  repeated ClosureParticipantReference participants = 1;
+  // Empty when the bounded page is exhausted. A full final page may be followed
+  // by an empty page. Restart a later sweep; paging never settles obligations.
+  string next_after_account_id = 2;
+}
+
+message ListRepairRequiredClosuresRequest {
+  uint32 limit = 1;
+  string after_account_id = 2;
+}
+
+message ListRepairRequiredClosuresResponse {
+  repeated ClosureParticipantReference participants = 1;
+  string next_after_account_id = 2;
+}
+
+message ClosureParticipantReference {
+  AccountReference account = 1;
+  // (authority incarnation, account ID, closure revision) identifies the
+  // existing terminal operation. This is not a new operation/authority ledger.
+  uint64 closure_revision = 2;
+  uint64 participant_generation = 3;
+  // Version 1 is the captured manifest contract. Unknown/zero versions deny.
+  uint32 manifest_version = 4;
+}
+
+enum ClosureReceiptOutcome {
+  CLOSURE_RECEIPT_OUTCOME_UNSPECIFIED = 0;
+  CLOSURE_RECEIPT_OUTCOME_NOT_PROVISIONED = 1;
+  CLOSURE_RECEIPT_OUTCOME_ERASED = 2;
+  // Reserved semantics: rejected until retention class/obligation/owner evidence
+  // is qualified. It must never stand in for complete erasure.
+  CLOSURE_RECEIPT_OUTCOME_RETAINED_BY_POLICY = 3;
+  CLOSURE_RECEIPT_OUTCOME_REPAIR_REQUIRED = 4;
+}
+
+message ReportClosureRequest {
+  ClosureParticipantReference participant = 1;
+  // Before NOT_PROVISIONED/ERASED the product commits its own closed-account
+  // fence and settles late provisioning/effects. This API records the product's
+  // exact assertion; it neither deletes product data nor proves physical erasure.
+  ClosureReceiptOutcome outcome = 2;
+}
+
+message ReportClosureResponse {
+  // True only for the exact accepted outcome or its identical replay. Unknown,
+  // foreign, stale or conflicting reports receive one non-enumerating denial.
+  bool accepted = 1;
+}
+
 message ResolveSelfRequest {
   // Bounded opaque command identity. A different actor/client/payload under the
   // same identity conflicts. A receipt replay never renews admission evidence.

@@ -91,6 +91,8 @@ const environment = {
   ...process.env,
   IDENTITY_TEST_SECOND_CLIENT_SECRET: randomBytes(32).toString("hex"),
   IDENTITY_TEST_SECOND_WORKLOAD_SECRET: randomBytes(32).toString("hex"),
+  IDENTITY_TEST_TERMINAL_SECRET: randomBytes(32).toString("hex"),
+  IDENTITY_TEST_SECOND_TERMINAL_SECRET: randomBytes(32).toString("hex"),
   JAVA_OPTS:
     "-Xms64m -Xmx256m -XX:MaxMetaspaceSize=192m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=32m -XX:-UseBASE64Intrinsics -XX:+UseSerialGC",
   KC_DB: "postgres",

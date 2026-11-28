@@ -28,6 +28,12 @@ export interface WorkloadAuthority {
   readonly consumerId: string;
   readonly credentialExpiresAtMs: number;
 }
+export interface TerminalWorkloadAuthority {
+  readonly kind: "terminal-workload";
+  readonly clientId: string;
+  readonly consumerId: string;
+  readonly credentialExpiresAtMs: number;
+}
 export interface AccountStatus {
   readonly account: AccountReference;
   readonly consumerId: string;
@@ -63,7 +69,7 @@ export interface AccountAuthentication {
   readonly authenticate: (
     bearer: string,
     signal: AbortSignal,
-  ) => Promise<HumanAuthority | WorkloadAuthority>;
+  ) => Promise<HumanAuthority | WorkloadAuthority | TerminalWorkloadAuthority>;
 }
 export type FailureReason =
   | "UNAUTHENTICATED"

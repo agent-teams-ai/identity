@@ -6,6 +6,9 @@ import { fromBinary, fromJson, fromJsonString, toBinary, toJson } from "@bufbuil
 import {
   AccountEligibility,
   AccountStatusEvidenceSchema,
+  ClosureReceiptOutcome,
+  ReportClosureRequestSchema,
+  ReportClosureResponseSchema,
 } from "../../../src/features/protocol/contracts/gen/identity/v1/identity_pb.js";
 
 await test("identity v1 wire preserves 64-bit revisions and timestamp precision", async () => {
@@ -36,4 +39,36 @@ await test("identity v1 unknown and absent evidence remains non-authoritative", 
   assert.equal(absent.eligibility, AccountEligibility.UNSPECIFIED);
   assert.equal(absent.observedAt, undefined);
   assert.equal(absent.validUntil, undefined);
+});
+
+await test("identity v1 closure receipt preserves exact generations and unknown outcomes", async () => {
+  const fixture = await readFile(
+    resolve(process.cwd(), "packages/contracts/gen/go/testdata/closure-receipt-v1.json"),
+    "utf8",
+  );
+  const value = fromJsonString(ReportClosureRequestSchema, fixture);
+  const reference = value.participant;
+  assert.ok(reference !== undefined && reference.account !== undefined);
+  assert.equal(reference.account.accountId, "019acf27-a591-7000-8000-000000000001");
+  assert.equal(reference.account.authorityIncarnation, "fixture-authority-v1");
+  assert.equal(reference.closureRevision, 9_007_199_254_740_997n);
+  assert.equal(reference.participantGeneration, 9_007_199_254_740_995n);
+  assert.equal(reference.manifestVersion, 1);
+  assert.equal(value.outcome, ClosureReceiptOutcome.REPAIR_REQUIRED);
+  const decoded = fromBinary(
+    ReportClosureRequestSchema,
+    toBinary(ReportClosureRequestSchema, value),
+  );
+  assert.deepEqual(decoded, value);
+  const rendered = toJson(ReportClosureRequestSchema, decoded);
+  assert.ok(rendered !== null && typeof rendered === "object" && !Array.isArray(rendered));
+  const participant = rendered["participant"];
+  assert.ok(participant !== null && typeof participant === "object" && !Array.isArray(participant));
+  assert.equal(participant["closureRevision"], "9007199254740997");
+  assert.equal(participant["participantGeneration"], "9007199254740995");
+  assert.equal(fromJson(ReportClosureRequestSchema, { outcome: 99 }).outcome, 99);
+  const absent = fromJson(ReportClosureRequestSchema, {});
+  assert.equal(absent.participant, undefined);
+  assert.equal(absent.outcome, ClosureReceiptOutcome.UNSPECIFIED);
+  assert.equal(fromJson(ReportClosureResponseSchema, {}).accepted, false);
 });

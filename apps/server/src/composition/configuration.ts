@@ -38,8 +38,8 @@ function client(value: unknown): Client {
     clientId: clientString(value.clientId),
     consumerId: clientString(value.consumerId),
   };
-  if (value.kind === "workload") {
-    return { ...base, kind: "workload" };
+  if (value.kind === "workload" || value.kind === "terminal-workload") {
+    return { ...base, kind: value.kind };
   }
   if (
     value.kind !== "human" ||
