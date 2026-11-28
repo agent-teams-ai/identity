@@ -53,9 +53,10 @@ disposable `IDENTITY_TEST_CLIENT_SECRET`, `IDENTITY_TEST_WORKLOAD_SECRET`,
 
 The launcher rejects existing user tables instead of truncating a database.
 It verifies actual JVM/provider/database versions, applies the real Identity
-migration, imports the realm, bounds readiness, and runs both
+migration, imports the realm, bounds readiness, and runs
 `keycloak-profile.native.js` and `keycloak-service.native.js` from the
-compiled test graph. Provider cleanup is mandatory; a cleanup failure fails
+compiled test graph. The default native route also requires the signing-key
+overlap fixture below. Provider cleanup is mandatory; a cleanup failure fails
 the command. A fresh CI job is required after a completed lifecycle test,
 which deliberately closes the native fixture subject.
 
@@ -87,6 +88,33 @@ ordinary profile remains bounded by the original access-token expiry, at
 most 300 seconds. Machine status does not extend that deadline or prove
 instant provider logout. Upstream refresh and durable native logout are
 separate qualification requirements before lengthening the admitted lease.
+
+## Signing-key overlap fixture
+
+`keycloak-rotation.native.ts` obtains a real human PKCE credential, warms the
+production verifier, then uses a launcher-generated disposable bootstrap admin
+client to add one higher-priority `rsa-generated` provider through the actual
+Keycloak Admin API. Keycloak owns key generation and storage. The fixture never
+exports a private key, changes an existing provider or retires an old key.
+The same real login flow must issue a token with a different `kid`; the one
+warm production verifier must accept it after refreshing issuer keys and keep
+accepting the original unexpired token. Unknown, tampered and malformed tokens
+must remain unauthenticated.
+
+The existing verifier has a 30-second refresh cooldown, a 300-second cache
+maximum age and a three-second fetch timeout. The fixture uses the real clock,
+bounded polling and a 60-second process deadline; it does not claim immediate
+rotation admission. Only the default `pnpm test:native-authentication` route
+runs this scenario, avoiding repetition in the GetTok consumer lane. The entire
+disposable provider is stopped by the existing launcher on success or failure.
+
+The exact 26.8.2 owners are the
+[component Admin API](https://github.com/keycloak/keycloak/blob/e514445f9dcdabc5bdcf67cab56c1e49655de067/services/src/main/java/org/keycloak/services/resources/admin/ComponentResource.java),
+[generated RSA factory](https://github.com/keycloak/keycloak/blob/e514445f9dcdabc5bdcf67cab56c1e49655de067/services/src/main/java/org/keycloak/keys/GeneratedRsaKeyProviderFactory.java)
+and [key selection](https://github.com/keycloak/keycloak/blob/e514445f9dcdabc5bdcf67cab56c1e49655de067/services/src/main/java/org/keycloak/keys/DefaultKeyManager.java).
+This qualifies disposable overlap and warm-cache refresh only. Production
+rotation scheduling, overlap duration, retirement, compromise response and
+multi-replica distribution remain pending operational policy and qualification.
 
 ## Stronger profile remains closed
 
