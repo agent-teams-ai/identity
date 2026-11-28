@@ -94,11 +94,18 @@ export function createPostgresOutboxDelivery(
       }
       const result = await pool.query<StoredOutboxEvent>(
         `WITH candidate AS (
-          SELECT event_id FROM identity_outbox
-          WHERE consumer_id = $1 AND published_at_ms IS NULL
-            AND (claimed_until_ms IS NULL OR claimed_until_ms <=
+          SELECT pending.event_id FROM identity_outbox AS pending
+          WHERE pending.consumer_id = $1 AND pending.published_at_ms IS NULL
+            AND (pending.claimed_until_ms IS NULL OR pending.claimed_until_ms <=
               floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint)
-          ORDER BY observed_at_ms, event_id
+            AND EXISTS (
+              SELECT 1 FROM identity_consumer_attachments AS attachment
+              WHERE attachment.account_id = pending.account_id
+                AND attachment.consumer_id = pending.consumer_id
+                AND attachment.state = 'active'
+                AND attachment.generation = pending.attachment_generation
+            )
+          ORDER BY pending.observed_at_ms, pending.event_id
           LIMIT 1 FOR UPDATE SKIP LOCKED
         )
         UPDATE identity_outbox AS event

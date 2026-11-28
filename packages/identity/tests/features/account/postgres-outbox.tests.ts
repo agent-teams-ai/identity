@@ -333,14 +333,13 @@ function registerTerminalFeed({ pool, replica, accounts, human, workload }: Outb
     const competitor = createPostgresOutboxDelivery(replica, "gettok");
     const foreign = createPostgresOutboxDelivery(replica, "other-product");
     const unknown = createPostgresOutboxDelivery(replica, "unknown-product");
-    const firstEvent = await recipient.claimNext(60_000);
-    assert.ok(firstEvent !== undefined);
-    assert.equal(await recipient.acknowledge(firstEvent), true);
+    // Keep the original attachment event unacknowledged across detachment.
     await pool.query(
       "UPDATE identity_consumer_attachments SET state = 'detached', revision = revision + 1 WHERE account_id = $1 AND consumer_id = 'gettok'",
       [opened.status.account.accountId],
     );
     assert.deepEqual(await recipient.listPendingClosures(10), []);
+    assert.equal(await recipient.claimNext(60_000), undefined, "No stale ordinary event");
     await accounts.administration.transition(opened.status.account, "close", 1n);
     assert.equal(await recipient.claimNext(60_000), undefined, "No ordinary detached event");
     await assert.rejects(accounts.api.getAccountStatus(workload(), opened.status.account), {
@@ -351,7 +350,17 @@ function registerTerminalFeed({ pool, replica, accounts, human, workload }: Outb
       { ...human(), subject: "terminal-feed-second" },
       "terminal-feed-second",
     );
+    await pool.query(
+      "UPDATE identity_consumer_attachments SET generation = 2, revision = revision + 1 WHERE account_id = $1 AND consumer_id = 'gettok'",
+      [second.status.account.accountId],
+    );
+    assert.equal(await recipient.claimNext(60_000), undefined, "No older-generation event");
     await accounts.administration.transition(second.status.account, "close", 1n);
+    const current = await recipient.claimNext(60_000);
+    assert.ok(current !== undefined);
+    assert.equal(current.accountId, second.status.account.accountId);
+    assert.equal(current.attachmentGeneration, 2n);
+    assert.equal(await recipient.acknowledge(current), true);
     await assert.rejects(recipient.listPendingClosures(0), RangeError);
     await assert.rejects(recipient.listPendingClosures(101), RangeError);
     await assert.rejects(recipient.listPendingClosures(1, "invalid"), TypeError);
@@ -378,7 +387,10 @@ function registerTerminalFeed({ pool, replica, accounts, human, workload }: Outb
     assert.equal(first.consumerId, "gettok");
     assert.equal(first.authorityIncarnation, opened.status.account.authorityIncarnation);
     assert.equal(first.closureRevision, 2n);
-    assert.equal(first.participantGeneration, 1n);
+    assert.equal(
+      first.participantGeneration,
+      first.accountId === opened.status.account.accountId ? 1n : 2n,
+    );
 
     const report = { ...first, outcome: "erased" as const };
     assert.equal(
