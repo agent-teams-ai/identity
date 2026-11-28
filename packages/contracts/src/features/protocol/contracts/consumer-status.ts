@@ -1,9 +1,6 @@
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { AccountEligibility, AdmissionProfile } from "./gen/identity/v1/identity_pb.js";
-import type {
-  AccountStatusEvidence,
-  ResolveSelfResponse,
-} from "./gen/identity/v1/identity_pb.js";
+import type { AccountStatusEvidence, ResolveSelfResponse } from "./gen/identity/v1/identity_pb.js";
 
 /** Immutable human-login facts; workload status never renews the original proof. */
 export interface PinnedConsumerSession {

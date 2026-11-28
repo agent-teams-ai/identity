@@ -68,15 +68,7 @@ void test("human admission pins proof separately from renewable status observati
   );
   assert.equal(newer.statusDeadlineMonotonicMs, 90_100);
   assert.equal(newer.proofDeadlineMonotonicMs, original.proofDeadlineMonotonicMs);
-  rejects(() =>
-    observeConsumerStatus(
-      original,
-      status(),
-      policy,
-      60_000,
-      60_100,
-    ),
-  );
+  rejects(() => observeConsumerStatus(original, status(), policy, 60_000, 60_100));
   rejects(() =>
     observeConsumerStatus(
       original,
@@ -130,7 +122,10 @@ void test("status from another consumer or prior account fences never authorizes
     rejects(() =>
       observeConsumerStatus(
         session,
-        fromJsonString(AccountStatusEvidenceSchema, JSON.stringify({ ...initialStatus, ...changed })),
+        fromJsonString(
+          AccountStatusEvidenceSchema,
+          JSON.stringify({ ...initialStatus, ...changed }),
+        ),
         policy,
         1000,
         1100,
