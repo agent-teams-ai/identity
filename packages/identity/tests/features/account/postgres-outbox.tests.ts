@@ -23,12 +23,7 @@ export function registerOutboxTests(fixtures: OutboxFixtures): void {
   registerDispatchAndRevocation(fixtures);
 }
 
-function registerClaimsAndClosure({
-  pool,
-  replica,
-  accounts,
-  human,
-}: OutboxFixtures): void {
+function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixtures): void {
   void test("outbox claims are recipient-scoped and exclusive across actual PostgreSQL replicas", async () => {
     const admitted = await accounts.api.resolveSelf(human(), "outbox-first-admission");
     const primary = createPostgresOutboxDelivery(pool, "gettok");
@@ -40,7 +35,11 @@ function registerClaimsAndClosure({
     ]);
     const event = first ?? second;
     assert.ok(event !== undefined, "Exactly one worker claims an event");
-    assert.equal(first === undefined || second === undefined, true, "No duplicate concurrent claim");
+    assert.equal(
+      first === undefined || second === undefined,
+      true,
+      "No duplicate concurrent claim",
+    );
     assert.equal(event.accountId, admitted.status.account.accountId);
     assert.equal(event.consumerId, "gettok");
     assert.equal(event.kind, "account.attached");
@@ -152,12 +151,7 @@ function registerClaimsAndClosure({
   });
 }
 
-function registerDispatchAndRevocation({
-  pool,
-  accounts,
-  human,
-  workload,
-}: OutboxFixtures): void {
+function registerDispatchAndRevocation({ pool, accounts, human, workload }: OutboxFixtures): void {
   void test("outbox dispatch acknowledges only after recipient success and preserves redelivery", async () => {
     await accounts.api.resolveSelf(human(), "dispatch-first-admission");
     const outbox = createPostgresOutboxDelivery(pool, "gettok");
