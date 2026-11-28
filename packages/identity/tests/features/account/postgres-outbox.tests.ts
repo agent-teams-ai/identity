@@ -23,6 +23,7 @@ export function registerOutboxTests(fixtures: OutboxFixtures): void {
   registerDispatchAndRevocation(fixtures);
   registerUncertainSettlement(fixtures);
   registerTerminalFeed(fixtures);
+  registerRepairFeed(fixtures);
 }
 
 function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixtures): void {
@@ -420,5 +421,44 @@ function registerTerminalFeed({ pool, replica, accounts, human, workload }: Outb
     assert.equal(settled.filter(Boolean).length, 1, "Only one terminal outcome can commit");
     assert.deepEqual(await recipient.listPendingClosures(10), [next]);
     assert.deepEqual(await foreign.listPendingClosures(10), otherItems);
+  });
+}
+
+function registerRepairFeed({ pool, replica, accounts, human }: OutboxFixtures): void {
+  void test("unsettled cleanup remains visible to its recipient without automatic retry", async () => {
+    const opened = await accounts.api.resolveSelf(human(), "repair-feed-first");
+    await accounts.api.resolveSelf(human("other-product"), "repair-feed-other");
+    const second = await accounts.api.resolveSelf(
+      { ...human(), subject: "repair-feed-second" },
+      "repair-feed-second",
+    );
+    await accounts.administration.transition(opened.status.account, "close", 1n);
+    await accounts.administration.transition(second.status.account, "close", 1n);
+    const recipient = createPostgresOutboxDelivery(pool, "gettok");
+    const competitor = createPostgresOutboxDelivery(replica, "gettok");
+    const foreign = createPostgresOutboxDelivery(replica, "other-product");
+    assert.deepEqual(await recipient.listRepairRequiredClosures(10), []);
+    const pending = await recipient.listPendingClosures(10);
+    assert.equal(pending.length, 2);
+    for (const item of pending) {
+      assert.equal(await recipient.reportClosure({ ...item, outcome: "repair-required" }), true);
+    }
+    assert.deepEqual(await competitor.listPendingClosures(10), []);
+    assert.deepEqual(await competitor.listRepairRequiredClosures(10), pending);
+    const firstPage = await recipient.listRepairRequiredClosures(1);
+    const first = firstPage[0];
+    assert.ok(first !== undefined);
+    assert.deepEqual(firstPage, pending.slice(0, 1));
+    assert.deepEqual(
+      await competitor.listRepairRequiredClosures(1, first.accountId),
+      pending.slice(1),
+    );
+    assert.deepEqual(await foreign.listRepairRequiredClosures(10), []);
+    assert.equal((await foreign.listPendingClosures(10)).length, 1);
+    await assert.rejects(recipient.listRepairRequiredClosures(101), RangeError);
+    await assert.rejects(recipient.listRepairRequiredClosures(1, "invalid"), TypeError);
+    assert.equal(await competitor.reportClosure({ ...first, outcome: "repair-required" }), true);
+    assert.equal(await competitor.reportClosure({ ...first, outcome: "erased" }), false);
+    assert.deepEqual(await recipient.listRepairRequiredClosures(10), pending);
   });
 }

@@ -19,7 +19,7 @@ export type ClosureOutcome =
   | "retained-by-policy"
   | "repair-required";
 
-export interface PendingClosure {
+export interface ClosureManifestItem {
   readonly consumerId: string;
   readonly accountId: string;
   readonly authorityIncarnation: string;
@@ -27,7 +27,7 @@ export interface PendingClosure {
   readonly participantGeneration: bigint;
 }
 
-export interface ClosureReport extends PendingClosure {
+export interface ClosureReport extends ClosureManifestItem {
   readonly outcome: ClosureOutcome;
 }
 
@@ -45,7 +45,15 @@ export interface AccountOutboxDelivery {
   readonly listPendingClosures: (
     limit: number,
     afterAccountId?: string,
-  ) => Promise<readonly PendingClosure[]>;
+  ) => Promise<readonly ClosureManifestItem[]>;
+  /**
+   * Unsettled effects remain visible in a separate recipient-scoped repair feed.
+   * Reading this feed does not authorize automatic retry or overwrite a receipt.
+   */
+  readonly listRepairRequiredClosures: (
+    limit: number,
+    afterAccountId?: string,
+  ) => Promise<readonly ClosureManifestItem[]>;
   /** Accepts an exact result or its identical replay; never overwrites a different outcome. */
   readonly reportClosure: (report: ClosureReport) => Promise<boolean>;
 }

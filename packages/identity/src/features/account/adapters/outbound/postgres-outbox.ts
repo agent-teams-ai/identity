@@ -2,8 +2,8 @@ import type { Pool } from "pg";
 import type {
   AccountOutboxDelivery,
   ClaimedAccountEvent,
+  ClosureManifestItem,
   ClosureOutcome,
-  PendingClosure,
 } from "../../application/ports/account-outbox.js";
 import { milliseconds } from "./postgres-codecs.js";
 
@@ -35,12 +35,13 @@ const toEvent = (row: StoredOutboxEvent): ClaimedAccountEvent => ({
   leaseUntilMs: milliseconds(row.claimed_until_ms),
 });
 
-async function listPendingClosures(
+async function listClosureItems(
   pool: Pool,
   consumerId: string,
-  limit: number,
-  afterAccountId?: string,
-): Promise<readonly PendingClosure[]> {
+  status: "pending" | "repair-required",
+  page: { readonly limit: number; readonly afterAccountId: string | undefined },
+): Promise<readonly ClosureManifestItem[]> {
+  const { limit, afterAccountId } = page;
   if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
     throw new RangeError("Invalid closure page size");
   }
@@ -61,11 +62,11 @@ async function listPendingClosures(
     FROM identity_closure_participants AS item
     JOIN identity_accounts AS account ON account.account_id = item.account_id
       AND account.eligibility = 'closed' AND account.revision = item.closure_revision
-    WHERE item.consumer_id = $1 AND item.status = 'pending'
+    WHERE item.consumer_id = $1 AND item.status = $4
       AND ($2::uuid IS NULL OR item.account_id > $2::uuid)
     ORDER BY item.account_id
     LIMIT $3`,
-    [consumerId, afterAccountId ?? null, limit],
+    [consumerId, afterAccountId ?? null, limit, status],
   );
   return result.rows.map((row) => ({
     consumerId,
@@ -143,7 +144,9 @@ export function createPostgresOutboxDelivery(
       return result.rows.length === 1;
     },
     listPendingClosures: async (limit, afterAccountId) =>
-      listPendingClosures(pool, consumerId, limit, afterAccountId),
+      listClosureItems(pool, consumerId, "pending", { limit, afterAccountId }),
+    listRepairRequiredClosures: async (limit, afterAccountId) =>
+      listClosureItems(pool, consumerId, "repair-required", { limit, afterAccountId }),
     reportClosure: async (report) => {
       if (report.consumerId !== consumerId) {
         return false;
