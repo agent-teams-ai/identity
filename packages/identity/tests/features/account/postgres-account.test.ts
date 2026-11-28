@@ -486,3 +486,63 @@ void test("outbox dispatch acknowledges only after recipient success and preserv
   assert.equal(delivered, 1);
   assert.equal(await deliverAccountEvent(outbox, async () => {}, 1000), "empty");
 });
+
+void test("recipient outboxes retain both consumers' attach/suspend/enable fences", async () => {
+  const admitted = await accounts.api.resolveSelf(human(), "multi-event-first-admission");
+  const second = await accounts.api.resolveSelf(
+    human("other-product"),
+    "multi-event-second-admission",
+  );
+  assert.deepEqual(admitted.status.account, second.status.account);
+  await accounts.administration.transition(admitted.status.account, "suspend", 1n);
+  await accounts.administration.transition(admitted.status.account, "enable", 2n);
+
+  for (const consumerId of ["gettok", "other-product"]) {
+    const outbox = createPostgresOutboxDelivery(pool, consumerId);
+    const observed: {
+      readonly kind: string;
+      readonly accountRevision: bigint;
+      readonly securityEpoch: bigint;
+      readonly attachmentGeneration: bigint;
+    }[] = [];
+    for (let index = 0; index < 3; index += 1) {
+      const event = await outbox.claimNext(60_000);
+      assert.ok(event !== undefined, "Each recipient has three durable events");
+      assert.equal(event.consumerId, consumerId, "Events never cross the consumer boundary");
+      observed.push({
+        kind: event.kind,
+        accountRevision: event.accountRevision,
+        securityEpoch: event.securityEpoch,
+        attachmentGeneration: event.attachmentGeneration,
+      });
+      assert.equal(await outbox.acknowledge(event), true);
+    }
+    assert.deepEqual(observed, [
+      {
+        kind: "account.attached",
+        accountRevision: 1n,
+        securityEpoch: 1n,
+        attachmentGeneration: 1n,
+      },
+      {
+        kind: "account.eligibility-changed",
+        accountRevision: 2n,
+        securityEpoch: 2n,
+        attachmentGeneration: 1n,
+      },
+      {
+        kind: "account.eligibility-changed",
+        accountRevision: 3n,
+        securityEpoch: 2n,
+        attachmentGeneration: 1n,
+      },
+    ]);
+    assert.equal(await outbox.claimNext(60_000), undefined);
+    const current = await accounts.api.getAccountStatus(
+      workload(consumerId),
+      admitted.status.account,
+    );
+    assert.equal(current.accountRevision, 3n);
+    assert.equal(current.securityEpoch, 2n, "Enable never clears the prior revocation fence");
+  }
+});
