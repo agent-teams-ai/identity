@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "sha256",
+  "decisions": [
+    {
+      "id": "ADR-0001",
+      "path": "docs/decisions/0001-identity-modules-and-tooling.md",
+      "immutableDigest": "sha256:956fba19d57fcd193fe9dae2989e844cae85a322cf8691b8048713d4b0fc315e"
+    },
+    {
+      "id": "ADR-0002",
+      "path": "docs/decisions/0002-native-postgres-first-slice.md",
+      "immutableDigest": "sha256:30b983f338a595ab0eeb2e115fc47964febb91fcec4ae24bc3d11df37d8027f0"
+    }
+  ]
+}

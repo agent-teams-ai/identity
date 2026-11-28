@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "kind": "completed-initial-baseline-disposition",
+  "observedAt": "2026-11-26T21:55:58.196Z",
+  "preflight": {
+    "mode": "REGISTRY",
+    "issues": [],
+    "transaction": "absent"
+  },
+  "baseline": {
+    "path": "architecture/decisions/accepted-decisions.json",
+    "sha256": "f0378c04292d8c7ff7232714ec80efedea533fca3e88ddbcc5a950f1830f3e96"
+  },
+  "completedEntry": {
+    "path": ".agent-teams-local/foundation-operation-lock.completed-evidence/released.8d35d382-55be-4fe4-ab33-e2a3ed375372/evidence",
+    "sha256": "139a7fe2e096081b6ce2d733f00d0d17d131420543cc97befbbf0d60c64750b1",
+    "size": 113
+  },
+  "archiveSha256": "2014504f9f950f363c76b5b03b0c99994eb37b6aceb89eb28fddf70f098c95b1",
+  "note": "Native baseline promotion completed and public preflight reported idle registry mode. Completed local lease evidence is preserved outside the consumer; this manifest does not claim raw archive availability in CI."
+}

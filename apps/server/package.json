@@ -1,0 +1,25 @@
+{
+  "name": "@agent-teams/identity-server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -w build",
+    "check": "pnpm -w check",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@agent-teams/identity-contracts": "workspace:*",
+    "@agent-teams/identity-core": "workspace:*",
+    "@bufbuild/protobuf": "catalog:",
+    "@connectrpc/connect": "catalog:",
+    "@connectrpc/connect-fastify": "catalog:",
+    "@connectrpc/connect-node": "catalog:",
+    "@get-modular/assembly": "catalog:",
+    "@get-modular/core": "catalog:",
+    "@get-modular/resources": "catalog:",
+    "fastify": "catalog:",
+    "pg": "catalog:",
+    "uuid": "catalog:"
+  }
+}

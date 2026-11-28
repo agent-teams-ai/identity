@@ -1,40 +1,46 @@
 # Identity
 
 Shared account identity and authentication integration for Agent Teams products.
-This repository is at the architecture and implementation-planning stage.
+The expanded service is being implemented with **GetTok as its first consumer**.
 
-The proposed service uses Keycloak for GitHub/GitLab sign-in, credentials and
-authentication sessions. Identity owns stable accounts and their lifecycle.
-Products retain local users, permissions, sessions and integration credentials.
-Direct GitHub/GitLab login does not require a Google account.
+The current implementation contains the account domain and semantic ports,
+PostgreSQL persistence, Keycloak token boundary, versioned Protobuf/Connect
+contracts with TypeScript and Go bindings, and a Fastify HTTP Host. Products
+retain their local users, permissions, sessions and integration credentials.
 
-## Planning documents
+This is an implementation checkpoint under qualification. It does not represent
+a completed service rollout or claim that later recovery, independent-factor,
+durable delivery and operational phases have shipped. The Keycloak ordinary
+login profile cannot be used as independent continuity evidence.
+
+## Architecture and implementation
 
 - [Architecture and phased implementation plan](docs/plans/identity-service-implementation-plan.md)
-- [Repository bootstrap and full Engineering Foundation adoption](BOOTSTRAP.md)
-- [Source audit: public module contracts and Discord's HTTP boundary](docs/research/modules-and-http-source-audit-2026-11-26.md)
-- [Latest source refresh after qualification and governance updates](docs/research/modules-source-freshness-2026-11-26.md)
-- [Independent review record and verification limits](docs/reviews/identity-plan-review-2026-11-26.md)
-- [Review Router integration plan](https://github.com/777genius/review-router-ai/blob/docs/unified-identity-scm-plan-20261126/ai-docs/plans/2026-11-26-unified-identity-and-scm-connections.md), owned and implemented in that consumer repository
+- [Bootstrap, shared-tooling pins and admission prerequisites](BOOTSTRAP.md)
+- [Accepted architecture decisions](docs/decisions/README.md)
+- [Module adoption and native contract ownership](docs/architecture/module-adoption.md)
+- [Single FMS/CMS source profile](architecture/foundation/feature-modules.json)
+- [Versioned public contract](packages/contracts/README.md)
+- [Source audit: module contracts and Discord HTTP boundary](docs/research/modules-and-http-source-audit-2026-11-26.md)
+- [Plan source refresh](docs/research/modules-source-freshness-2026-11-26.md)
+- [Plan review record and its limits](docs/reviews/identity-plan-review-2026-11-26.md)
 
-The implementation plan selects the expanded service direction while keeping
-domain and application independent of Fastify, storage, Keycloak and module
-frameworks. It identifies the currently released shared contracts and the
-upstream bootstrap work needed before claiming production qualification.
+Direct GitHub/GitLab login through the broker remains the intended product
+journey, without an intermediate Google account. Provider consent and product
+repository authorization are separate grants. The first consumer work belongs
+to GetTok; [Review Router's integration plan](https://github.com/777genius/review-router-ai/blob/docs/unified-identity-scm-plan-20261126/ai-docs/plans/2026-11-26-unified-identity-and-scm-connections.md)
+remains available for its later owning implementation.
 
-The deep-review decision section makes the remaining material choices explicit:
-ordinary legacy proof versus stronger recovery evidence (D6), post-closure
-progress (D7), and supported Keycloak enforcement versus a bounded extension
-(D8). Each has a recommendation, limitations and a phase gate.
+## Development
 
-There is no service implementation, production deployment, installed native
-toolchain or completed runtime qualification in this planning checkpoint.
-Implementation begins with the plan's P0/P1 gates and substantive source.
+Read [AGENTS.md](AGENTS.md) for exact native prerequisites, commands, ownership
+and publication rules. Use the pinned Node/pnpm graph and Stack's public
+toolchain. `pnpm check` compiles real source, checks the architecture and complete
+quality scope, validates native contracts, and runs focused mandatory tests.
+Database and provider checks require their actual disposable services.
 
-## Working in this repository
-
-Read [AGENTS.md](AGENTS.md) and [BOOTSTRAP.md](BOOTSTRAP.md) before implementation.
-Architecture proposals become accepted through the repository owner's explicit
-decision; a planning document or automated review does not confer that status.
+Central admission, managed Docs adoption, native qualification and production
+rollout are separate evidence. Their current state is recorded in BOOTSTRAP and
+the owning PR checks; local source or a static profile alone does not prove them.
 
 See the [documentation map](docs/README.md) for task-oriented navigation.

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "keycloak": {
+    "version": "26.8.2",
+    "sourceCommit": "e514445f9dcdabc5bdcf67cab56c1e49655de067",
+    "archiveUrl": "https://github.com/keycloak/keycloak/releases/download/26.8.2/keycloak-26.8.2.tar.gz",
+    "archiveSha256": "dd124787283918bc597628887168333465ee2a811a389e0003569e52be7e487f"
+  },
+  "java": {
+    "version": "21.0.13.1",
+    "distribution": "Eclipse Temurin",
+    "build": "21.0.13.1+2",
+    "platform": "linux-x64",
+    "archiveUrl": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13.1%2B2/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13.1_2.tar.gz",
+    "archiveSha256": "bb8a93f9ae6e7a693b2b721e85dbeff26ae1a77447985a8d7afcdd9c7cf6222e",
+    "checksumSource": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13.1%2B2/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13.1_2.tar.gz.sha256.txt"
+  },
+  "postgresql": { "version": "18.7", "versionNumber": "180007" }
+}

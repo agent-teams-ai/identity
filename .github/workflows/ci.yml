@@ -1,0 +1,128 @@
+name: Identity CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: identity-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      IDENTITY_TEST_DATABASE_URL: postgres://identity_test:identity_test@127.0.0.1:5432/identity_test
+      GOTOOLCHAIN: local
+    services:
+      postgres:
+        image: postgres:18.7-bookworm@sha256:e742a2668255221388004f3a42b6150a2103f5054ab3a4a93ae9e4f01e551c35
+        env:
+          POSTGRES_USER: identity_test
+          POSTGRES_PASSWORD: identity_test
+          POSTGRES_DB: identity_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U identity_test -d identity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1; fixed bootstrap
+        with:
+          version: 11.20.0
+          run_install: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: "1.27.4"
+          check-latest: false
+          cache-dependency-path: packages/contracts/gen/go/go.sum
+      - name: Install the exact dependency graph
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install pinned native contract generators
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.12
+          go install connectrpc.com/connect/cmd/protoc-gen-connect-go@v1.21.1
+      - name: Verify the complete native route
+        run: pnpm check
+
+  native-authentication:
+    name: native-authentication
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      IDENTITY_TEST_DATABASE_URL: postgres://identity_test:identity_test@127.0.0.1:5432/identity_test
+      KEYCLOAK_TEST_DATABASE_URL: postgres://identity_test:identity_test@127.0.0.1:5432/keycloak_test
+      IDENTITY_TEST_ISSUER: http://127.0.0.1:18080/realms/identity-test
+      IDENTITY_TEST_CLIENT_SECRET: disposable-identity-ci-human-client
+      IDENTITY_TEST_WORKLOAD_SECRET: disposable-identity-ci-workload-client
+      IDENTITY_TEST_USER_PASSWORD: disposable-identity-ci-user-password
+    services:
+      postgres:
+        image: postgres:18.7-bookworm@sha256:e742a2668255221388004f3a42b6150a2103f5054ab3a4a93ae9e4f01e551c35
+        env:
+          POSTGRES_USER: identity_test
+          POSTGRES_PASSWORD: identity_test
+          POSTGRES_DB: identity_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U identity_test -d identity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1; fixed bootstrap
+        with:
+          version: 11.20.0
+          run_install: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install and compile the exact source graph
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm build
+      - name: Install the verified native authentication distributions
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime_root="$(mktemp -d "${RUNNER_TEMP}/identity-native.XXXXXX")"
+          for name in java keycloak; do
+            url="$(jq -er --arg name "$name" '.[$name].archiveUrl' deploy/keycloak/runtime.json)"
+            digest="$(jq -er --arg name "$name" '.[$name].archiveSha256' deploy/keycloak/runtime.json)"
+            archive="${runtime_root}/${name}.tar.gz"
+            curl --fail --location --retry 3 --proto '=https' --proto-redir '=https' --tlsv1.2 --output "$archive" -- "$url"
+            printf '%s  %s\n' "$digest" "$archive" | sha256sum --check --strict
+            mkdir "${runtime_root}/${name}"
+            tar -xzf "$archive" -C "${runtime_root}/${name}" --strip-components=1
+          done
+          printf 'JAVA_HOME=%s/java\nKEYCLOAK_HOME=%s/keycloak\n' "$runtime_root" "$runtime_root" >> "$GITHUB_ENV"
+      - name: Create the separate disposable provider database
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: "5432"
+          PGUSER: identity_test
+          PGPASSWORD: identity_test
+          PGDATABASE: postgres
+        run: psql --no-psqlrc -v ON_ERROR_STOP=1 -c 'CREATE DATABASE keycloak_test'
+      - name: Qualify the real provider and Identity HTTP service
+        run: pnpm test:native-authentication

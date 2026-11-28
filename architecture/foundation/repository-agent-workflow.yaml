@@ -1,0 +1,36 @@
+schemaVersion: 2
+packageManager: pnpm
+instructions:
+  canonical: AGENTS.md
+  claude: CLAUDE.md
+  gemini: GEMINI.md
+  copilot: .github/copilot-instructions.md
+scripts:
+  changed: check:changed
+  fast: check:fast
+  full: check
+scopes:
+  - id: repository
+    roots:
+      - "*"
+    requiredFacets:
+      - lint
+      - typecheck
+      - tests
+      - standards
+      - architecture
+    checks:
+      - repository
+checks:
+  - id: repository
+    script: check:changed:repository
+    prerequisites: []
+    supplies:
+      - lint
+      - typecheck
+      - tests
+      - standards
+      - architecture
+    observation: test-dispatch/v1
+exclusions: []
+escalationCheck: repository

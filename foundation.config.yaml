@@ -1,0 +1,24 @@
+schemaVersion: 3
+project:
+  id: identity
+capabilities:
+  architecture.source-dependencies:
+    configPath: architecture/foundation/source-dependencies.yaml
+  quality.source-coverage:
+    configPath: architecture/foundation/quality-source-coverage.yaml
+  quality.suppression-governance:
+    configPath: architecture/foundation/suppression-governance.yaml
+  quality.format-coverage:
+    configPath: architecture/foundation/quality-format-coverage.yaml
+  quality.gate-runner:
+    configPath: architecture/foundation/quality-gate-runner.yaml
+  quality.executable-specifications:
+    configPath: architecture/foundation/executable-specifications.yaml
+  repository.agent-workflow:
+    configPath: architecture/foundation/repository-agent-workflow.yaml
+  workspace.dependency-declarations:
+    configPath: architecture/foundation/dependency-declarations.yaml
+  documentation.local-references:
+    configPath: architecture/foundation/documentation-local-references.yaml
+  governance.architecture-decisions:
+    configPath: architecture/foundation/governance-architecture-decisions.yaml

@@ -1,0 +1,261 @@
+# gettok-conformance.yml qualifies GetTok's built browser and production BFF
+# against this Identity source, real Keycloak and disposable PostgreSQL.
+# The consumer and authority keep their own exact toolchains. Browser execution
+# retains GetTok's Node path after subsequent steps select Identity's Node.
+#
+# Source compilation precedes provider startup, limiting concurrent compiler and
+# JVM memory use without replacing any runtime boundary. The Identity launcher
+# requires named Go and browser completion witnesses, rejects missing dependencies,
+# and closes its provider. PostgreSQL belongs to the job's isolated service. This
+# qualification covers the ordinary TEST profile; independent continuity and real
+# social-provider brokerage require their separately defined evidence.
+name: GetTok conformance
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  GETTOK_REVISION: ecc0f349aa0830992cc0b7713e2b3bcd852d1215
+
+concurrency:
+  group: identity-gettok-conformance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-gettok:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      GOTOOLCHAIN: local
+      GOWORK: "off"
+      GOMAXPROCS: "2"
+      IDENTITY_TEST_DATABASE_URL: postgres://identity_test:identity_test@127.0.0.1:5432/identity_test
+      KEYCLOAK_TEST_DATABASE_URL: postgres://identity_test:identity_test@127.0.0.1:5432/keycloak_test
+      GETTOK_NATIVE_DATABASE_URL: postgres://identity_test:identity_test@127.0.0.1:5432/gettok_identity_test?sslmode=disable
+      IDENTITY_TEST_ISSUER: http://127.0.0.1:18080/realms/identity-test
+      IDENTITY_TEST_CLIENT_SECRET: disposable-gettok-ci-human-client
+      IDENTITY_TEST_WORKLOAD_SECRET: disposable-gettok-ci-workload-client
+      IDENTITY_TEST_USER_PASSWORD: disposable-gettok-ci-user-password
+      GETTOK_NATIVE_SCREENSHOT_DIR: ${{ github.workspace }}/native-screenshots
+    services:
+      postgres:
+        image: postgres:18.7-bookworm@sha256:e742a2668255221388004f3a42b6150a2103f5054ab3a4a93ae9e4f01e551c35
+        env:
+          POSTGRES_USER: identity_test
+          POSTGRES_PASSWORD: identity_test
+          POSTGRES_DB: identity_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U identity_test -d identity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Check out the pinned consumer candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: 777genius/get-tok
+          path: gettok
+          ref: ${{ env.GETTOK_REVISION }}
+          persist-credentials: false
+      - name: Check out the authority source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: identity
+          persist-credentials: false
+      - name: Install the consumer Go toolchain
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: gettok/backend/go.mod
+          check-latest: false
+          cache-dependency-path: gettok/backend/go.sum
+      - name: Install the consumer package manager
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: gettok/frontend/package.json
+          dest: ~/pnpm-gettok
+          run_install: false
+      - name: Install the consumer Node runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: gettok/.node-version
+          cache: pnpm
+          cache-dependency-path: gettok/frontend/pnpm-lock.yaml
+      - name: Build the actual browser application and install its pinned browser
+        working-directory: gettok
+        run: |
+          set -euo pipefail
+          pnpm --dir frontend install --frozen-lockfile
+          make build-frontend
+          pnpm --dir frontend exec playwright install --with-deps --only-shell chromium
+          printf 'GETTOK_NATIVE_GO=%s\n' "$(command -v go)" >> "$GITHUB_ENV"
+          node --input-type=module - <<'NODE' >> "$GITHUB_ENV"
+          import { resolve } from 'node:path';
+          console.log(`GETTOK_NATIVE_REPOSITORY=${process.cwd()}`);
+          console.log(`GETTOK_NATIVE_BROWSER_COMMAND=${JSON.stringify([
+            process.execPath,
+            resolve('frontend/scripts/test-central-browser.mjs'),
+          ])}`);
+          NODE
+      - name: Download the frozen Go dependency graph before provider startup
+        working-directory: gettok/backend
+        run: |
+          set -euo pipefail
+          go mod download
+          git diff --exit-code -- go.mod go.sum
+      - name: Verify generated consumer composition matches its source
+        working-directory: gettok/backend
+        run: |
+          set -euo pipefail
+          go generate ./cmd/server
+          git diff --exit-code -- internal/app/wire_gen.go
+      - name: Read the consumer linter pin
+        id: golangci
+        run: printf 'version=%s\n' "$(cat gettok/.golangci-version)" >> "$GITHUB_OUTPUT"
+      - name: Install the consumer linter
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: ${{ steps.golangci.outputs.version }}
+          install-only: true
+          skip-cache: true
+      - name: Lint the exact native fixture build combination
+        working-directory: gettok/backend
+        run: bash ../tools/golangci-lint.sh run --build-tags=integration,native_identity,embed ./internal/app
+      - name: Check all consumer changes with the standard format gate
+        working-directory: gettok
+        env:
+          GETTOK_FORMAT_BASE: 287d1751564de571a35ec847634a62cb47dd21d7
+        run: |
+          set -euo pipefail
+          pnpm --dir plugin-sdk/web install --frozen-lockfile
+          git fetch --no-tags --depth=1 origin "$GETTOK_FORMAT_BASE"
+          make fmt-check BASE="$GETTOK_FORMAT_BASE"
+      - name: Install the authority package manager
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: identity/package.json
+          dest: ~/pnpm-identity
+          run_install: false
+      - name: Install the authority Node runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: identity/.node-version
+          cache: pnpm
+          cache-dependency-path: identity/pnpm-lock.yaml
+      - name: Compile the exact authority source
+        working-directory: identity
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm build
+      - name: Install verified native authentication distributions
+        working-directory: identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime_root="$(mktemp -d "${RUNNER_TEMP}/identity-native.XXXXXX")"
+          for name in java keycloak; do
+            url="$(jq -er --arg name "$name" '.[$name].archiveUrl' deploy/keycloak/runtime.json)"
+            digest="$(jq -er --arg name "$name" '.[$name].archiveSha256' deploy/keycloak/runtime.json)"
+            archive="${runtime_root}/${name}.tar.gz"
+            curl --fail --location --retry 3 --proto '=https' --proto-redir '=https' --tlsv1.2 --output "$archive" -- "$url"
+            printf '%s  %s\n' "$digest" "$archive" | sha256sum --check --strict
+            mkdir "${runtime_root}/${name}"
+            tar -xzf "$archive" -C "${runtime_root}/${name}" --strip-components=1
+          done
+          printf 'JAVA_HOME=%s/java\nKEYCLOAK_HOME=%s/keycloak\n' "$runtime_root" "$runtime_root" >> "$GITHUB_ENV"
+      - name: Create separate disposable provider and consumer databases
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: "5432"
+          PGUSER: identity_test
+          PGPASSWORD: identity_test
+          PGDATABASE: postgres
+        run: |
+          set -euo pipefail
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -c 'CREATE DATABASE keycloak_test'
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -c 'CREATE DATABASE gettok_identity_test'
+      - name: Qualify real provider, authority, BFF and browser behavior
+        working-directory: identity
+        run: pnpm test:native-gettok
+      - name: Preserve safe login and authenticated-page screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: shared-identity-browser
+          path: |
+            native-screenshots/gettok-central-login.png
+            native-screenshots/gettok-central-session.png
+          if-no-files-found: ignore
+          retention-days: 7
+
+  consumer-regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      GOFLAGS: -count=1
+      GOTOOLCHAIN: local
+    steps:
+      - name: Check out the same pinned consumer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: 777genius/get-tok
+          ref: ${{ env.GETTOK_REVISION }}
+          persist-credentials: false
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: backend/go.mod
+          check-latest: false
+          cache-dependency-path: |
+            backend/go.sum
+            tools/architecture/go.sum
+      - name: Read the consumer linter pin
+        id: golangci
+        run: printf 'version=%s\n' "$(cat .golangci-version)" >> "$GITHUB_OUTPUT"
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: ${{ steps.golangci.outputs.version }}
+          install-only: true
+          skip-cache: true
+      - name: Install PostgreSQL 18 client for the consumer integration fixtures
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl --fail --silent --show-error --location https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          . /etc/os-release
+          printf 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt %s-pgdg main\n' "$VERSION_CODENAME" | sudo tee /etc/apt/sources.list.d/tokenrouter-pgdg.list
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends postgresql-client-18
+          printf '%s\n' /usr/lib/postgresql/18/bin >> "$GITHUB_PATH"
+      - name: Run the consumer's standard backend checks
+        run: make lint-go test-go test-integration
+
+  consumer-frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out the same pinned consumer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: 777genius/get-tok
+          ref: ${{ env.GETTOK_REVISION }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: frontend/package.json
+          run_install: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install the consumer's frozen frontend graph
+        run: pnpm --dir frontend install --frozen-lockfile
+      - name: Run the consumer's standard frontend checks
+        run: make lint-frontend test-frontend

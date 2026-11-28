@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "censusRoots": ["apps", "packages"],
+  "packageRoots": [".", "apps/server", "packages/contracts", "packages/identity"],
+  "sourceRoots": [
+    "apps/server/src",
+    "packages/contracts/proto/identity/v1",
+    "packages/contracts/src",
+    "packages/identity/src",
+    "packages/identity/src/features/account/adapters/outbound/migrations"
+  ],
+  "testRoots": ["apps/server/tests", "packages/contracts/tests", "packages/identity/tests"],
+  "excludedRoots": ["scripts", "tools"],
+  "toolingFiles": [],
+  "derivedFrom": [
+    {
+      "path": "architecture/foundation/feature-modules.json",
+      "sha256": "ae7a7d31ddde002908b788f4fba310d6f2dae0daffb8d082d9f26ff3bcca9426"
+    },
+    {
+      "path": "architecture/foundation/quality-source-coverage.yaml",
+      "sha256": "35aad67a49254f49dac0151dca8f6d97f98baaacace4d8df2d4d630e051fd5d0"
+    }
+  ]
+}

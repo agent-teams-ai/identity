@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "specifications": [
+    {
+      "id": "identity.account-admission",
+      "ownerDocs": ["docs/architecture/account-admission-specification.md"],
+      "adrRefs": ["docs/decisions/0001-identity-modules-and-tooling.md"],
+      "schemaPaths": ["architecture/specifications/admission.schema.json"],
+      "documents": [
+        {
+          "path": "architecture/specifications/admission.json",
+          "schemaId": "https://schemas.agent-teams.ai/identity/admission-specification/v1"
+        }
+      ],
+      "generatedTypes": [],
+      "gateBindings": {
+        "property": {
+          "packageName": "@agent-teams/identity-workspace",
+          "script": "test"
+        },
+        "mutation": {
+          "packageName": "@agent-teams/identity-workspace",
+          "script": "specifications:mutation"
+        }
+      },
+      "stateModel": {
+        "kind": "none"
+      }
+    }
+  ]
+}

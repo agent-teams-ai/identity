@@ -1,0 +1,12 @@
+{
+  "account": { "accountId": "fixture-account", "authorityIncarnation": "fixture-authority-v1" },
+  "consumerId": "gettok",
+  "eligibility": "ACCOUNT_ELIGIBILITY_ACTIVE",
+  "accountRevision": "9007199254740997",
+  "securityEpoch": "9007199254740993",
+  "authenticationCutoff": "2026-11-26T20:00:00.123456789Z",
+  "attachmentGeneration": "9007199254740995",
+  "reattachmentCutoff": "1970-01-01T00:00:00Z",
+  "observedAt": "2026-11-26T20:01:00Z",
+  "validUntil": "2026-11-26T20:01:55Z"
+}

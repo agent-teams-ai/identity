@@ -10,12 +10,12 @@ security certification or production admission.
 
 ## Review ownership
 
-| Reviewer | Authored | Independently reviewed |
-| --- | --- | --- |
-| Coordinating author | Identity main plan, navigation and this record | Review Router integration plan and both source audits |
-| Foundation reviewer | BOOTSTRAP and tooling research | Identity plan, module/HTTP audit; BOOTSTRAP review by this agent is self-review |
-| Modules/HTTP reviewer | Module/HTTP source audit | Identity plan and complete BOOTSTRAP, including actual central checker/schema/cohort sources |
-| Review Router reviewer | Review Router plan | Identity plan and cross-product protocol/session boundary |
+| Reviewer               | Authored                                       | Independently reviewed                                                                       |
+| ---------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Coordinating author    | Identity main plan, navigation and this record | Review Router integration plan and both source audits                                        |
+| Foundation reviewer    | BOOTSTRAP and tooling research                 | Identity plan, module/HTTP audit; BOOTSTRAP review by this agent is self-review              |
+| Modules/HTTP reviewer  | Module/HTTP source audit                       | Identity plan and complete BOOTSTRAP, including actual central checker/schema/cohort sources |
+| Review Router reviewer | Review Router plan                             | Identity plan and cross-product protocol/session boundary                                    |
 
 ## Round 1: findings and corrections
 
@@ -25,18 +25,18 @@ following concrete gaps. The first plan's SHA-256 was
 Similar findings from multiple reviewers are consolidated, not counted as
 additional independent defects.
 
-| Finding | Priority | Correction and implementation proof |
-| --- | --- | --- |
-| Old product cookie plus fresh attacker-controlled central login could satisfy migration wording | High | Recent proof of both exact owners, one bounded intent; T7 rejects the old-cookie counterexample |
-| Missed suspend and enable events could revive an old session from a final active snapshot | High | Immutable issued security epoch and authentication cutoff; refresh never upgrades the old proof; T6 covers lost events and surviving SSO/refresh |
-| Global logout could rely on a missed back-channel notification | High | Canonical account-wide logout advances epoch/cutoff; provider single-session logout remains a distinct scope |
-| A delayed Keycloak mutation could apply after an opposing successor | High | Persist in-flight intent, retain an outcome-unknown gate across failover, prohibit conflicting successors without settlement/barrier evidence; no fictional provider CAS |
-| Theme/adapter-only checks did not constrain Account Console, recovery or administrator mutation paths | High | Inventory every enabled path, enforce the same root policy, disable unsupported paths, qualify competing-channel final-root behavior |
-| Batched status refresh lacked caller-to-account authorization | High | Self-only initial profile; dedicated workload scope/client and minimal user-proven ConsumerAttachment for bounded batch/feed access; cross-consumer rejection |
-| Receipt-time TTL could extend stale active authority | High | Source-bound expiry and conservative request-start budget; delayed response cannot renew the window |
-| Package root could own feature modules contrary to adopted CMS | Medium | Feature-owned composition/groups, explicit Host/public-group wiring and composition/tests-only GM imports; separate CMS adoption/digest |
-| Some alternatives lacked their own migration effect and falsifier | Medium | Compact D1–D3 per-option migration and counterexample tables |
-| Navigation and actual review record were not yet assembled | Medium | README, canonical AGENTS, thin CLAUDE pointer and this factual record |
+| Finding                                                                                               | Priority | Correction and implementation proof                                                                                                                                      |
+| ----------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Old product cookie plus fresh attacker-controlled central login could satisfy migration wording       | High     | Recent proof of both exact owners, one bounded intent; T7 rejects the old-cookie counterexample                                                                          |
+| Missed suspend and enable events could revive an old session from a final active snapshot             | High     | Immutable issued security epoch and authentication cutoff; refresh never upgrades the old proof; T6 covers lost events and surviving SSO/refresh                         |
+| Global logout could rely on a missed back-channel notification                                        | High     | Canonical account-wide logout advances epoch/cutoff; provider single-session logout remains a distinct scope                                                             |
+| A delayed Keycloak mutation could apply after an opposing successor                                   | High     | Persist in-flight intent, retain an outcome-unknown gate across failover, prohibit conflicting successors without settlement/barrier evidence; no fictional provider CAS |
+| Theme/adapter-only checks did not constrain Account Console, recovery or administrator mutation paths | High     | Inventory every enabled path, enforce the same root policy, disable unsupported paths, qualify competing-channel final-root behavior                                     |
+| Batched status refresh lacked caller-to-account authorization                                         | High     | Self-only initial profile; dedicated workload scope/client and minimal user-proven ConsumerAttachment for bounded batch/feed access; cross-consumer rejection            |
+| Receipt-time TTL could extend stale active authority                                                  | High     | Source-bound expiry and conservative request-start budget; delayed response cannot renew the window                                                                      |
+| Package root could own feature modules contrary to adopted CMS                                        | Medium   | Feature-owned composition/groups, explicit Host/public-group wiring and composition/tests-only GM imports; separate CMS adoption/digest                                  |
+| Some alternatives lacked their own migration effect and falsifier                                     | Medium   | Compact D1–D3 per-option migration and counterexample tables                                                                                                             |
+| Navigation and actual review record were not yet assembled                                            | Medium   | README, canonical AGENTS, thin CLAUDE pointer and this factual record                                                                                                    |
 
 The independent Review Router pass additionally checked existing IDs, GitHub App
 permission semantics, GitLab instance attribution, #1007 overlap, additive
@@ -61,14 +61,14 @@ The second-round input hashes were
 (Review Router). The reviewers confirmed the high-priority first-round fixes
 and found the following narrower remaining inconsistencies:
 
-| Finding | Final correction |
-| --- | --- |
+| Finding                                                                                            | Final correction                                                                                                                                     |
+| -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A detached consumer could still receive self-status evidence without formally reactivating its row | Both self and workload paths require the live attachment; an old self token receives no usable active lease; explicit fresh reattachment is required |
-| Event-delivery wording reopened a broadcast alternative | Live and replay delivery use the same recipient attachment set |
-| Group assembly was conflated with contract republication | Parent composition assembles child groups; curated parent exports declare each contract/descriptor republication edge |
-| RR central PKCE wording allowed an implicit downgrade | Central Keycloak login requires S256 PKCE; the real adapter spike must prove it |
-| RR Stack and Prisma wording overstated version authority | Stack owns technical tools; product manifests/locks own runtime versions; Prisma manifest range is distinguished from locked resolution |
-| Some logout/attachment wording was not identical across the two plans | Canonical epoch/cutoff global logout, provider-native scope, detach tombstones and post-cutoff proof now agree |
+| Event-delivery wording reopened a broadcast alternative                                            | Live and replay delivery use the same recipient attachment set                                                                                       |
+| Group assembly was conflated with contract republication                                           | Parent composition assembles child groups; curated parent exports declare each contract/descriptor republication edge                                |
+| RR central PKCE wording allowed an implicit downgrade                                              | Central Keycloak login requires S256 PKCE; the real adapter spike must prove it                                                                      |
+| RR Stack and Prisma wording overstated version authority                                           | Stack owns technical tools; product manifests/locks own runtime versions; Prisma manifest range is distinguished from locked resolution              |
+| Some logout/attachment wording was not identical across the two plans                              | Canonical epoch/cutoff global logout, provider-native scope, detach tombstones and post-cutoff proof now agree                                       |
 
 After these edits, all three reviewers inspected the targeted final changes and
 verified the hashes below. They reported no unresolved material design or
@@ -78,13 +78,13 @@ configuration, provider extension, migration or production system is correct.
 
 ## Final reviewed document identities
 
-| Document | SHA-256 |
-| --- | --- |
+| Document                                                                                    | SHA-256                                                            |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | Identity architecture after second-round closure, before final source-provenance correction | `d4de28a235be00f17b1994e31c2d331eda46ae7044520274ace186b8c8b630c2` |
-| Final Identity plan including the independently checked GetTok provenance correction | `10fda9097aa22c1aa92e585ac965e61fd615b4fe960041d39f6de95ec579996e` |
-| BOOTSTRAP after round-two closure, before the final governance freshness correction | `7743661a56a1558a9f04d3e2859bd59ccec3afa4aa59913fca565d451e18acaf` |
-| Module/HTTP audit including the source-only LMU refresh | `6b2f5792508f57eafa4f4442a33aa9491dd040610d6f70a0d7a138b5c208a2b8` |
-| Review Router integration plan | `dfd7cec89a266024c3424dfd9b8aebb8818a02edd3648cdd834e1e53d1b9fa24` |
+| Final Identity plan including the independently checked GetTok provenance correction        | `10fda9097aa22c1aa92e585ac965e61fd615b4fe960041d39f6de95ec579996e` |
+| BOOTSTRAP after round-two closure, before the final governance freshness correction         | `7743661a56a1558a9f04d3e2859bd59ccec3afa4aa59913fca565d451e18acaf` |
+| Module/HTTP audit including the source-only LMU refresh                                     | `6b2f5792508f57eafa4f4442a33aa9491dd040610d6f70a0d7a138b5c208a2b8` |
+| Review Router integration plan                                                              | `dfd7cec89a266024c3424dfd9b8aebb8818a02edd3648cdd834e1e53d1b9fa24` |
 
 These hashes identify the substantive reviewed documents. This review record,
 navigation and PR metadata are separate reporting surfaces and do not hash
@@ -203,18 +203,18 @@ human approval nor a GitHub APPROVED review.
 
 ### Findings and corrections
 
-| Priority | Counterexample or inconsistency | Corrected requirement |
-| --- | --- | --- |
-| P1 | Fresh broker/OAuth timestamp was treated as recent factor authentication | Two qualified proof classes and explicit ordinary migration versus incident recovery policies |
-| P1 | Detach/reattach could revive old product sessions | Immutable issued attachment generation in session/status/cache/late-response fences, separate from account epoch |
-| P1 | Closed central owner could be treated as an unbound legacy user | Never-centrally-bound predicate, retained history and repair/transfer-required conflict |
-| P1/P2 | Closure lacked a bounded participant and late-write protocol | Existing account operation freezes manifest; own scoped receipts and a committed product terminal fence precede completion |
-| P2 | GetOperation authority after closure was undefined | Operator-only detailed progress by default; bounded user receipt is optional, ordinary sessions remain closed |
-| P2 | P1/R0/P5 publication requirements formed a cycle | Versioned packed TEST candidate, consumer qualification, then published production artifact |
-| P2 | Absolute post-cutoff promise contradicted bounded staleness | Pin accepted snapshot; known newer state wins, original source/request-start deadline bounds older evidence |
-| P2 | Generic scaffolding was assumed to generate DDD features | Package-boundary recipe only; real feature/composition/FMS/CMS source authored under the gates |
-| P2 | CMS and resource-close semantics were underspecified | Forbid own public contracts in inner layers; close callbacks/waiter state do not prove physical release |
-| P2 | Source/package observations had advanced | Foundation4.0.2/FMS0.4.3; RR f20a75ed/Prisma7.9.0; preserve historical evidence and unresolved bootstrap admission gaps |
+| Priority | Counterexample or inconsistency                                          | Corrected requirement                                                                                                      |
+| -------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| P1       | Fresh broker/OAuth timestamp was treated as recent factor authentication | Two qualified proof classes and explicit ordinary migration versus incident recovery policies                              |
+| P1       | Detach/reattach could revive old product sessions                        | Immutable issued attachment generation in session/status/cache/late-response fences, separate from account epoch           |
+| P1       | Closed central owner could be treated as an unbound legacy user          | Never-centrally-bound predicate, retained history and repair/transfer-required conflict                                    |
+| P1/P2    | Closure lacked a bounded participant and late-write protocol             | Existing account operation freezes manifest; own scoped receipts and a committed product terminal fence precede completion |
+| P2       | GetOperation authority after closure was undefined                       | Operator-only detailed progress by default; bounded user receipt is optional, ordinary sessions remain closed              |
+| P2       | P1/R0/P5 publication requirements formed a cycle                         | Versioned packed TEST candidate, consumer qualification, then published production artifact                                |
+| P2       | Absolute post-cutoff promise contradicted bounded staleness              | Pin accepted snapshot; known newer state wins, original source/request-start deadline bounds older evidence                |
+| P2       | Generic scaffolding was assumed to generate DDD features                 | Package-boundary recipe only; real feature/composition/FMS/CMS source authored under the gates                             |
+| P2       | CMS and resource-close semantics were underspecified                     | Forbid own public contracts in inner layers; close callbacks/waiter state do not prove physical release                    |
+| P2       | Source/package observations had advanced                                 | Foundation4.0.2/FMS0.4.3; RR f20a75ed/Prisma7.9.0; preserve historical evidence and unresolved bootstrap admission gaps    |
 
 Second-pass residual corrections:
 
@@ -244,12 +244,12 @@ runtime qualification from reviewer agreement.
 
 ### Corrected document identities
 
-| Document | SHA-256 |
-| --- | --- |
+| Document                                      | SHA-256                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------ |
 | Identity architecture and implementation plan | `600d2e8448069dc5de821c38bc38e8c1d09c3001e686e2c261ae920d3a741f36` |
-| ReviewRouter integration plan | `e79ea56d0a94e98e68cbf1a32f584280b6d89b8ad0f0dd4208f531ba798fd335` |
-| Identity BOOTSTRAP | `58904cf6a4d5f1ae1fc21a9a721d9405df2e8a863cf4686ab59254c1d42ee129` |
-| Identity dated source-freshness record | `a405c140b11cf2091287f20b931b1fe7f6e47cd511639278e005f394339b758c` |
+| ReviewRouter integration plan                 | `e79ea56d0a94e98e68cbf1a32f584280b6d89b8ad0f0dd4208f531ba798fd335` |
+| Identity BOOTSTRAP                            | `58904cf6a4d5f1ae1fc21a9a721d9405df2e8a863cf4686ab59254c1d42ee129` |
+| Identity dated source-freshness record        | `a405c140b11cf2091287f20b931b1fe7f6e47cd511639278e005f394339b758c` |
 
 ### Verification method and limits
 
@@ -286,12 +286,12 @@ The [shared research](https://github.com/agent-teams-ai/engineering-research/blo
 preserves the earlier 18-question alternatives and the owner's newly endorsed
 directions. It is not provider qualification or implementation authorization.
 
-| ID | Disposition |
-| --- | --- |
-| IAM-N26-01 | Open P0/P2 trust-profile choice, now explicit: social-root custody can change after enrollment; unknown custody is not proof of neutral recovery. D3 contains three scoped options and the A-to-B negative experiment. |
+| ID         | Disposition                                                                                                                                                                                                                                     |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| IAM-N26-01 | Open P0/P2 trust-profile choice, now explicit: social-root custody can change after enrollment; unknown custody is not proof of neutral recovery. D3 contains three scoped options and the A-to-B negative experiment.                          |
 | IAM-N26-02 | Clarified in both plans: first attachment/history registration and closure participant capture serialize through the same Account lifecycle gate. The consumer is included or the new admission loses; test both orders with delayed responses. |
-| IAM-N26-03 | Corrected consumer wording: only operations with the same proven native identity promise convergence. A deliberate central-only new user may later hit a safe native-identity ownership conflict; no automatic merge. |
-| IAM-N26-04 | Open P0/R0 session-control contract, now explicit in D8 and consumer behavior: account-status renewal does not prove a native SSO/client session remains active after lost logout delivery. Three finite-scope alternatives are recorded. |
+| IAM-N26-03 | Corrected consumer wording: only operations with the same proven native identity promise convergence. A deliberate central-only new user may later hit a safe native-identity ownership conflict; no automatic merge.                           |
+| IAM-N26-04 | Open P0/R0 session-control contract, now explicit in D8 and consumer behavior: account-status renewal does not prove a native SSO/client session remains active after lost logout delivery. Three finite-scope alternatives are recorded.       |
 
 These are two precise plan fixes and two retained admission choices, not four
 demonstrated vulnerabilities. The earlier generation, proof-strength, bootstrap,
@@ -301,9 +301,9 @@ separate confirmed defect.
 
 Updated substantive document SHA-256 values:
 
-| Document | SHA-256 |
-| --- | --- |
-| Identity plan | `14e3d84985af996e4e4ed0d429e4ab636394cd74fc97712c0750f945b6641903` |
+| Document          | SHA-256                                                            |
+| ----------------- | ------------------------------------------------------------------ |
+| Identity plan     | `14e3d84985af996e4e4ed0d429e4ab636394cd74fc97712c0750f945b6641903` |
 | ReviewRouter plan | `99866dedddc77121f7fa231612fc460f7a8236fcbc722013593fba54c26d3695` |
 
 This pass changes Markdown only. The future transaction, provider and browser
@@ -341,9 +341,9 @@ counting D3's overlapping cross-product estimate twice.
 
 Current substantive document SHA-256 values:
 
-| Document | SHA-256 |
-| --- | --- |
-| Identity plan | `572e55379f7137b74c76e71114ec4ab7a5a7b6cfde061c47e547f591a74453ab` |
+| Document          | SHA-256                                                            |
+| ----------------- | ------------------------------------------------------------------ |
+| Identity plan     | `572e55379f7137b74c76e71114ec4ab7a5a7b6cfde061c47e547f591a74453ab` |
 | ReviewRouter plan | `37c8acf8261360698f35862a828eca158ad31ba2e39be0e3de927b3dd326eac5` |
 
 The coordinator checked UTF-8 contents, final newlines, trailing whitespace,

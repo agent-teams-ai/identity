@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "status": "adopted",
+  "standard": {
+    "id": "agent-teams.feature-module-standard",
+    "version": "v1.1",
+    "repository": "agent-teams-ai/.github",
+    "commit": "89b5d7c512d9c4b5ae63709857a0d71cb2e6d178",
+    "path": "docs/architecture/feature-module-standard/v1.1.md",
+    "digest": "sha256:cfa088ef7396139554fe5e3bcc839271b23299c6b60c569a3a7f1cd7c9f0bc6c"
+  },
+  "architectureDocument": "docs/architecture/module-adoption.md",
+  "decisionRecords": ["docs/decisions/0001-identity-modules-and-tooling.md"],
+  "productionRoots": ["packages", "apps"],
+  "applicationRoots": [],
+  "excludedRoots": ["tools", "scripts"],
+  "extensions": [],
+  "deviations": [],
+  "topology": {
+    "sourcePolicy": "architecture/foundation/source-dependencies.yaml"
+  },
+  "modules": [
+    {
+      "id": "identity-core",
+      "role": "service-core",
+      "root": "packages/identity",
+      "sourceRoot": "packages/identity/src",
+      "testRoots": ["packages/identity/tests"],
+      "testFeaturesRoot": "packages/identity/tests/features",
+      "features": [
+        {
+          "id": "account",
+          "root": "packages/identity/src/features/account",
+          "layers": [
+            {
+              "role": "domain",
+              "root": "packages/identity/src/features/account/domain"
+            },
+            {
+              "role": "application",
+              "root": "packages/identity/src/features/account/application"
+            },
+            {
+              "role": "contracts",
+              "root": "packages/identity/src/features/account/contracts"
+            },
+            {
+              "role": "adapters",
+              "root": "packages/identity/src/features/account/adapters"
+            },
+            {
+              "role": "composition",
+              "root": "packages/identity/src/features/account/composition"
+            }
+          ]
+        }
+      ],
+      "surfaces": {
+        "public": ["packages/identity/src/features/account/contracts/account.ts"],
+        "compositionContract": [
+          "packages/identity/src/features/account/composition/account.contracts.ts"
+        ],
+        "compositionSurface": [
+          "packages/identity/src/features/account/composition/account.group.ts"
+        ]
+      },
+      "moduleAssembly": ["packages/identity/src/index.ts", "packages/identity/src/composition"],
+      "generatedRoots": []
+    },
+    {
+      "id": "identity-contracts",
+      "role": "contracts",
+      "root": "packages/contracts",
+      "sourceRoot": "packages/contracts/src",
+      "testRoots": ["packages/contracts/tests"],
+      "testFeaturesRoot": "packages/contracts/tests/features",
+      "features": [
+        {
+          "id": "protocol",
+          "root": "packages/contracts/src/features/protocol",
+          "layers": [
+            {
+              "role": "contracts",
+              "root": "packages/contracts/src/features/protocol/contracts"
+            }
+          ]
+        }
+      ],
+      "surfaces": {
+        "public": [
+          "packages/contracts/src/features/protocol/contracts/gen/identity/v1/identity_pb.ts"
+        ]
+      },
+      "moduleAssembly": ["packages/contracts/src/index.ts"],
+      "generatedRoots": []
+    },
+    {
+      "id": "identity-server",
+      "role": "application-host",
+      "root": "apps/server",
+      "sourceRoot": "apps/server/src",
+      "testRoots": ["apps/server/tests"],
+      "testFeaturesRoot": "apps/server/tests/features",
+      "features": [
+        {
+          "id": "http",
+          "root": "apps/server/src/features/http",
+          "layers": [
+            {
+              "role": "contracts",
+              "root": "apps/server/src/features/http/contracts"
+            },
+            {
+              "role": "adapters",
+              "root": "apps/server/src/features/http/adapters"
+            },
+            {
+              "role": "composition",
+              "root": "apps/server/src/features/http/composition"
+            }
+          ]
+        }
+      ],
+      "surfaces": {
+        "public": ["apps/server/src/features/http/contracts/http.ts"],
+        "compositionContract": ["apps/server/src/features/http/composition/http.contracts.ts"],
+        "compositionSurface": ["apps/server/src/features/http/composition/http.group.ts"]
+      },
+      "moduleAssembly": ["apps/server/src/main.ts", "apps/server/src/composition"],
+      "generatedRoots": []
+    }
+  ],
+  "enforcementCommands": [
+    "pnpm architecture:check",
+    "pnpm topology:check",
+    "pnpm quality:coverage:scope",
+    "pnpm quality:coverage",
+    "pnpm check"
+  ],
+  "consumerModuleStandard": {
+    "repository": "agent-teams-ai/get-modular",
+    "commit": "a5f41853200aed26d692e89d768185013d629a12",
+    "path": "docs/architecture/common-assembly.md",
+    "digest": "sha256:ef5044eef1da7a01f3ca40323cd17d9f2597fc22b5abb905c7c77e5318b408d7",
+    "gate": "pnpm architecture:check"
+  }
+}

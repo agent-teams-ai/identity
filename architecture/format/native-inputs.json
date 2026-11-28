@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "scope": "Reviewed native formats and retained generator/scaffold outputs; actual semantic gates remain required.",
+  "inputs": [
+    {
+      "path": ".gitignore",
+      "sha256": "e48a3008318e120648b67469739401a8bf81c49b84a3b60908ac2c4607fe4ff0"
+    },
+    {
+      "path": ".node-version",
+      "sha256": "45507e6d96329a845faa642c0f485313bcb2ca1e08b043589cde4ddd15969cd6"
+    },
+    {
+      "path": ".npmrc",
+      "sha256": "1be27cd028b08b42913e52ae0949ea0a64e700485a9afd4fd4c64ff081bebdfb"
+    },
+    {
+      "path": "architecture/scaffolding/identity-contracts.plan.json",
+      "sha256": "6e081d61eb42d0f7ff8f71b440c756997b27356f9fbce9617954cc1b32c21c1b"
+    },
+    {
+      "path": "architecture/scaffolding/identity-contracts.receipt.json",
+      "sha256": "d9f76e61a7427ca5c777fa502df97ac20bcf0c6c91ced8337e2b67afa8e8b49a"
+    },
+    {
+      "path": "architecture/scaffolding/identity-core.plan.json",
+      "sha256": "f0b9981d4c9e5d882a32badae04c87f5e81d9d1fa88f39e0610af1d64c023eec"
+    },
+    {
+      "path": "architecture/scaffolding/identity-core.receipt.json",
+      "sha256": "8ad704831d7d9f2677dee463a95afa9204b8a86ed8d8f75d8057200b8ef61d25"
+    },
+    {
+      "path": "packages/contracts/gen/go/go.mod",
+      "sha256": "f9c908a0d8ba3c14613d338cc42d08da7565899edbb4ed0080fe8acff891ffae"
+    },
+    {
+      "path": "packages/contracts/gen/go/go.sum",
+      "sha256": "d7b71b521f7b1daa4a0af9f4d409be38247498eb47e9c9b4e88c8896922e047b"
+    },
+    {
+      "path": "packages/contracts/gen/go/identity/v1/identity.pb.go",
+      "sha256": "c7758e928237c7bf384b2c83e2258444d5071b052ef097f48aca0551ef9354e7"
+    },
+    {
+      "path": "packages/contracts/gen/go/identity/v1/identity_vectors_test.go",
+      "sha256": "63bff0cd52081e3a570a0e617797708e3819d2a088850c197a2b493fb4cd5e28"
+    },
+    {
+      "path": "packages/contracts/gen/go/identity/v1/identityv1connect/identity.connect.go",
+      "sha256": "79beab6bd877219b05cc5a49071ef6ca623537b83ff84aea2de302133b31ab75"
+    },
+    {
+      "path": "packages/contracts/proto/identity/v1/identity.proto",
+      "sha256": "3b2b7bbabcc9636031c92a049adeca026ba5ba11abaf3a149f94025cc370180b"
+    },
+    {
+      "path": "packages/contracts/src/features/protocol/contracts/gen/identity/v1/identity_pb.ts",
+      "sha256": "c8d891eab60e7c4a784afdc28164a04bf8b9b25593aa8ed9a87689be0713e4ca"
+    },
+    {
+      "path": "packages/identity/src/features/account/adapters/outbound/migrations/0001_accounts.sql",
+      "sha256": "25dd2d15f4eaef99a0de343d8f644de3ab8f4fa9d52381570f3127fb6d69e8cd"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "d7ccd232e131f1a5c1155ca0e898470d422ea68686d40cac6fa97ab24c306805"
+    }
+  ]
+}

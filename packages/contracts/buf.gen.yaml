@@ -1,0 +1,17 @@
+version: v2
+plugins:
+  - local: protoc-gen-es
+    out: src/features/protocol/contracts/gen
+    opt:
+      - target=ts
+      - import_extension=js
+  - local: protoc-gen-go
+    out: gen/go
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-connect-go
+    out: gen/go
+    opt:
+      - paths=source_relative
+inputs:
+  - directory: proto

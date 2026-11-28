@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "required": [
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/wire.test.js",
+      "names": ["identity v1 wire preserves 64-bit revisions and timestamp precision"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/contracts/tests/features/protocol/wire.test.js",
+      "names": ["identity v1 unknown and absent evidence remains non-authoritative"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/keycloak-authentication.test.js",
+      "names": ["Keycloak token boundary rejects wrong authority kind scope and age"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/keycloak-authentication.test.js",
+      "names": ["Keycloak proof stays ordinary and expires with its original human credential"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": ["two replicas racing first admission commit exactly one account and attachment"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": [
+        "invalid proof cannot leave a partial account, binding, attachment, receipt or event"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": [
+        "receipt replay preserves original deadlines and rejects actor changes or old evidence"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": [
+        "status cannot enumerate or create attachments and authority restoration cannot claim a new account"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": ["suspend and enable preserve revocation even when a consumer missed every event"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": [
+        "detachment cannot be undone by login; reattachment counters and cutoff fence old sessions"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": [
+        "closure captures a first attachment that commits before the lifecycle gate is acquired"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": [
+        "closure committing first excludes late attachments without losing any existing participant"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/domain-admission.test.js",
+      "names": [
+        "status preserves large counters and spends clock uncertainty inside its fixed lifetime"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/domain-admission.test.js",
+      "names": ["re-entry requires proof strictly newer than each cutoff including uncertainty"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/packages/identity/tests/features/account/domain-admission.test.js",
+      "names": [
+        "enable cannot restore an old epoch; closure and exhausted counters remain terminal"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/apps/server/tests/features/http/connect-http.test.js",
+      "names": [
+        "real TCP Connect boundary preserves uint64, absolute deadlines and separate authority classes"
+      ],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/apps/server/tests/features/http/connect-http.test.js",
+      "names": ["transport exposes stable denial details and conceals internal failure data"],
+      "kind": "test"
+    },
+    {
+      "file": ".test-build/apps/server/tests/features/http/connect-http.test.js",
+      "names": [
+        "oversized requests never reach account use cases and readiness failure is visible"
+      ],
+      "kind": "test"
+    }
+  ],
+  "exceptions": []
+}

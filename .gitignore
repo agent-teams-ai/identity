@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.cache/
+.test-build/
+.env
+.env.*
+!.env.example
+.foundation/
+.foundation-retired-evidence-/
+.agent-teams-local/
+artifacts/local/

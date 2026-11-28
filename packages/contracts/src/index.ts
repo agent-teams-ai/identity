@@ -1,0 +1,32 @@
+export {
+  AccountEligibility,
+  AccountEligibilitySchema,
+  AccountReferenceSchema,
+  AccountStatusEvidenceSchema,
+  AdmissionProfile,
+  AdmissionProfileSchema,
+  GetAccountStatusRequestSchema,
+  GetAccountStatusResponseSchema,
+  GetSelfStatusRequestSchema,
+  GetSelfStatusResponseSchema,
+  IdentityErrorDetailSchema,
+  IdentityErrorReason,
+  IdentityErrorReasonSchema,
+  IdentityService,
+  ResolveSelfRequestSchema,
+  ResolveSelfResponseSchema,
+  SessionAdmissionSchema,
+} from "./features/protocol/contracts/gen/identity/v1/identity_pb.js";
+
+export type {
+  AccountReference,
+  AccountStatusEvidence,
+  GetAccountStatusRequest,
+  GetAccountStatusResponse,
+  GetSelfStatusRequest,
+  GetSelfStatusResponse,
+  IdentityErrorDetail,
+  ResolveSelfRequest,
+  ResolveSelfResponse,
+  SessionAdmission,
+} from "./features/protocol/contracts/gen/identity/v1/identity_pb.js";

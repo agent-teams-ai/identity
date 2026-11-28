@@ -1,0 +1,22 @@
+schemaVersion: 5
+sourcePolicyPath: architecture/foundation/source-dependencies.yaml
+suppressionPolicyPath: architecture/foundation/suppression-governance.yaml
+topologyPath: architecture/foundation/quality-source-topology.json
+lintConfigPath: .oxlintrc.type-aware.json
+toolchainConfigPath: toolchain.config.json
+scripts:
+  fast: check:fast
+  full: check
+  scope: quality:coverage:scope
+  typed: quality:coverage
+budgetMs: 300000
+nativeChecks: []
+assets:
+  - path: packages/contracts/proto/identity/v1/identity.proto
+    kind: protobuf
+    boundaryId: contracts.protocol-schema
+    script: contracts:check
+  - path: packages/identity/src/features/account/adapters/outbound/migrations/0001_accounts.sql
+    kind: sql-migration
+    boundaryId: identity.adapters
+    script: test

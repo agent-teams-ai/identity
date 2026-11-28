@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "statusBudgetMs": 60000,
+    "maximumClockSkewMs": 5000
+  },
+  "observedAtMs": [30000, 100000, 1700000000000],
+  "credentialLifetimesMs": [5001, 25000, 60000, 200000],
+  "accountCutoffsMs": [90000, 95000],
+  "reattachmentCutoffsMs": [0, 95000],
+  "cutoffOffsetsMs": [-1, 0, 1],
+  "transitionEpochs": ["0", "9007199254740993"],
+  "transitionCutoffsMs": [0, 200000]
+}

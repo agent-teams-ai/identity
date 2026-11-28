@@ -1,0 +1,86 @@
+schemaVersion: 1
+owner: identity
+budgetMs: 120000
+maintainedRoots:
+  - .github
+  - architecture
+  - docs
+  - packages
+  - apps
+  - tools
+  - scripts
+  - deploy
+rootFiles: format-or-reject
+scripts:
+  format: format:check
+  required:
+    - check
+    - check:fast
+alternates:
+  configPath: architecture/foundation/quality-gate-runner.yaml
+  profileId: format-authorities
+authorities:
+  - id: consumer-native-inputs
+    owner: identity
+    script: format:support:check
+    execution: read-only-source-validation
+routes:
+  - authority: consumer-native-inputs
+    kind: validated-data
+    files:
+      - .node-version
+      - .npmrc
+      - .gitignore
+      - pnpm-lock.yaml
+      - packages/contracts/proto/identity/v1/identity.proto
+      - packages/contracts/gen/go/go.mod
+      - packages/contracts/gen/go/go.sum
+      - packages/contracts/gen/go/identity/v1/identity_vectors_test.go
+      - packages/identity/src/features/account/adapters/outbound/migrations/0001_accounts.sql
+    trees: []
+  - authority: consumer-native-inputs
+    kind: generated
+    files:
+      - packages/contracts/src/features/protocol/contracts/gen/identity/v1/identity_pb.ts
+      - packages/contracts/gen/go/identity/v1/identity.pb.go
+      - packages/contracts/gen/go/identity/v1/identityv1connect/identity.connect.go
+    trees:
+      - path: .test-build
+        suffixes:
+          - .js
+          - .map
+          - .d.ts
+          - .json
+          - .tsbuildinfo
+      - path: packages/contracts/dist
+        suffixes:
+          - .js
+          - .map
+          - .d.ts
+      - path: packages/contracts/.cache
+        suffixes:
+          - .tsbuildinfo
+      - path: packages/identity/dist
+        suffixes:
+          - .js
+          - .map
+          - .d.ts
+      - path: packages/identity/.cache
+        suffixes:
+          - .tsbuildinfo
+      - path: apps/server/dist
+        suffixes:
+          - .js
+          - .map
+          - .d.ts
+      - path: apps/server/.cache
+        suffixes:
+          - .tsbuildinfo
+  - authority: consumer-native-inputs
+    kind: retained
+    files:
+      - architecture/scaffolding/identity-core.plan.json
+      - architecture/scaffolding/identity-core.receipt.json
+      - architecture/scaffolding/identity-contracts.plan.json
+      - architecture/scaffolding/identity-contracts.receipt.json
+    trees: []
