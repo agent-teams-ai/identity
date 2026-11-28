@@ -74,6 +74,11 @@
       "kind": "test"
     },
     {
+      "file": ".test-build/packages/identity/tests/features/account/postgres-account.test.js",
+      "names": ["outbox acknowledgement refuses a held row lock without waiting or publishing"],
+      "kind": "test"
+    },
+    {
       "file": ".test-build/packages/identity/tests/features/account/domain-admission.test.js",
       "names": [
         "status preserves large counters and spends clock uncertainty inside its fixed lifetime"

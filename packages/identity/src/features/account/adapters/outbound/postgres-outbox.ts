@@ -132,13 +132,22 @@ export function createPostgresOutboxDelivery(
         return false;
       }
       const result = await pool.query<{ readonly event_id: string }>(
-        `UPDATE identity_outbox
+        // Lock before checking the database deadline. A plain UPDATE can test its
+        // WHERE before waiting on a row-only locker, without rechecking on release.
+        `WITH locked AS MATERIALIZED (
+          SELECT event_id, claim_generation, claimed_until_ms, published_at_ms
+          FROM identity_outbox
+          WHERE consumer_id = $1 AND event_id = $2
+          FOR UPDATE SKIP LOCKED
+        )
+        UPDATE identity_outbox AS event
         SET published_at_ms = floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint,
             claimed_until_ms = NULL
-        WHERE consumer_id = $1 AND event_id = $2 AND claim_generation = $3
-          AND published_at_ms IS NULL
-          AND claimed_until_ms > floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint
-        RETURNING event_id`,
+        FROM locked
+        WHERE event.event_id = locked.event_id AND locked.claim_generation = $3
+          AND locked.published_at_ms IS NULL
+          AND locked.claimed_until_ms > floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint
+        RETURNING event.event_id`,
         [consumerId, claim.eventId, claim.claimGeneration.toString()],
       );
       return result.rows.length === 1;
