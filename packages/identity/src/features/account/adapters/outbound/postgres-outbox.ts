@@ -165,7 +165,7 @@ export function createPostgresOutboxDelivery(
         SET status = $5
         WHERE item.consumer_id = $1 AND item.account_id = $2
           AND item.closure_revision = $3 AND item.participant_generation = $4
-          AND item.status = 'pending'
+          AND item.status IN ('pending', $5)
           AND EXISTS (
             SELECT 1 FROM identity_accounts AS account
             WHERE account.account_id = item.account_id AND account.eligibility = 'closed'

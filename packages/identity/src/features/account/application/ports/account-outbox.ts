@@ -46,6 +46,6 @@ export interface AccountOutboxDelivery {
     limit: number,
     afterAccountId?: string,
   ) => Promise<readonly PendingClosure[]>;
-  /** Records one trusted recipient's result; it does not prove whole-account erasure. */
+  /** Accepts an exact result or its identical replay; never overwrites a different outcome. */
   readonly reportClosure: (report: ClosureReport) => Promise<boolean>;
 }

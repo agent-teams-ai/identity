@@ -128,7 +128,18 @@ function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixt
       "Wrong participant generation cannot settle",
     );
     assert.equal(await gettok.reportClosure(report), true);
-    assert.equal(await gettok.reportClosure(report), false, "No duplicate terminal receipt");
+    const retry = createPostgresOutboxDelivery(replica, "gettok");
+    assert.equal(await retry.reportClosure(report), true, "Lost-response replay is idempotent");
+    assert.equal(
+      await retry.reportClosure({ ...report, outcome: "erased" }),
+      false,
+      "A conflicting terminal outcome cannot overwrite the receipt",
+    );
+    assert.equal(
+      await retry.reportClosure({ ...report, authorityIncarnation: "restored-realm" }),
+      false,
+      "A replay must still match the authority incarnation",
+    );
     const status = await pool.query<{ readonly consumer_id: string; readonly status: string }>(
       "SELECT consumer_id, status FROM identity_closure_participants ORDER BY consumer_id",
     );
