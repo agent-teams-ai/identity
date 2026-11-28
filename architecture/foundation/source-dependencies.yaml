@@ -259,6 +259,7 @@ boundaries:
     entrypoints:
       - packages/identity/tests/features/account/keycloak-authentication.test.ts
       - packages/identity/tests/features/account/keycloak-browser-fixture.ts
+      - packages/identity/tests/features/account/keycloak-broker-provisioning.test.ts
     dependencyMode: development
     allow:
       boundaries:
@@ -268,6 +269,7 @@ boundaries:
         - identity.adapters
         - identity.feature-composition
         - identity.api
+        - repository-tools
       packages:
         - pg
         - jose
@@ -345,6 +347,7 @@ boundaries:
       - tools/project-topology.ts
       - tools/record-build-evidence.ts
       - tools/run-tests.ts
+      - tools/provision-keycloak-brokers.ts
     dependencyMode: development
     allow:
       boundaries: []
