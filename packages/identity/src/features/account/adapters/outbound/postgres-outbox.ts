@@ -3,6 +3,7 @@ import type {
   AccountOutboxDelivery,
   ClaimedAccountEvent,
   ClosureOutcome,
+  PendingClosure,
 } from "../../application/ports/account-outbox.js";
 import { milliseconds } from "./postgres-codecs.js";
 
@@ -31,6 +32,47 @@ const toEvent = (row: StoredOutboxEvent): ClaimedAccountEvent => ({
   claimGeneration: BigInt(row.claim_generation),
   leaseUntilMs: milliseconds(row.claimed_until_ms),
 });
+
+async function listPendingClosures(
+  pool: Pool,
+  consumerId: string,
+  limit: number,
+  afterAccountId?: string,
+): Promise<readonly PendingClosure[]> {
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+    throw new RangeError("Invalid closure page size");
+  }
+  if (
+    afterAccountId !== undefined &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u.test(afterAccountId)
+  ) {
+    throw new TypeError("Invalid closure cursor");
+  }
+  const result = await pool.query<{
+    readonly account_id: string;
+    readonly authority_incarnation: string;
+    readonly closure_revision: string;
+    readonly participant_generation: string;
+  }>(
+    `SELECT item.account_id, account.authority_incarnation, item.closure_revision,
+      item.participant_generation
+    FROM identity_closure_participants AS item
+    JOIN identity_accounts AS account ON account.account_id = item.account_id
+      AND account.eligibility = 'closed' AND account.revision = item.closure_revision
+    WHERE item.consumer_id = $1 AND item.status = 'pending'
+      AND ($2::uuid IS NULL OR item.account_id > $2::uuid)
+    ORDER BY item.account_id
+    LIMIT $3`,
+    [consumerId, afterAccountId ?? null, limit],
+  );
+  return result.rows.map((row) => ({
+    consumerId,
+    accountId: row.account_id,
+    authorityIncarnation: row.authority_incarnation,
+    closureRevision: BigInt(row.closure_revision),
+    participantGeneration: BigInt(row.participant_generation),
+  }));
+}
 
 /**
  * The consumer is bound by trusted worker configuration, never by an RPC field.
@@ -88,6 +130,8 @@ export function createPostgresOutboxDelivery(
       );
       return result.rows.length === 1;
     },
+    listPendingClosures: async (limit, afterAccountId) =>
+      listPendingClosures(pool, consumerId, limit, afterAccountId),
     reportClosure: async (report) => {
       if (report.consumerId !== consumerId) {
         return false;
@@ -114,6 +158,7 @@ export function createPostgresOutboxDelivery(
             SELECT 1 FROM identity_accounts AS account
             WHERE account.account_id = item.account_id AND account.eligibility = 'closed'
               AND account.revision = item.closure_revision
+              AND account.authority_incarnation = $6
           )
         RETURNING item.account_id`,
         [
@@ -122,6 +167,7 @@ export function createPostgresOutboxDelivery(
           report.closureRevision.toString(),
           report.participantGeneration.toString(),
           report.outcome,
+          report.authorityIncarnation,
         ],
       );
       return result.rows.length === 1;

@@ -22,6 +22,7 @@ export function registerOutboxTests(fixtures: OutboxFixtures): void {
   registerClaimsAndClosure(fixtures);
   registerDispatchAndRevocation(fixtures);
   registerUncertainSettlement(fixtures);
+  registerTerminalFeed(fixtures);
 }
 
 function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixtures): void {
@@ -102,6 +103,7 @@ function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixt
     const report = {
       consumerId: "gettok",
       accountId: opened.status.account.accountId,
+      authorityIncarnation: opened.status.account.authorityIncarnation,
       closureRevision: BigInt(owned.closure_revision),
       participantGeneration: BigInt(owned.participant_generation),
       outcome: "retained-by-policy" as const,
@@ -142,6 +144,7 @@ function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixt
       await other.reportClosure({
         consumerId: "other-product",
         accountId: report.accountId,
+        authorityIncarnation: report.authorityIncarnation,
         closureRevision: BigInt(second.closure_revision),
         participantGeneration: BigInt(second.participant_generation),
         outcome: "erased",
@@ -318,5 +321,77 @@ function registerUncertainSettlement({ pool, replica, accounts, human }: OutboxF
     );
     assert.equal(dispatched, 1);
     assert.equal(await second.claimNext(60_000), undefined, "Committed settlement stays durable");
+  });
+}
+
+function registerTerminalFeed({ pool, replica, accounts, human, workload }: OutboxFixtures): void {
+  void test("detached consumers can page only their pending terminal obligations", async () => {
+    const opened = await accounts.api.resolveSelf(human(), "terminal-feed-first");
+    const other = await accounts.api.resolveSelf(human("other-product"), "terminal-feed-other");
+    assert.deepEqual(other.status.account, opened.status.account);
+    const recipient = createPostgresOutboxDelivery(pool, "gettok");
+    const competitor = createPostgresOutboxDelivery(replica, "gettok");
+    const foreign = createPostgresOutboxDelivery(replica, "other-product");
+    const unknown = createPostgresOutboxDelivery(replica, "unknown-product");
+    const firstEvent = await recipient.claimNext(60_000);
+    assert.ok(firstEvent !== undefined);
+    assert.equal(await recipient.acknowledge(firstEvent), true);
+    await pool.query(
+      "UPDATE identity_consumer_attachments SET state = 'detached', revision = revision + 1 WHERE account_id = $1 AND consumer_id = 'gettok'",
+      [opened.status.account.accountId],
+    );
+    assert.deepEqual(await recipient.listPendingClosures(10), []);
+    await accounts.administration.transition(opened.status.account, "close", 1n);
+    assert.equal(await recipient.claimNext(60_000), undefined, "No ordinary detached event");
+    await assert.rejects(accounts.api.getAccountStatus(workload(), opened.status.account), {
+      reason: "PERMISSION_DENIED",
+    });
+
+    const second = await accounts.api.resolveSelf(
+      { ...human(), subject: "terminal-feed-second" },
+      "terminal-feed-second",
+    );
+    await accounts.administration.transition(second.status.account, "close", 1n);
+    await assert.rejects(recipient.listPendingClosures(0), RangeError);
+    await assert.rejects(recipient.listPendingClosures(101), RangeError);
+    await assert.rejects(recipient.listPendingClosures(1, "invalid"), TypeError);
+    assert.deepEqual(await unknown.listPendingClosures(10), []);
+    const otherItems = await foreign.listPendingClosures(10);
+    assert.equal(otherItems.length, 1);
+    assert.equal(otherItems[0]?.accountId, opened.status.account.accountId);
+    assert.equal(otherItems[0]?.consumerId, "other-product");
+
+    const firstPage = await recipient.listPendingClosures(1);
+    const first = firstPage[0];
+    assert.ok(first !== undefined);
+    assert.equal(firstPage.length, 1);
+    const secondPage = await competitor.listPendingClosures(1, first.accountId);
+    const next = secondPage[0];
+    assert.ok(next !== undefined);
+    assert.equal(secondPage.length, 1);
+    assert.deepEqual(await recipient.listPendingClosures(1, next.accountId), []);
+    assert.deepEqual(
+      [first.accountId, next.accountId].sort(),
+      [opened.status.account.accountId, second.status.account.accountId].sort(),
+    );
+    assert.deepEqual(await competitor.listPendingClosures(10), [first, next]);
+    assert.equal(first.consumerId, "gettok");
+    assert.equal(first.authorityIncarnation, opened.status.account.authorityIncarnation);
+    assert.equal(first.closureRevision, 2n);
+    assert.equal(first.participantGeneration, 1n);
+
+    const report = { ...first, outcome: "erased" as const };
+    assert.equal(
+      await recipient.reportClosure({ ...report, authorityIncarnation: "restored-realm" }),
+      false,
+    );
+    assert.equal(await foreign.reportClosure(report), false);
+    const settled = await Promise.all([
+      recipient.reportClosure(report),
+      competitor.reportClosure({ ...report, outcome: "repair-required" }),
+    ]);
+    assert.equal(settled.filter(Boolean).length, 1, "Only one terminal outcome can commit");
+    assert.deepEqual(await recipient.listPendingClosures(10), [next]);
+    assert.deepEqual(await foreign.listPendingClosures(10), otherItems);
   });
 }

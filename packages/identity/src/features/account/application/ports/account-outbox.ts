@@ -18,11 +18,15 @@ export type ClosureOutcome =
   | "retained-by-policy"
   | "repair-required";
 
-export interface ClosureReport {
+export interface PendingClosure {
   readonly consumerId: string;
   readonly accountId: string;
+  readonly authorityIncarnation: string;
   readonly closureRevision: bigint;
   readonly participantGeneration: bigint;
+}
+
+export interface ClosureReport extends PendingClosure {
   readonly outcome: ClosureOutcome;
 }
 
@@ -32,6 +36,15 @@ export interface AccountOutboxDelivery {
   readonly acknowledge: (
     claim: Pick<ClaimedAccountEvent, "eventId" | "claimGeneration">,
   ) => Promise<boolean>;
+  /**
+   * Terminal-purpose pending manifest only, including previously detached consumers.
+   * Read bounded pages by account ID, restart from the beginning for a later sweep.
+   * Reads do not settle obligations; duplicate cleanup attempts must be idempotent.
+   */
+  readonly listPendingClosures: (
+    limit: number,
+    afterAccountId?: string,
+  ) => Promise<readonly PendingClosure[]>;
   /** Records one trusted recipient's result; it does not prove whole-account erasure. */
   readonly reportClosure: (report: ClosureReport) => Promise<boolean>;
 }
