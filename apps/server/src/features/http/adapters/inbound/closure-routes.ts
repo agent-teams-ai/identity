@@ -47,6 +47,8 @@ function outcome(value: ClosureReceiptOutcome): ClosureReceipt["outcome"] {
       return "erased";
     case ClosureReceiptOutcome.REPAIR_REQUIRED:
       return "repair-required";
+    case ClosureReceiptOutcome.UNSPECIFIED:
+    case ClosureReceiptOutcome.RETAINED_BY_POLICY:
     default:
       throw new ConnectError("Unsupported closure outcome", Code.InvalidArgument);
   }

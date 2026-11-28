@@ -53,7 +53,7 @@ function registerPages({ pool, accounts, human }: ClosureFixtures): void {
     const own = await closures.listPendingClosures(terminal(), page);
     assert.equal(own.participants.length, 1);
     assert.equal(own.participants[0]?.accountId, opened.status.account.accountId);
-    assert.equal(own.participants[0]?.manifestVersion, 1);
+    assert.equal(own.participants[0].manifestVersion, 1);
     assert.equal(own.nextAfterAccountId, "");
     const first = await closures.listPendingClosures(terminal("second-product"), {
       limit: 1,
@@ -126,6 +126,8 @@ function registerReceipts({ pool, replica, accounts, human }: ClosureFixtures): 
     for (const participant of [
       { ...item, closureRevision: 0n },
       { ...item, participantGeneration: 9_223_372_036_854_775_808n },
+      { ...item, manifestVersion: 0 },
+      { ...item, manifestVersion: 2 },
     ]) {
       await assert.rejects(closures.reportClosure(terminal(), { ...receipt, participant }), {
         reason: "INVALID_ARGUMENT",

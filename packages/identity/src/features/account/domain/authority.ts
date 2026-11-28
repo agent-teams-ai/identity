@@ -35,7 +35,9 @@ export interface VerifiedTerminalWorkload {
 
 export type VerifiedActor = VerifiedHuman | VerifiedWorkload | VerifiedTerminalWorkload;
 
-export function validateTerminalAuthority(actor: VerifiedTerminalWorkload): void {
+export function validateTerminalAuthority(
+  actor: VerifiedActor,
+): asserts actor is VerifiedTerminalWorkload {
   if (
     actor.kind !== "terminal-workload" ||
     !/^[a-z0-9][a-z0-9._-]{0,127}$/u.test(actor.consumerId)

@@ -5,7 +5,7 @@ import type { ClosureManifestItem, ClosureReport } from "./account-outbox.js";
 export interface ClosureParticipantReference extends AccountReference {
   readonly closureRevision: bigint;
   readonly participantGeneration: bigint;
-  readonly manifestVersion: 1;
+  readonly manifestVersion: number;
 }
 export interface ClosurePageRequest {
   readonly limit: number;
