@@ -23,6 +23,8 @@ const _ = connect.IsAtLeastVersion1_13_0
 const (
 	// IdentityServiceName is the fully-qualified name of the IdentityService service.
 	IdentityServiceName = "identity.v1.IdentityService"
+	// IdentityClosureServiceName is the fully-qualified name of the IdentityClosureService service.
+	IdentityClosureServiceName = "identity.v1.IdentityClosureService"
 )
 
 // These constants are the fully-qualified names of the RPCs defined in this package. They're
@@ -42,6 +44,15 @@ const (
 	// IdentityServiceGetAccountStatusProcedure is the fully-qualified name of the IdentityService's
 	// GetAccountStatus RPC.
 	IdentityServiceGetAccountStatusProcedure = "/identity.v1.IdentityService/GetAccountStatus"
+	// IdentityClosureServiceListPendingClosuresProcedure is the fully-qualified name of the
+	// IdentityClosureService's ListPendingClosures RPC.
+	IdentityClosureServiceListPendingClosuresProcedure = "/identity.v1.IdentityClosureService/ListPendingClosures"
+	// IdentityClosureServiceListRepairRequiredClosuresProcedure is the fully-qualified name of the
+	// IdentityClosureService's ListRepairRequiredClosures RPC.
+	IdentityClosureServiceListRepairRequiredClosuresProcedure = "/identity.v1.IdentityClosureService/ListRepairRequiredClosures"
+	// IdentityClosureServiceReportClosureProcedure is the fully-qualified name of the
+	// IdentityClosureService's ReportClosure RPC.
+	IdentityClosureServiceReportClosureProcedure = "/identity.v1.IdentityClosureService/ReportClosure"
 )
 
 // IdentityServiceClient is a client for the identity.v1.IdentityService service.
@@ -174,4 +185,127 @@ func (UnimplementedIdentityServiceHandler) GetSelfStatus(context.Context, *conne
 
 func (UnimplementedIdentityServiceHandler) GetAccountStatus(context.Context, *connect.Request[v1.GetAccountStatusRequest]) (*connect.Response[v1.GetAccountStatusResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("identity.v1.IdentityService.GetAccountStatus is not implemented"))
+}
+
+// IdentityClosureServiceClient is a client for the identity.v1.IdentityClosureService service.
+type IdentityClosureServiceClient interface {
+	ListPendingClosures(context.Context, *connect.Request[v1.ListPendingClosuresRequest]) (*connect.Response[v1.ListPendingClosuresResponse], error)
+	ListRepairRequiredClosures(context.Context, *connect.Request[v1.ListRepairRequiredClosuresRequest]) (*connect.Response[v1.ListRepairRequiredClosuresResponse], error)
+	ReportClosure(context.Context, *connect.Request[v1.ReportClosureRequest]) (*connect.Response[v1.ReportClosureResponse], error)
+}
+
+// NewIdentityClosureServiceClient constructs a client for the identity.v1.IdentityClosureService
+// service. By default, it uses the Connect protocol with the binary Protobuf Codec, asks for
+// gzipped responses, and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply
+// the connect.WithGRPC() or connect.WithGRPCWeb() options.
+//
+// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
+// http://api.acme.com or https://acme.com/grpc).
+func NewIdentityClosureServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) IdentityClosureServiceClient {
+	baseURL = strings.TrimRight(baseURL, "/")
+	identityClosureServiceMethods := v1.File_identity_v1_identity_proto.Services().ByName("IdentityClosureService").Methods()
+	return &identityClosureServiceClient{
+		listPendingClosures: connect.NewClient[v1.ListPendingClosuresRequest, v1.ListPendingClosuresResponse](
+			httpClient,
+			baseURL+IdentityClosureServiceListPendingClosuresProcedure,
+			connect.WithSchema(identityClosureServiceMethods.ByName("ListPendingClosures")),
+			connect.WithClientOptions(opts...),
+		),
+		listRepairRequiredClosures: connect.NewClient[v1.ListRepairRequiredClosuresRequest, v1.ListRepairRequiredClosuresResponse](
+			httpClient,
+			baseURL+IdentityClosureServiceListRepairRequiredClosuresProcedure,
+			connect.WithSchema(identityClosureServiceMethods.ByName("ListRepairRequiredClosures")),
+			connect.WithClientOptions(opts...),
+		),
+		reportClosure: connect.NewClient[v1.ReportClosureRequest, v1.ReportClosureResponse](
+			httpClient,
+			baseURL+IdentityClosureServiceReportClosureProcedure,
+			connect.WithSchema(identityClosureServiceMethods.ByName("ReportClosure")),
+			connect.WithClientOptions(opts...),
+		),
+	}
+}
+
+// identityClosureServiceClient implements IdentityClosureServiceClient.
+type identityClosureServiceClient struct {
+	listPendingClosures        *connect.Client[v1.ListPendingClosuresRequest, v1.ListPendingClosuresResponse]
+	listRepairRequiredClosures *connect.Client[v1.ListRepairRequiredClosuresRequest, v1.ListRepairRequiredClosuresResponse]
+	reportClosure              *connect.Client[v1.ReportClosureRequest, v1.ReportClosureResponse]
+}
+
+// ListPendingClosures calls identity.v1.IdentityClosureService.ListPendingClosures.
+func (c *identityClosureServiceClient) ListPendingClosures(ctx context.Context, req *connect.Request[v1.ListPendingClosuresRequest]) (*connect.Response[v1.ListPendingClosuresResponse], error) {
+	return c.listPendingClosures.CallUnary(ctx, req)
+}
+
+// ListRepairRequiredClosures calls identity.v1.IdentityClosureService.ListRepairRequiredClosures.
+func (c *identityClosureServiceClient) ListRepairRequiredClosures(ctx context.Context, req *connect.Request[v1.ListRepairRequiredClosuresRequest]) (*connect.Response[v1.ListRepairRequiredClosuresResponse], error) {
+	return c.listRepairRequiredClosures.CallUnary(ctx, req)
+}
+
+// ReportClosure calls identity.v1.IdentityClosureService.ReportClosure.
+func (c *identityClosureServiceClient) ReportClosure(ctx context.Context, req *connect.Request[v1.ReportClosureRequest]) (*connect.Response[v1.ReportClosureResponse], error) {
+	return c.reportClosure.CallUnary(ctx, req)
+}
+
+// IdentityClosureServiceHandler is an implementation of the identity.v1.IdentityClosureService
+// service.
+type IdentityClosureServiceHandler interface {
+	ListPendingClosures(context.Context, *connect.Request[v1.ListPendingClosuresRequest]) (*connect.Response[v1.ListPendingClosuresResponse], error)
+	ListRepairRequiredClosures(context.Context, *connect.Request[v1.ListRepairRequiredClosuresRequest]) (*connect.Response[v1.ListRepairRequiredClosuresResponse], error)
+	ReportClosure(context.Context, *connect.Request[v1.ReportClosureRequest]) (*connect.Response[v1.ReportClosureResponse], error)
+}
+
+// NewIdentityClosureServiceHandler builds an HTTP handler from the service implementation. It
+// returns the path on which to mount the handler and the handler itself.
+//
+// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
+// and JSON codecs. They also support gzip compression.
+func NewIdentityClosureServiceHandler(svc IdentityClosureServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	identityClosureServiceMethods := v1.File_identity_v1_identity_proto.Services().ByName("IdentityClosureService").Methods()
+	identityClosureServiceListPendingClosuresHandler := connect.NewUnaryHandler(
+		IdentityClosureServiceListPendingClosuresProcedure,
+		svc.ListPendingClosures,
+		connect.WithSchema(identityClosureServiceMethods.ByName("ListPendingClosures")),
+		connect.WithHandlerOptions(opts...),
+	)
+	identityClosureServiceListRepairRequiredClosuresHandler := connect.NewUnaryHandler(
+		IdentityClosureServiceListRepairRequiredClosuresProcedure,
+		svc.ListRepairRequiredClosures,
+		connect.WithSchema(identityClosureServiceMethods.ByName("ListRepairRequiredClosures")),
+		connect.WithHandlerOptions(opts...),
+	)
+	identityClosureServiceReportClosureHandler := connect.NewUnaryHandler(
+		IdentityClosureServiceReportClosureProcedure,
+		svc.ReportClosure,
+		connect.WithSchema(identityClosureServiceMethods.ByName("ReportClosure")),
+		connect.WithHandlerOptions(opts...),
+	)
+	return "/identity.v1.IdentityClosureService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case IdentityClosureServiceListPendingClosuresProcedure:
+			identityClosureServiceListPendingClosuresHandler.ServeHTTP(w, r)
+		case IdentityClosureServiceListRepairRequiredClosuresProcedure:
+			identityClosureServiceListRepairRequiredClosuresHandler.ServeHTTP(w, r)
+		case IdentityClosureServiceReportClosureProcedure:
+			identityClosureServiceReportClosureHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// UnimplementedIdentityClosureServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedIdentityClosureServiceHandler struct{}
+
+func (UnimplementedIdentityClosureServiceHandler) ListPendingClosures(context.Context, *connect.Request[v1.ListPendingClosuresRequest]) (*connect.Response[v1.ListPendingClosuresResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("identity.v1.IdentityClosureService.ListPendingClosures is not implemented"))
+}
+
+func (UnimplementedIdentityClosureServiceHandler) ListRepairRequiredClosures(context.Context, *connect.Request[v1.ListRepairRequiredClosuresRequest]) (*connect.Response[v1.ListRepairRequiredClosuresResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("identity.v1.IdentityClosureService.ListRepairRequiredClosures is not implemented"))
+}
+
+func (UnimplementedIdentityClosureServiceHandler) ReportClosure(context.Context, *connect.Request[v1.ReportClosureRequest]) (*connect.Response[v1.ReportClosureResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("identity.v1.IdentityClosureService.ReportClosure is not implemented"))
 }

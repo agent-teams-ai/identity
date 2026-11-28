@@ -12,6 +12,7 @@ import {
   type AccountReference,
 } from "@agent-teams/identity-contracts";
 import { startServer } from "../../../src/composition/server.root.js";
+import { exerciseTerminalTransport } from "./closure-service.native.js";
 
 const execute = promisify(execFile);
 const coreFixture = (name: string): string =>
@@ -35,20 +36,27 @@ const fixture = async (name: string, args: readonly string[] = []): Promise<unkn
 
 const credentials = async (
   consumer: "gettok" | "second-product" = "gettok",
-): Promise<{ readonly human: string; readonly workload: string }> => {
+): Promise<{ readonly human: string; readonly workload: string; readonly terminal: string }> => {
   const result = await fixture("keycloak-credentials", [consumer]);
   assert.ok(
     typeof result === "object" &&
       result !== null &&
       "accessToken" in result &&
-      "workloadToken" in result,
+      "workloadToken" in result &&
+      "terminalToken" in result,
     "Native credential fixture returned its bounded shape",
   );
   assert.ok(
-    typeof result.accessToken === "string" && typeof result.workloadToken === "string",
+    typeof result.accessToken === "string" &&
+      typeof result.workloadToken === "string" &&
+      typeof result.terminalToken === "string",
     "Native credentials exist",
   );
-  return { human: result.accessToken, workload: result.workloadToken };
+  return {
+    human: result.accessToken,
+    workload: result.workloadToken,
+    terminal: result.terminalToken,
+  };
 };
 
 const rejection =
@@ -111,10 +119,10 @@ const exerciseSecondConsumer = async (
   );
   await assert.rejects(client.resolveSelf(command, machine), denied);
   await assert.rejects(client.getAccountStatus({ account }, human), denied);
-  return { human, machine };
+  return { human, machine, terminal: tokens.terminal };
 };
 
-const exercise = async (client: Client<typeof IdentityService>): Promise<void> => {
+const exercise = async (client: Client<typeof IdentityService>, baseUrl: string): Promise<void> => {
   const tokens = await credentials();
   const human = { headers: { authorization: `Bearer ${tokens.human}` } };
   const machine = { headers: { authorization: `Bearer ${tokens.workload}` } };
@@ -200,6 +208,13 @@ const exercise = async (client: Client<typeof IdentityService>): Promise<void> =
     client.resolveSelf(command, second.human),
     rejection(IdentityErrorReason.ACCOUNT_CLOSED),
   );
+  await exerciseTerminalTransport({
+    baseUrl,
+    ordinary: client,
+    account,
+    ...tokens,
+    secondTerminal: second.terminal,
+  });
 };
 
 const databaseUrl = process.env.IDENTITY_TEST_DATABASE_URL;
@@ -223,6 +238,7 @@ const server = await startServer({
         policyVersion: "1",
       },
       { kind: "workload", clientId: "gettok-test-workload", consumerId: "gettok" },
+      { kind: "terminal-workload", clientId: "gettok-test-terminal", consumerId: "gettok" },
       {
         kind: "human",
         clientId: "second-product-test-bff",
@@ -235,6 +251,11 @@ const server = await startServer({
         clientId: "second-product-test-workload",
         consumerId: "second-product",
       },
+      {
+        kind: "terminal-workload",
+        clientId: "second-product-test-terminal",
+        consumerId: "second-product",
+      },
     ],
   },
 });
@@ -244,6 +265,7 @@ try {
       IdentityService,
       createConnectTransport({ baseUrl: server.address, httpVersion: "1.1" }),
     ),
+    server.address,
   );
   process.stdout.write(
     `${JSON.stringify({
@@ -253,6 +275,7 @@ try {
       persistence: "actual-postgresql",
       lifecycleRevocation: "passed",
       multiConsumer: "passed",
+      terminalPurposeTransport: "passed",
       staleReceiptRejected: true,
       independentContinuity: "not-admitted",
     })}\n`,

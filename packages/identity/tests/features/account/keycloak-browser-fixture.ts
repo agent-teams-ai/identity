@@ -5,9 +5,11 @@ export interface NativeKeycloakConfiguration {
   readonly issuer: string;
   readonly humanClientId: string;
   readonly workloadClientId: string;
+  readonly terminalClientId: string;
   readonly callback: string;
   readonly humanSecret: string;
   readonly workloadSecret: string;
+  readonly terminalSecret: string;
   readonly password: string;
 }
 
@@ -37,6 +39,7 @@ export const nativeConfiguration = (
   issuer: environmentValue("IDENTITY_TEST_ISSUER"),
   humanClientId: consumer === "gettok" ? HUMAN_CLIENT : "second-product-test-bff",
   workloadClientId: consumer === "gettok" ? WORKLOAD_CLIENT : "second-product-test-workload",
+  terminalClientId: `${consumer}-test-terminal`,
   callback: consumer === "gettok" ? CALLBACK : "http://127.0.0.1:18181/second-product-callback",
   humanSecret: environmentValue(
     consumer === "gettok" ? "IDENTITY_TEST_CLIENT_SECRET" : "IDENTITY_TEST_SECOND_CLIENT_SECRET",
@@ -45,6 +48,11 @@ export const nativeConfiguration = (
     consumer === "gettok"
       ? "IDENTITY_TEST_WORKLOAD_SECRET"
       : "IDENTITY_TEST_SECOND_WORKLOAD_SECRET",
+  ),
+  terminalSecret: environmentValue(
+    consumer === "gettok"
+      ? "IDENTITY_TEST_TERMINAL_SECRET"
+      : "IDENTITY_TEST_SECOND_TERMINAL_SECRET",
   ),
   password: environmentValue("IDENTITY_TEST_USER_PASSWORD"),
 });

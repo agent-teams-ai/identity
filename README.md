@@ -8,6 +8,12 @@ PostgreSQL persistence, Keycloak token boundary, versioned Protobuf/Connect
 contracts with TypeScript and Go bindings, and a Fastify HTTP Host. Products
 retain their local users, permissions, sessions and integration credentials.
 
+The [terminal-purpose TEST contract](docs/contracts/identity-v1-test-candidate.md#terminal-purpose-cleanup-participation)
+adds authenticated recipient-scoped pending/repair pages and exact cleanup
+receipt reporting. Its separate workload clients acquire no ordinary status
+rights. Product fences, physical deletion and retention/recovery decisions stay
+with their owners; a recorded receipt alone does not qualify those operations.
+
 This is an implementation checkpoint under qualification. It does not represent
 a completed service rollout or claim that later recovery, independent-factor,
 durable delivery and operational phases have shipped. The Keycloak ordinary

@@ -3,6 +3,7 @@ import { required } from "@get-modular/core";
 import {
   AccountApiContract,
   AccountAuthenticationContract,
+  AccountClosureContract,
 } from "../features/account/composition/account.contracts.js";
 
 export const identityDeclaration = declareModule({
@@ -13,5 +14,6 @@ export const identityDeclaration = declareModule({
   slots: [
     AccountApiContract.slot("accounts", required()),
     AccountAuthenticationContract.slot("authentication", required()),
+    AccountClosureContract.slot("closures", required()),
   ],
 });

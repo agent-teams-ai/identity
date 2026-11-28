@@ -15,6 +15,57 @@ const required = (name: string): string => {
   assert.ok(value !== undefined && value.length > 0, `Native consumer requires ${name}`);
   return value;
 };
+// Surface only GetTok's fixed domain labels after a NoError assertion in the
+// exact native test. Parsing test2json keeps unrelated output and arbitrary
+// error text private, including labels embedded in provider response bodies.
+const nativeFailureKinds = (output: string): string[] => {
+  const labels = new Map([
+    ["central identity evidence is invalid", "evidence_invalid"],
+    ["central identity session requires authentication", "session_expired"],
+    ["central identity account is not active", "account_inactive"],
+    ["central identity continuity proof is required", "proof_required"],
+    ["central identity observation is stale", "evidence_stale"],
+    ["central identity binding conflicts", "conflict"],
+    ["central identity is unavailable", "unavailable"],
+  ]);
+  const kinds = new Set<string>();
+  let unexpectedError = false;
+  for (const line of output.split("\n")) {
+    let event: unknown;
+    try {
+      event = JSON.parse(line);
+    } catch {
+      unexpectedError = false;
+      continue;
+    }
+    if (
+      event === null ||
+      typeof event !== "object" ||
+      !("Action" in event) ||
+      event.Action !== "output" ||
+      !("Package" in event) ||
+      event.Package !== "github.com/TokenFlux/TokenRouter/internal/app" ||
+      !("Test" in event) ||
+      event.Test !== "TestCentralNativeBFFCookieFlow" ||
+      !("Output" in event) ||
+      typeof event.Output !== "string"
+    ) {
+      unexpectedError = false;
+      continue;
+    }
+    for (const part of event.Output.trimEnd().split("\n")) {
+      const text = part.trim();
+      if (unexpectedError) {
+        const kind = labels.get(text);
+        if (kind !== undefined) {
+          kinds.add(kind);
+        }
+      }
+      unexpectedError = /^Error:\s+Received unexpected error:$/u.test(text);
+    }
+  }
+  return [...kinds];
+};
 const databaseUrl = required("IDENTITY_TEST_DATABASE_URL");
 const database = new URL(databaseUrl);
 assert.ok(
@@ -53,6 +104,7 @@ const server = await startServer({
         policyVersion: "1",
       },
       { kind: "workload", clientId: "gettok-test-workload", consumerId: "gettok" },
+      { kind: "terminal-workload", clientId: "gettok-test-terminal", consumerId: "gettok" },
     ],
   },
 });
@@ -113,6 +165,7 @@ try {
       `${JSON.stringify({
         nativeGetTokConsumer: "failed",
         diagnostics: directory,
+        failureKinds: nativeFailureKinds(diagnostic("stdout")),
         locations: [...new Set(output.match(/[\w./-]+\.go:\d+(?::\d+)?/g) ?? [])],
         stages: [
           ...new Set(
@@ -131,6 +184,7 @@ try {
   );
   let completed = 0;
   let browser = false;
+  let closure = false;
   for (const line of stdout.trim().split("\n")) {
     const event: unknown = JSON.parse(line);
     assert.ok(event !== null && typeof event === "object" && "Action" in event);
@@ -147,16 +201,25 @@ try {
       ) {
         browser = true;
       }
+      if (
+        "Output" in event &&
+        typeof event.Output === "string" &&
+        event.Output.includes('"nativeGetTokClosure":"passed"')
+      ) {
+        closure = true;
+      }
     }
   }
   assert.equal(completed, 1, "The exact native GetTok test must finish successfully once");
   assert.ok(browser, "The actual browser must publish its bounded completion witness");
+  assert.ok(closure, "Actual terminal delivery must publish its bounded closure witness");
   process.stdout.write(
     `${JSON.stringify({
       nativeGetTokConsumer: "passed",
       identity: "production-composition",
       transport: "actual-connect-and-http",
       browser: "actual-chromium",
+      terminalClosure: "passed",
       independentContinuity: "not-admitted",
     })}\n`,
   );

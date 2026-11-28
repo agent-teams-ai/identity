@@ -26,9 +26,21 @@ const workload = await tokenRequest(
 );
 assert.equal(workload.status, 200, "Native workload grant succeeds");
 const workloadBody: unknown = await workload.json();
+const terminal = await tokenRequest(
+  configuration,
+  configuration.terminalClientId,
+  configuration.terminalSecret,
+  {
+    grant_type: "client_credentials",
+    scope: "identity.closure:participate",
+  },
+);
+assert.equal(terminal.status, 200, "Native terminal-purpose grant succeeds");
+const terminalBody: unknown = await terminal.json();
 process.stdout.write(
   JSON.stringify({
     accessToken: requiredToken(humanBody, "access_token"),
     workloadToken: requiredToken(workloadBody, "access_token"),
+    terminalToken: requiredToken(terminalBody, "access_token"),
   }),
 );

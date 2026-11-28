@@ -28,6 +28,8 @@ const requireNativeTests = (output: string): void => {
   const required = new Set([
     "TestStatusWireVector",
     "TestUnknownAndAbsentValuesDoNotBecomeActiveEvidence",
+    "TestClosureReceiptWireVector",
+    "TestClosureReceiptUnknownAndAbsentValuesRemainExplicit",
   ]);
   for (const line of output.split("\n")) {
     const event: unknown = JSON.parse(line);

@@ -11,7 +11,185 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file identity/v1/identity.proto.
  */
 export const file_identity_v1_identity: GenFile = /*@__PURE__*/
-  fileDesc("ChppZGVudGl0eS92MS9pZGVudGl0eS5wcm90bxILaWRlbnRpdHkudjEiLQoSUmVzb2x2ZVNlbGZSZXF1ZXN0EhcKD2lkZW1wb3RlbmN5X2tleRgBIAEoCSIWChRHZXRTZWxmU3RhdHVzUmVxdWVzdCJLChVHZXRTZWxmU3RhdHVzUmVzcG9uc2USMgoGc3RhdHVzGAEgASgLMiIuaWRlbnRpdHkudjEuQWNjb3VudFN0YXR1c0V2aWRlbmNlIkkKF0dldEFjY291bnRTdGF0dXNSZXF1ZXN0Ei4KB2FjY291bnQYASABKAsyHS5pZGVudGl0eS52MS5BY2NvdW50UmVmZXJlbmNlIk4KGEdldEFjY291bnRTdGF0dXNSZXNwb25zZRIyCgZzdGF0dXMYASABKAsyIi5pZGVudGl0eS52MS5BY2NvdW50U3RhdHVzRXZpZGVuY2UiRQoQQWNjb3VudFJlZmVyZW5jZRISCgphY2NvdW50X2lkGAEgASgJEh0KFWF1dGhvcml0eV9pbmNhcm5hdGlvbhgCIAEoCSJ7ChNSZXNvbHZlU2VsZlJlc3BvbnNlEjIKBnN0YXR1cxgBIAEoCzIiLmlkZW50aXR5LnYxLkFjY291bnRTdGF0dXNFdmlkZW5jZRIwCglhZG1pc3Npb24YAiABKAsyHS5pZGVudGl0eS52MS5TZXNzaW9uQWRtaXNzaW9uIrkDChVBY2NvdW50U3RhdHVzRXZpZGVuY2USLgoHYWNjb3VudBgBIAEoCzIdLmlkZW50aXR5LnYxLkFjY291bnRSZWZlcmVuY2USEwoLY29uc3VtZXJfaWQYAiABKAkSNAoLZWxpZ2liaWxpdHkYAyABKA4yHy5pZGVudGl0eS52MS5BY2NvdW50RWxpZ2liaWxpdHkSGAoQYWNjb3VudF9yZXZpc2lvbhgEIAEoBBIWCg5zZWN1cml0eV9lcG9jaBgFIAEoBBI5ChVhdXRoZW50aWNhdGlvbl9jdXRvZmYYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEh0KFWF0dGFjaG1lbnRfZ2VuZXJhdGlvbhgHIAEoBBI3ChNyZWF0dGFjaG1lbnRfY3V0b2ZmGAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIvCgtvYnNlcnZlZF9hdBgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLwoLdmFsaWRfdW50aWwYCiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIvIBChBTZXNzaW9uQWRtaXNzaW9uEhwKFGF1dGhvcml0eV9zZXNzaW9uX2lkGAEgASgJEi4KB3Byb2ZpbGUYAiABKA4yHS5pZGVudGl0eS52MS5BZG1pc3Npb25Qcm9maWxlEhEKCXBvbGljeV9pZBgDIAEoCRIWCg5wb2xpY3lfdmVyc2lvbhgEIAEoDRI0ChBhdXRoZW50aWNhdGVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIvCgt2YWxpZF91bnRpbBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiRwoTSWRlbnRpdHlFcnJvckRldGFpbBIwCgZyZWFzb24YASABKA4yIC5pZGVudGl0eS52MS5JZGVudGl0eUVycm9yUmVhc29uKpwBChJBY2NvdW50RWxpZ2liaWxpdHkSIwofQUNDT1VOVF9FTElHSUJJTElUWV9VTlNQRUNJRklFRBAAEh4KGkFDQ09VTlRfRUxJR0lCSUxJVFlfQUNUSVZFEAESIQodQUNDT1VOVF9FTElHSUJJTElUWV9TVVNQRU5ERUQQAhIeChpBQ0NPVU5UX0VMSUdJQklMSVRZX0NMT1NFRBADKpkBChBBZG1pc3Npb25Qcm9maWxlEiEKHUFETUlTU0lPTl9QUk9GSUxFX1VOU1BFQ0lGSUVEEAASMQotQURNSVNTSU9OX1BST0ZJTEVfUFJPVklERVJfU0VTU0lPTl9DT05UUk9MX1YxEAESLworQURNSVNTSU9OX1BST0ZJTEVfSU5ERVBFTkRFTlRfQ09OVElOVUlUWV9WMRACKtsDChNJZGVudGl0eUVycm9yUmVhc29uEiUKIUlERU5USVRZX0VSUk9SX1JFQVNPTl9VTlNQRUNJRklFRBAAEisKJ0lERU5USVRZX0VSUk9SX1JFQVNPTl9BQ0NPVU5UX1NVU1BFTkRFRBABEigKJElERU5USVRZX0VSUk9SX1JFQVNPTl9BQ0NPVU5UX0NMT1NFRBACEi8KK0lERU5USVRZX0VSUk9SX1JFQVNPTl9SRUFUVEFDSE1FTlRfUkVRVUlSRUQQAxI+CjpJREVOVElUWV9FUlJPUl9SRUFTT05fQVVUSEVOVElDQVRJT05fUkVRVUlSRURfQUZURVJfQ1VUT0ZGEAQSLAooSURFTlRJVFlfRVJST1JfUkVBU09OX0lOU1VGRklDSUVOVF9QUk9PRhAFEisKJ0lERU5USVRZX0VSUk9SX1JFQVNPTl9SRUNPVkVSWV9SRVFVSVJFRBAGEikKJUlERU5USVRZX0VSUk9SX1JFQVNPTl9SRVBBSVJfUkVRVUlSRUQQBxIiCh5JREVOVElUWV9FUlJPUl9SRUFTT05fQ09ORkxJQ1QQCBIrCidJREVOVElUWV9FUlJPUl9SRUFTT05fQURNSVNTSU9OX0VYUElSRUQQCTKcAgoPSWRlbnRpdHlTZXJ2aWNlElAKC1Jlc29sdmVTZWxmEh8uaWRlbnRpdHkudjEuUmVzb2x2ZVNlbGZSZXF1ZXN0GiAuaWRlbnRpdHkudjEuUmVzb2x2ZVNlbGZSZXNwb25zZRJWCg1HZXRTZWxmU3RhdHVzEiEuaWRlbnRpdHkudjEuR2V0U2VsZlN0YXR1c1JlcXVlc3QaIi5pZGVudGl0eS52MS5HZXRTZWxmU3RhdHVzUmVzcG9uc2USXwoQR2V0QWNjb3VudFN0YXR1cxIkLmlkZW50aXR5LnYxLkdldEFjY291bnRTdGF0dXNSZXF1ZXN0GiUuaWRlbnRpdHkudjEuR2V0QWNjb3VudFN0YXR1c1Jlc3BvbnNlQlVaU2dpdGh1Yi5jb20vYWdlbnQtdGVhbXMtYWkvaWRlbnRpdHkvcGFja2FnZXMvY29udHJhY3RzL2dlbi9nby9pZGVudGl0eS92MTtpZGVudGl0eXYxYgZwcm90bzM", [file_google_protobuf_timestamp]);
+  fileDesc("ChppZGVudGl0eS92MS9pZGVudGl0eS5wcm90bxILaWRlbnRpdHkudjEiRQoaTGlzdFBlbmRpbmdDbG9zdXJlc1JlcXVlc3QSDQoFbGltaXQYASABKA0SGAoQYWZ0ZXJfYWNjb3VudF9pZBgCIAEoCSJ8ChtMaXN0UGVuZGluZ0Nsb3N1cmVzUmVzcG9uc2USPgoMcGFydGljaXBhbnRzGAEgAygLMiguaWRlbnRpdHkudjEuQ2xvc3VyZVBhcnRpY2lwYW50UmVmZXJlbmNlEh0KFW5leHRfYWZ0ZXJfYWNjb3VudF9pZBgCIAEoCSJMCiFMaXN0UmVwYWlyUmVxdWlyZWRDbG9zdXJlc1JlcXVlc3QSDQoFbGltaXQYASABKA0SGAoQYWZ0ZXJfYWNjb3VudF9pZBgCIAEoCSKDAQoiTGlzdFJlcGFpclJlcXVpcmVkQ2xvc3VyZXNSZXNwb25zZRI+CgxwYXJ0aWNpcGFudHMYASADKAsyKC5pZGVudGl0eS52MS5DbG9zdXJlUGFydGljaXBhbnRSZWZlcmVuY2USHQoVbmV4dF9hZnRlcl9hY2NvdW50X2lkGAIgASgJIqEBChtDbG9zdXJlUGFydGljaXBhbnRSZWZlcmVuY2USLgoHYWNjb3VudBgBIAEoCzIdLmlkZW50aXR5LnYxLkFjY291bnRSZWZlcmVuY2USGAoQY2xvc3VyZV9yZXZpc2lvbhgCIAEoBBIeChZwYXJ0aWNpcGFudF9nZW5lcmF0aW9uGAMgASgEEhgKEG1hbmlmZXN0X3ZlcnNpb24YBCABKA0iigEKFFJlcG9ydENsb3N1cmVSZXF1ZXN0Ej0KC3BhcnRpY2lwYW50GAEgASgLMiguaWRlbnRpdHkudjEuQ2xvc3VyZVBhcnRpY2lwYW50UmVmZXJlbmNlEjMKB291dGNvbWUYAiABKA4yIi5pZGVudGl0eS52MS5DbG9zdXJlUmVjZWlwdE91dGNvbWUiKQoVUmVwb3J0Q2xvc3VyZVJlc3BvbnNlEhAKCGFjY2VwdGVkGAEgASgIIi0KElJlc29sdmVTZWxmUmVxdWVzdBIXCg9pZGVtcG90ZW5jeV9rZXkYASABKAkiFgoUR2V0U2VsZlN0YXR1c1JlcXVlc3QiSwoVR2V0U2VsZlN0YXR1c1Jlc3BvbnNlEjIKBnN0YXR1cxgBIAEoCzIiLmlkZW50aXR5LnYxLkFjY291bnRTdGF0dXNFdmlkZW5jZSJJChdHZXRBY2NvdW50U3RhdHVzUmVxdWVzdBIuCgdhY2NvdW50GAEgASgLMh0uaWRlbnRpdHkudjEuQWNjb3VudFJlZmVyZW5jZSJOChhHZXRBY2NvdW50U3RhdHVzUmVzcG9uc2USMgoGc3RhdHVzGAEgASgLMiIuaWRlbnRpdHkudjEuQWNjb3VudFN0YXR1c0V2aWRlbmNlIkUKEEFjY291bnRSZWZlcmVuY2USEgoKYWNjb3VudF9pZBgBIAEoCRIdChVhdXRob3JpdHlfaW5jYXJuYXRpb24YAiABKAkiewoTUmVzb2x2ZVNlbGZSZXNwb25zZRIyCgZzdGF0dXMYASABKAsyIi5pZGVudGl0eS52MS5BY2NvdW50U3RhdHVzRXZpZGVuY2USMAoJYWRtaXNzaW9uGAIgASgLMh0uaWRlbnRpdHkudjEuU2Vzc2lvbkFkbWlzc2lvbiK5AwoVQWNjb3VudFN0YXR1c0V2aWRlbmNlEi4KB2FjY291bnQYASABKAsyHS5pZGVudGl0eS52MS5BY2NvdW50UmVmZXJlbmNlEhMKC2NvbnN1bWVyX2lkGAIgASgJEjQKC2VsaWdpYmlsaXR5GAMgASgOMh8uaWRlbnRpdHkudjEuQWNjb3VudEVsaWdpYmlsaXR5EhgKEGFjY291bnRfcmV2aXNpb24YBCABKAQSFgoOc2VjdXJpdHlfZXBvY2gYBSABKAQSOQoVYXV0aGVudGljYXRpb25fY3V0b2ZmGAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIdChVhdHRhY2htZW50X2dlbmVyYXRpb24YByABKAQSNwoTcmVhdHRhY2htZW50X2N1dG9mZhgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLwoLb2JzZXJ2ZWRfYXQYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KC3ZhbGlkX3VudGlsGAogASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCLyAQoQU2Vzc2lvbkFkbWlzc2lvbhIcChRhdXRob3JpdHlfc2Vzc2lvbl9pZBgBIAEoCRIuCgdwcm9maWxlGAIgASgOMh0uaWRlbnRpdHkudjEuQWRtaXNzaW9uUHJvZmlsZRIRCglwb2xpY3lfaWQYAyABKAkSFgoOcG9saWN5X3ZlcnNpb24YBCABKA0SNAoQYXV0aGVudGljYXRlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLwoLdmFsaWRfdW50aWwYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIkcKE0lkZW50aXR5RXJyb3JEZXRhaWwSMAoGcmVhc29uGAEgASgOMiAuaWRlbnRpdHkudjEuSWRlbnRpdHlFcnJvclJlYXNvbiruAQoVQ2xvc3VyZVJlY2VpcHRPdXRjb21lEicKI0NMT1NVUkVfUkVDRUlQVF9PVVRDT01FX1VOU1BFQ0lGSUVEEAASKwonQ0xPU1VSRV9SRUNFSVBUX09VVENPTUVfTk9UX1BST1ZJU0lPTkVEEAESIgoeQ0xPU1VSRV9SRUNFSVBUX09VVENPTUVfRVJBU0VEEAISLgoqQ0xPU1VSRV9SRUNFSVBUX09VVENPTUVfUkVUQUlORURfQllfUE9MSUNZEAMSKwonQ0xPU1VSRV9SRUNFSVBUX09VVENPTUVfUkVQQUlSX1JFUVVJUkVEEAQqnAEKEkFjY291bnRFbGlnaWJpbGl0eRIjCh9BQ0NPVU5UX0VMSUdJQklMSVRZX1VOU1BFQ0lGSUVEEAASHgoaQUNDT1VOVF9FTElHSUJJTElUWV9BQ1RJVkUQARIhCh1BQ0NPVU5UX0VMSUdJQklMSVRZX1NVU1BFTkRFRBACEh4KGkFDQ09VTlRfRUxJR0lCSUxJVFlfQ0xPU0VEEAMqmQEKEEFkbWlzc2lvblByb2ZpbGUSIQodQURNSVNTSU9OX1BST0ZJTEVfVU5TUEVDSUZJRUQQABIxCi1BRE1JU1NJT05fUFJPRklMRV9QUk9WSURFUl9TRVNTSU9OX0NPTlRST0xfVjEQARIvCitBRE1JU1NJT05fUFJPRklMRV9JTkRFUEVOREVOVF9DT05USU5VSVRZX1YxEAIq2wMKE0lkZW50aXR5RXJyb3JSZWFzb24SJQohSURFTlRJVFlfRVJST1JfUkVBU09OX1VOU1BFQ0lGSUVEEAASKwonSURFTlRJVFlfRVJST1JfUkVBU09OX0FDQ09VTlRfU1VTUEVOREVEEAESKAokSURFTlRJVFlfRVJST1JfUkVBU09OX0FDQ09VTlRfQ0xPU0VEEAISLworSURFTlRJVFlfRVJST1JfUkVBU09OX1JFQVRUQUNITUVOVF9SRVFVSVJFRBADEj4KOklERU5USVRZX0VSUk9SX1JFQVNPTl9BVVRIRU5USUNBVElPTl9SRVFVSVJFRF9BRlRFUl9DVVRPRkYQBBIsCihJREVOVElUWV9FUlJPUl9SRUFTT05fSU5TVUZGSUNJRU5UX1BST09GEAUSKwonSURFTlRJVFlfRVJST1JfUkVBU09OX1JFQ09WRVJZX1JFUVVJUkVEEAYSKQolSURFTlRJVFlfRVJST1JfUkVBU09OX1JFUEFJUl9SRVFVSVJFRBAHEiIKHklERU5USVRZX0VSUk9SX1JFQVNPTl9DT05GTElDVBAIEisKJ0lERU5USVRZX0VSUk9SX1JFQVNPTl9BRE1JU1NJT05fRVhQSVJFRBAJMpwCCg9JZGVudGl0eVNlcnZpY2USUAoLUmVzb2x2ZVNlbGYSHy5pZGVudGl0eS52MS5SZXNvbHZlU2VsZlJlcXVlc3QaIC5pZGVudGl0eS52MS5SZXNvbHZlU2VsZlJlc3BvbnNlElYKDUdldFNlbGZTdGF0dXMSIS5pZGVudGl0eS52MS5HZXRTZWxmU3RhdHVzUmVxdWVzdBoiLmlkZW50aXR5LnYxLkdldFNlbGZTdGF0dXNSZXNwb25zZRJfChBHZXRBY2NvdW50U3RhdHVzEiQuaWRlbnRpdHkudjEuR2V0QWNjb3VudFN0YXR1c1JlcXVlc3QaJS5pZGVudGl0eS52MS5HZXRBY2NvdW50U3RhdHVzUmVzcG9uc2Uy2QIKFklkZW50aXR5Q2xvc3VyZVNlcnZpY2USaAoTTGlzdFBlbmRpbmdDbG9zdXJlcxInLmlkZW50aXR5LnYxLkxpc3RQZW5kaW5nQ2xvc3VyZXNSZXF1ZXN0GiguaWRlbnRpdHkudjEuTGlzdFBlbmRpbmdDbG9zdXJlc1Jlc3BvbnNlEn0KGkxpc3RSZXBhaXJSZXF1aXJlZENsb3N1cmVzEi4uaWRlbnRpdHkudjEuTGlzdFJlcGFpclJlcXVpcmVkQ2xvc3VyZXNSZXF1ZXN0Gi8uaWRlbnRpdHkudjEuTGlzdFJlcGFpclJlcXVpcmVkQ2xvc3VyZXNSZXNwb25zZRJWCg1SZXBvcnRDbG9zdXJlEiEuaWRlbnRpdHkudjEuUmVwb3J0Q2xvc3VyZVJlcXVlc3QaIi5pZGVudGl0eS52MS5SZXBvcnRDbG9zdXJlUmVzcG9uc2VCVVpTZ2l0aHViLmNvbS9hZ2VudC10ZWFtcy1haS9pZGVudGl0eS9wYWNrYWdlcy9jb250cmFjdHMvZ2VuL2dvL2lkZW50aXR5L3YxO2lkZW50aXR5djFiBnByb3RvMw", [file_google_protobuf_timestamp]);
+
+/**
+ * @generated from message identity.v1.ListPendingClosuresRequest
+ */
+export type ListPendingClosuresRequest = Message<"identity.v1.ListPendingClosuresRequest"> & {
+  /**
+   * Explicit bounded page size: 1..16. No unbounded/default directory scan.
+   *
+   * @generated from field: uint32 limit = 1;
+   */
+  limit: number;
+
+  /**
+   * Last account ID from a previous page, or empty to start a new sweep.
+   *
+   * @generated from field: string after_account_id = 2;
+   */
+  afterAccountId: string;
+};
+
+/**
+ * Describes the message identity.v1.ListPendingClosuresRequest.
+ * Use `create(ListPendingClosuresRequestSchema)` to create a new message.
+ */
+export const ListPendingClosuresRequestSchema: GenMessage<ListPendingClosuresRequest> = /*@__PURE__*/
+  messageDesc(file_identity_v1_identity, 0);
+
+/**
+ * @generated from message identity.v1.ListPendingClosuresResponse
+ */
+export type ListPendingClosuresResponse = Message<"identity.v1.ListPendingClosuresResponse"> & {
+  /**
+   * @generated from field: repeated identity.v1.ClosureParticipantReference participants = 1;
+   */
+  participants: ClosureParticipantReference[];
+
+  /**
+   * Empty when the bounded page is exhausted. A full final page may be followed
+   * by an empty page. Restart a later sweep; paging never settles obligations.
+   *
+   * @generated from field: string next_after_account_id = 2;
+   */
+  nextAfterAccountId: string;
+};
+
+/**
+ * Describes the message identity.v1.ListPendingClosuresResponse.
+ * Use `create(ListPendingClosuresResponseSchema)` to create a new message.
+ */
+export const ListPendingClosuresResponseSchema: GenMessage<ListPendingClosuresResponse> = /*@__PURE__*/
+  messageDesc(file_identity_v1_identity, 1);
+
+/**
+ * @generated from message identity.v1.ListRepairRequiredClosuresRequest
+ */
+export type ListRepairRequiredClosuresRequest = Message<"identity.v1.ListRepairRequiredClosuresRequest"> & {
+  /**
+   * @generated from field: uint32 limit = 1;
+   */
+  limit: number;
+
+  /**
+   * @generated from field: string after_account_id = 2;
+   */
+  afterAccountId: string;
+};
+
+/**
+ * Describes the message identity.v1.ListRepairRequiredClosuresRequest.
+ * Use `create(ListRepairRequiredClosuresRequestSchema)` to create a new message.
+ */
+export const ListRepairRequiredClosuresRequestSchema: GenMessage<ListRepairRequiredClosuresRequest> = /*@__PURE__*/
+  messageDesc(file_identity_v1_identity, 2);
+
+/**
+ * @generated from message identity.v1.ListRepairRequiredClosuresResponse
+ */
+export type ListRepairRequiredClosuresResponse = Message<"identity.v1.ListRepairRequiredClosuresResponse"> & {
+  /**
+   * @generated from field: repeated identity.v1.ClosureParticipantReference participants = 1;
+   */
+  participants: ClosureParticipantReference[];
+
+  /**
+   * @generated from field: string next_after_account_id = 2;
+   */
+  nextAfterAccountId: string;
+};
+
+/**
+ * Describes the message identity.v1.ListRepairRequiredClosuresResponse.
+ * Use `create(ListRepairRequiredClosuresResponseSchema)` to create a new message.
+ */
+export const ListRepairRequiredClosuresResponseSchema: GenMessage<ListRepairRequiredClosuresResponse> = /*@__PURE__*/
+  messageDesc(file_identity_v1_identity, 3);
+
+/**
+ * @generated from message identity.v1.ClosureParticipantReference
+ */
+export type ClosureParticipantReference = Message<"identity.v1.ClosureParticipantReference"> & {
+  /**
+   * @generated from field: identity.v1.AccountReference account = 1;
+   */
+  account?: AccountReference | undefined;
+
+  /**
+   * (authority incarnation, account ID, closure revision) identifies the
+   * existing terminal operation. This is not a new operation/authority ledger.
+   *
+   * @generated from field: uint64 closure_revision = 2;
+   */
+  closureRevision: bigint;
+
+  /**
+   * @generated from field: uint64 participant_generation = 3;
+   */
+  participantGeneration: bigint;
+
+  /**
+   * Version 1 is the captured manifest contract. Unknown/zero versions deny.
+   *
+   * @generated from field: uint32 manifest_version = 4;
+   */
+  manifestVersion: number;
+};
+
+/**
+ * Describes the message identity.v1.ClosureParticipantReference.
+ * Use `create(ClosureParticipantReferenceSchema)` to create a new message.
+ */
+export const ClosureParticipantReferenceSchema: GenMessage<ClosureParticipantReference> = /*@__PURE__*/
+  messageDesc(file_identity_v1_identity, 4);
+
+/**
+ * @generated from message identity.v1.ReportClosureRequest
+ */
+export type ReportClosureRequest = Message<"identity.v1.ReportClosureRequest"> & {
+  /**
+   * @generated from field: identity.v1.ClosureParticipantReference participant = 1;
+   */
+  participant?: ClosureParticipantReference | undefined;
+
+  /**
+   * Before NOT_PROVISIONED/ERASED the product commits its own closed-account
+   * fence and settles late provisioning/effects. This API records the product's
+   * exact assertion; it neither deletes product data nor proves physical erasure.
+   *
+   * @generated from field: identity.v1.ClosureReceiptOutcome outcome = 2;
+   */
+  outcome: ClosureReceiptOutcome;
+};
+
+/**
+ * Describes the message identity.v1.ReportClosureRequest.
+ * Use `create(ReportClosureRequestSchema)` to create a new message.
+ */
+export const ReportClosureRequestSchema: GenMessage<ReportClosureRequest> = /*@__PURE__*/
+  messageDesc(file_identity_v1_identity, 5);
+
+/**
+ * @generated from message identity.v1.ReportClosureResponse
+ */
+export type ReportClosureResponse = Message<"identity.v1.ReportClosureResponse"> & {
+  /**
+   * True only for the exact accepted outcome or its identical replay. Unknown,
+   * foreign, stale or conflicting reports receive one non-enumerating denial.
+   *
+   * @generated from field: bool accepted = 1;
+   */
+  accepted: boolean;
+};
+
+/**
+ * Describes the message identity.v1.ReportClosureResponse.
+ * Use `create(ReportClosureResponseSchema)` to create a new message.
+ */
+export const ReportClosureResponseSchema: GenMessage<ReportClosureResponse> = /*@__PURE__*/
+  messageDesc(file_identity_v1_identity, 6);
 
 /**
  * @generated from message identity.v1.ResolveSelfRequest
@@ -31,7 +209,7 @@ export type ResolveSelfRequest = Message<"identity.v1.ResolveSelfRequest"> & {
  * Use `create(ResolveSelfRequestSchema)` to create a new message.
  */
 export const ResolveSelfRequestSchema: GenMessage<ResolveSelfRequest> = /*@__PURE__*/
-  messageDesc(file_identity_v1_identity, 0);
+  messageDesc(file_identity_v1_identity, 7);
 
 /**
  * @generated from message identity.v1.GetSelfStatusRequest
@@ -44,7 +222,7 @@ export type GetSelfStatusRequest = Message<"identity.v1.GetSelfStatusRequest"> &
  * Use `create(GetSelfStatusRequestSchema)` to create a new message.
  */
 export const GetSelfStatusRequestSchema: GenMessage<GetSelfStatusRequest> = /*@__PURE__*/
-  messageDesc(file_identity_v1_identity, 1);
+  messageDesc(file_identity_v1_identity, 8);
 
 /**
  * @generated from message identity.v1.GetSelfStatusResponse
@@ -61,7 +239,7 @@ export type GetSelfStatusResponse = Message<"identity.v1.GetSelfStatusResponse">
  * Use `create(GetSelfStatusResponseSchema)` to create a new message.
  */
 export const GetSelfStatusResponseSchema: GenMessage<GetSelfStatusResponse> = /*@__PURE__*/
-  messageDesc(file_identity_v1_identity, 2);
+  messageDesc(file_identity_v1_identity, 9);
 
 /**
  * @generated from message identity.v1.GetAccountStatusRequest
@@ -78,7 +256,7 @@ export type GetAccountStatusRequest = Message<"identity.v1.GetAccountStatusReque
  * Use `create(GetAccountStatusRequestSchema)` to create a new message.
  */
 export const GetAccountStatusRequestSchema: GenMessage<GetAccountStatusRequest> = /*@__PURE__*/
-  messageDesc(file_identity_v1_identity, 3);
+  messageDesc(file_identity_v1_identity, 10);
 
 /**
  * @generated from message identity.v1.GetAccountStatusResponse
@@ -95,7 +273,7 @@ export type GetAccountStatusResponse = Message<"identity.v1.GetAccountStatusResp
  * Use `create(GetAccountStatusResponseSchema)` to create a new message.
  */
 export const GetAccountStatusResponseSchema: GenMessage<GetAccountStatusResponse> = /*@__PURE__*/
-  messageDesc(file_identity_v1_identity, 4);
+  messageDesc(file_identity_v1_identity, 11);
 
 /**
  * @generated from message identity.v1.AccountReference
@@ -119,7 +297,7 @@ export type AccountReference = Message<"identity.v1.AccountReference"> & {
  * Use `create(AccountReferenceSchema)` to create a new message.
  */
 export const AccountReferenceSchema: GenMessage<AccountReference> = /*@__PURE__*/
-  messageDesc(file_identity_v1_identity, 5);
+  messageDesc(file_identity_v1_identity, 12);
 
 /**
  * @generated from message identity.v1.ResolveSelfResponse
@@ -141,7 +319,7 @@ export type ResolveSelfResponse = Message<"identity.v1.ResolveSelfResponse"> & {
  * Use `create(ResolveSelfResponseSchema)` to create a new message.
  */
 export const ResolveSelfResponseSchema: GenMessage<ResolveSelfResponse> = /*@__PURE__*/
-  messageDesc(file_identity_v1_identity, 6);
+  messageDesc(file_identity_v1_identity, 13);
 
 /**
  * An authenticated observation, not a token. An ACTIVE value only permits use
@@ -210,7 +388,7 @@ export type AccountStatusEvidence = Message<"identity.v1.AccountStatusEvidence">
  * Use `create(AccountStatusEvidenceSchema)` to create a new message.
  */
 export const AccountStatusEvidenceSchema: GenMessage<AccountStatusEvidence> = /*@__PURE__*/
-  messageDesc(file_identity_v1_identity, 7);
+  messageDesc(file_identity_v1_identity, 14);
 
 /**
  * Issuance facts pinned to one product session together with status epochs and
@@ -262,7 +440,7 @@ export type SessionAdmission = Message<"identity.v1.SessionAdmission"> & {
  * Use `create(SessionAdmissionSchema)` to create a new message.
  */
 export const SessionAdmissionSchema: GenMessage<SessionAdmission> = /*@__PURE__*/
-  messageDesc(file_identity_v1_identity, 8);
+  messageDesc(file_identity_v1_identity, 15);
 
 /**
  * @generated from message identity.v1.IdentityErrorDetail
@@ -279,7 +457,46 @@ export type IdentityErrorDetail = Message<"identity.v1.IdentityErrorDetail"> & {
  * Use `create(IdentityErrorDetailSchema)` to create a new message.
  */
 export const IdentityErrorDetailSchema: GenMessage<IdentityErrorDetail> = /*@__PURE__*/
-  messageDesc(file_identity_v1_identity, 9);
+  messageDesc(file_identity_v1_identity, 16);
+
+/**
+ * @generated from enum identity.v1.ClosureReceiptOutcome
+ */
+export enum ClosureReceiptOutcome {
+  /**
+   * @generated from enum value: CLOSURE_RECEIPT_OUTCOME_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: CLOSURE_RECEIPT_OUTCOME_NOT_PROVISIONED = 1;
+   */
+  NOT_PROVISIONED = 1,
+
+  /**
+   * @generated from enum value: CLOSURE_RECEIPT_OUTCOME_ERASED = 2;
+   */
+  ERASED = 2,
+
+  /**
+   * Reserved semantics: rejected until retention class/obligation/owner evidence
+   * is qualified. It must never stand in for complete erasure.
+   *
+   * @generated from enum value: CLOSURE_RECEIPT_OUTCOME_RETAINED_BY_POLICY = 3;
+   */
+  RETAINED_BY_POLICY = 3,
+
+  /**
+   * @generated from enum value: CLOSURE_RECEIPT_OUTCOME_REPAIR_REQUIRED = 4;
+   */
+  REPAIR_REQUIRED = 4,
+}
+
+/**
+ * Describes the enum identity.v1.ClosureReceiptOutcome.
+ */
+export const ClosureReceiptOutcomeSchema: GenEnum<ClosureReceiptOutcome> = /*@__PURE__*/
+  enumDesc(file_identity_v1_identity, 0);
 
 /**
  * @generated from enum identity.v1.AccountEligibility
@@ -310,7 +527,7 @@ export enum AccountEligibility {
  * Describes the enum identity.v1.AccountEligibility.
  */
 export const AccountEligibilitySchema: GenEnum<AccountEligibility> = /*@__PURE__*/
-  enumDesc(file_identity_v1_identity, 0);
+  enumDesc(file_identity_v1_identity, 1);
 
 /**
  * @generated from enum identity.v1.AdmissionProfile
@@ -339,7 +556,7 @@ export enum AdmissionProfile {
  * Describes the enum identity.v1.AdmissionProfile.
  */
 export const AdmissionProfileSchema: GenEnum<AdmissionProfile> = /*@__PURE__*/
-  enumDesc(file_identity_v1_identity, 1);
+  enumDesc(file_identity_v1_identity, 2);
 
 /**
  * Stable, non-sensitive Connect error detail. Unknown reasons fail closed.
@@ -403,7 +620,7 @@ export enum IdentityErrorReason {
  * Describes the enum identity.v1.IdentityErrorReason.
  */
 export const IdentityErrorReasonSchema: GenEnum<IdentityErrorReason> = /*@__PURE__*/
-  enumDesc(file_identity_v1_identity, 2);
+  enumDesc(file_identity_v1_identity, 3);
 
 /**
  * An internal TEST candidate. Credentials belong in authenticated RPC metadata,
@@ -446,4 +663,39 @@ export const IdentityService: GenService<{
   },
 }> = /*@__PURE__*/
   serviceDesc(file_identity_v1_identity, 0);
+
+/**
+ * A separately admitted workload client with terminal-purpose permission only.
+ * Consumer identity comes from authenticated server configuration, never a body.
+ * Detached participants retain only their own frozen obligation/reporting scope.
+ *
+ * @generated from service identity.v1.IdentityClosureService
+ */
+export const IdentityClosureService: GenService<{
+  /**
+   * @generated from rpc identity.v1.IdentityClosureService.ListPendingClosures
+   */
+  listPendingClosures: {
+    methodKind: "unary";
+    input: typeof ListPendingClosuresRequestSchema;
+    output: typeof ListPendingClosuresResponseSchema;
+  },
+  /**
+   * @generated from rpc identity.v1.IdentityClosureService.ListRepairRequiredClosures
+   */
+  listRepairRequiredClosures: {
+    methodKind: "unary";
+    input: typeof ListRepairRequiredClosuresRequestSchema;
+    output: typeof ListRepairRequiredClosuresResponseSchema;
+  },
+  /**
+   * @generated from rpc identity.v1.IdentityClosureService.ReportClosure
+   */
+  reportClosure: {
+    methodKind: "unary";
+    input: typeof ReportClosureRequestSchema;
+    output: typeof ReportClosureResponseSchema;
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_identity_v1_identity, 1);
 

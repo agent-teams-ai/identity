@@ -13,7 +13,11 @@ export type AdmittedKeycloakClient =
       readonly providerControlPolicyId: string;
       readonly policyVersion: string;
     }
-  | { readonly kind: "workload"; readonly clientId: string; readonly consumerId: string };
+  | {
+      readonly kind: "workload" | "terminal-workload";
+      readonly clientId: string;
+      readonly consumerId: string;
+    };
 
 export interface KeycloakAuthenticationConfig {
   readonly issuer: string;
@@ -72,7 +76,7 @@ const requireScope = (payload: JWTPayload, scope: string): void => {
 };
 
 const requireClientKind = (value: unknown): void => {
-  if (value !== "human" && value !== "workload") {
+  if (value !== "human" && value !== "workload" && value !== "terminal-workload") {
     throw new TypeError("Invalid admitted client kind");
   }
 };
@@ -99,6 +103,12 @@ export const admittedClients = (
     requireClientKind(client.kind);
     requiredString(client.clientId);
     requiredString(client.consumerId);
+    if (
+      client.kind === "terminal-workload" &&
+      !/^[a-z0-9][a-z0-9._-]{0,127}$/u.test(client.consumerId)
+    ) {
+      throw new TypeError("Invalid terminal consumer identity");
+    }
     if (clients.has(client.clientId)) {
       throw new TypeError("Duplicate admitted client");
     }
@@ -194,9 +204,12 @@ export const normalizeKeycloakActor = (
   if (client.kind === "human") {
     return humanActor(payload, client, configuration, observedAtMs, dates);
   }
-  requireScope(payload, "identity.status:read");
+  requireScope(
+    payload,
+    client.kind === "terminal-workload" ? "identity.closure:participate" : "identity.status:read",
+  );
   return {
-    kind: "workload",
+    kind: client.kind,
     clientId: client.clientId,
     consumerId: client.consumerId,
     credentialExpiresAtMs: dates.expiresAtMs,

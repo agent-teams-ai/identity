@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { after, before, beforeEach, test } from "node:test";
 import { Pool } from "pg";
 import { createAccounts } from "../../../src/features/account/adapters/inbound/direct-api.js";
+import { createPostgresOutboxDelivery } from "../../../src/features/account/adapters/outbound/postgres-outbox.js";
 import { createPostgresAccountStore } from "../../../src/features/account/adapters/outbound/postgres-store.js";
 import { AccountFailure } from "../../../src/features/account/domain/model.js";
 import type {
@@ -14,6 +15,8 @@ import type {
   VerifiedHuman,
   VerifiedWorkload,
 } from "../../../src/features/account/domain/authority.js";
+import { registerOutboxTests } from "./postgres-outbox.tests.js";
+import { registerClosureApiTests } from "./postgres-closure-api.tests.js";
 
 const connectionString = process.env.IDENTITY_TEST_DATABASE_URL;
 if (connectionString === undefined || new URL(connectionString).pathname !== "/identity_test") {
@@ -322,5 +325,73 @@ void test(
       "SELECT consumer_id FROM identity_closure_participants",
     );
     assert.deepEqual(participants.rows, [{ consumer_id: "gettok" }]);
+  },
+);
+
+registerOutboxTests({ pool, replica, accounts, human, workload });
+registerClosureApiTests({ pool, replica, accounts, human });
+
+void test(
+  "outbox acknowledgement refuses a held row lock without waiting or publishing",
+  { timeout: 10_000 },
+  async () => {
+    await accounts.api.resolveSelf(human(), "outbox-lock-ack-admission");
+    const primary = createPostgresOutboxDelivery(pool, "gettok");
+    const claim = await primary.claimNext(60_000);
+    assert.ok(claim !== undefined);
+    const boundedReplica = new Pool({
+      connectionString,
+      max: 1,
+      connectionTimeoutMillis: 2_000,
+      query_timeout: 5_000,
+      options: "-c lock_timeout=500ms -c statement_timeout=2000ms",
+    });
+    const worker = createPostgresOutboxDelivery(boundedReplica, "gettok");
+    const blocker = await pool.connect();
+    try {
+      await blocker.query("BEGIN");
+      try {
+        const locked = await blocker.query(
+          "SELECT event_id FROM identity_outbox WHERE event_id = $1 FOR UPDATE",
+          [claim.eventId],
+        );
+        assert.equal(locked.rows.length, 1);
+        // Prove actual contention without updating the tuple. The old UPDATE
+        // waits here and fails lock_timeout instead of returning a safe refusal.
+        await assert.rejects(
+          boundedReplica.query(
+            "SELECT event_id FROM identity_outbox WHERE event_id = $1 FOR UPDATE NOWAIT",
+            [claim.eventId],
+          ),
+          { code: "55P03" },
+        );
+        assert.equal(await worker.acknowledge(claim), false);
+        const unchanged = await blocker.query<{
+          readonly claim_generation: string;
+          readonly claimed_until_ms: string;
+          readonly published_at_ms: string | null;
+          readonly lease_live: boolean;
+        }>(
+          `SELECT claim_generation, claimed_until_ms, published_at_ms,
+            claimed_until_ms > floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint AS lease_live
+          FROM identity_outbox WHERE event_id = $1`,
+          [claim.eventId],
+        );
+        assert.deepEqual(unchanged.rows, [
+          {
+            claim_generation: claim.claimGeneration.toString(),
+            claimed_until_ms: claim.leaseUntilMs.toString(),
+            published_at_ms: null,
+            lease_live: true,
+          },
+        ]);
+      } finally {
+        await blocker.query("ROLLBACK");
+      }
+      assert.equal(await worker.acknowledge(claim), true, "The same live claim can retry");
+    } finally {
+      blocker.release();
+      await boundedReplica.end();
+    }
   },
 );
