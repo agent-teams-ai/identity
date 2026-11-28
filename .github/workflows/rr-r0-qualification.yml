@@ -1,0 +1,449 @@
+# Helper-only qualification of an immutable, reviewed R0 fixture. The eventual
+# consumer workflow must read ordinary checked-in source, without this overlay.
+name: Review Router R0 Native Qualification
+
+on:
+  push:
+    branches: [qualification/rr-r0-20261128]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rr-r0-qualification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    if: github.repository == 'agent-teams-ai/identity'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    services:
+      consumer-postgres:
+        image: postgres:17.5-bookworm@sha256:fbcea1bd13b6a882cd6caa6b58db3ae5c102efe50ec625b3e2a5cbc50db5bfe4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: review_router_identity_r0_test
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d review_router_identity_r0_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+      producer-postgres:
+        image: postgres:18.7-bookworm@sha256:e742a2668255221388004f3a42b6150a2103f5054ab3a4a93ae9e4f01e551c35
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: identity_r0_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d identity_r0_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      SOURCE_REVISION: 788c0f5b64057366abb72f3aad8a8fad7932e48f
+      PRODUCER_REVISION: a5cb13ddcf8208aba4aafea4cb5e42aa7fff70e6
+      CANDIDATE_BLOB_SHA: a03bd2414ef1e9f7bae1603a4e8c2062c35dcf82
+      CANDIDATE_SHA256: 2c69a2da2075488638c8cca861fda0132d71dd9bada037101e0d63be2dd18eba
+      REVIEWED_BLOB_SHA: b97e1392debd5b6e6280b00ab341192c59e677b2
+      REVIEWED_SHA256: 29656727ad58975435cf96c313db19433f2a2b9613c0ede887be0727784b4d32
+      NEXT_TELEMETRY_DISABLED: "1"
+      RR_R0_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5433/review_router_identity_r0_test
+      RR_R0_IDENTITY_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/identity_r0_test
+      RR_R0_KEYCLOAK_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/keycloak_identity_r0_test
+      CANDIDATE_PATHS: |
+        scripts/identity-r0-e2e/README.md
+        scripts/identity-r0-e2e/app/api/auth/[...nextauth]/route.ts
+        scripts/identity-r0-e2e/app/layout.tsx
+        scripts/identity-r0-e2e/app/page.tsx
+        scripts/identity-r0-e2e/package.json
+        scripts/identity-r0-e2e/prepare-contracts.ts
+        scripts/identity-r0-e2e/src/adapter.ts
+        scripts/identity-r0-e2e/src/admission.ts
+        scripts/identity-r0-e2e/src/auth-options.ts
+        scripts/identity-r0-e2e/src/browser.ts
+        scripts/identity-r0-e2e/src/config.ts
+        scripts/identity-r0-e2e/src/native.ts
+        scripts/identity-r0-e2e/src/process.ts
+        scripts/identity-r0-e2e/src/realm.ts
+        scripts/identity-r0-e2e/src/schema.sql
+        scripts/identity-r0-e2e/src/source-custody.ts
+        scripts/identity-r0-e2e/src/transaction.ts
+        scripts/identity-r0-e2e/tsconfig.json
+    steps:
+      - name: Check out the exact consumer baseline
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: 777genius/review-router-ai
+          ref: 788c0f5b64057366abb72f3aad8a8fad7932e48f
+          path: review-router
+          persist-credentials: false
+      - name: Check out the qualified Identity producer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: agent-teams-ai/identity
+          ref: a5cb13ddcf8208aba4aafea4cb5e42aa7fff70e6
+          path: identity
+          persist-credentials: false
+      - name: Verify both immutable inputs before materializing the fixture
+        id: candidate
+        env:
+          CANDIDATE_READ_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in CANDIDATE REVIEWED; do
+            blob_name="${name}_BLOB_SHA"
+            digest_name="${name}_SHA256"
+            [[ "${!blob_name}" =~ ^[0-9a-f]{40}$ ]]
+            [[ "${!digest_name}" =~ ^[0-9a-f]{64}$ ]]
+            curl --fail --silent --show-error --proto '=https' --tlsv1.2 \
+              --connect-timeout 10 --max-time 60 --max-filesize 4194304 \
+              -H "Authorization: Bearer $CANDIDATE_READ_TOKEN" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              --output "$RUNNER_TEMP/rr-r0-${name}-response.json" \
+              "https://api.github.com/repos/agent-teams-ai/identity/git/blobs/${!blob_name}"
+          done
+          unset CANDIDATE_READ_TOKEN
+          python3 - <<'PY'
+          import base64, hashlib, json, os, stat, subprocess
+          from pathlib import Path
+
+          temporary = Path(os.environ["RUNNER_TEMP"])
+          artifact = temporary / "rr-r0-native-artifact"
+          artifact.mkdir()
+          root = Path("review-router").resolve()
+          producer = Path("identity").resolve()
+
+          def git(directory, *args):
+              return subprocess.check_output(["git", *args], cwd=directory)
+
+          def blob(data):
+              return hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+
+          def immutable(name):
+              response = json.loads((temporary / ("rr-r0-" + name + "-response.json")).read_bytes())
+              assert response["encoding"] == "base64"
+              data = base64.b64decode("".join(response["content"].split()), validate=True)
+              assert len(data) <= 1_048_576
+              assert blob(data) == os.environ[name + "_BLOB_SHA"]
+              assert hashlib.sha256(data).hexdigest() == os.environ[name + "_SHA256"]
+              return data
+
+          candidate_bytes = immutable("CANDIDATE")
+          reviewed_bytes = immutable("REVIEWED")
+          candidate = json.loads(candidate_bytes)
+          reviewed = json.loads(reviewed_bytes)
+          assert set(candidate) == {"repository", "baseCommit", "files"}
+          assert candidate["repository"] == reviewed["repository"] == "777genius/review-router-ai"
+          assert candidate["baseCommit"] == reviewed["repositoryBaseCommit"] == os.environ["SOURCE_REVISION"]
+          assert reviewed["identityProducerCommit"] == os.environ["PRODUCER_REVISION"]
+          assert reviewed["payloadSha256"] == os.environ["CANDIDATE_SHA256"]
+          assert reviewed["payloadGitBlobSha"] == os.environ["CANDIDATE_BLOB_SHA"]
+          paths = os.environ["CANDIDATE_PATHS"].splitlines()
+          assert len(paths) == len(set(paths)) == 18
+          assert all(path.startswith("scripts/identity-r0-e2e/") and ".." not in Path(path).parts for path in paths)
+          assert len(candidate["files"]) == len(reviewed["files"]) == len(paths)
+          assert {item["path"] for item in candidate["files"]} == {item["path"] for item in reviewed["files"]} == set(paths)
+          expected = {item["path"]: item for item in reviewed["files"]}
+
+          def snapshot(directory, revision):
+              assert git(directory, "rev-parse", "HEAD").decode().strip() == revision
+              assert not git(directory, "status", "--porcelain")
+              files = {}
+              for entry in git(directory, "ls-tree", "-rz", "HEAD").split(b"\0"):
+                  if not entry:
+                      continue
+                  metadata, encoded = entry.split(b"\t", 1)
+                  mode, kind, identity = metadata.decode().split()
+                  path = encoded.decode()
+                  assert kind == "blob" and mode in {"100644", "100755"}
+                  target = directory / path
+                  assert not any(parent.is_symlink() for parent in [target, *target.parents])
+                  data = target.read_bytes()
+                  assert blob(data) == identity
+                  assert stat.S_IMODE(target.stat().st_mode) == int(mode[-3:], 8)
+                  files[path] = {"gitBlobSha": identity, "mode": mode, "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)}
+              return {"commit": revision, "tree": git(directory, "rev-parse", "HEAD^{tree}").decode().strip(), "files": files}
+
+          inputs = {
+              "helperCommit": os.environ["GITHUB_SHA"],
+              "consumer": snapshot(root, os.environ["SOURCE_REVISION"]),
+              "producer": snapshot(producer, os.environ["PRODUCER_REVISION"]),
+              "candidateBlobSha": os.environ["CANDIDATE_BLOB_SHA"],
+              "candidateSha256": os.environ["CANDIDATE_SHA256"],
+              "reviewedBlobSha": os.environ["REVIEWED_BLOB_SHA"],
+              "reviewedSha256": os.environ["REVIEWED_SHA256"],
+              "submitted": reviewed["files"],
+          }
+          for item in candidate["files"]:
+              assert set(item) == {"path", "content"} and isinstance(item["content"], str)
+              path = item["path"]
+              target = root / path
+              assert expected[path]["repositoryBaseBlobSha"] is None
+              assert not git(root, "ls-tree", "-z", "HEAD", "--", path)
+              assert not target.exists() and not any(parent.is_symlink() for parent in [target, *target.parents])
+              assert subprocess.run(["git", "check-ignore", "-q", "--", path], cwd=root).returncode == 1
+              data = item["content"].encode()
+              assert len(data) == expected[path]["bytes"] <= 65_536
+              assert blob(data) == expected[path]["gitBlobSha"]
+              assert hashlib.sha256(data).hexdigest() == expected[path]["sha256"]
+          # Verify all originals, path ownership and candidate bytes before the first write.
+          for item in candidate["files"]:
+              target = root / item["path"]
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_bytes(item["content"].encode())
+              target.chmod(0o644)
+          for name, data in [("source-inputs.json", (json.dumps(inputs, indent=2) + "\n").encode()), ("reviewed-inputs.json", reviewed_bytes)]:
+              assert len(data) <= 4_194_304
+              (artifact / name).write_bytes(data)
+          with Path(os.environ["GITHUB_ENV"]).open("a") as environment:
+              environment.write("RR_R0_IDENTITY_ROOT=" + str(producer) + "\n")
+              environment.write("RR_R0_REVIEWED_INPUTS=" + str(artifact / "reviewed-inputs.json") + "\n")
+              environment.write("RR_R0_REVIEWED_INPUTS_SHA256=" + os.environ["REVIEWED_SHA256"] + "\n")
+              environment.write("PLAYWRIGHT_BROWSERS_PATH=" + str(temporary / "rr-r0-browsers") + "\n")
+          PY
+      - name: Install the exact Node runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 26.11.1
+          check-latest: false
+      - name: Install the exact producer package manager
+        id: producer-pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: 11.20.0
+          package_json_file: identity/package.json
+          dest: ~/rr-r0-producer-pnpm
+          run_install: false
+      - name: Install the exact consumer package manager
+        id: consumer-pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: 11.28.7
+          package_json_file: review-router/package.json
+          dest: ~/rr-r0-consumer-pnpm
+          run_install: false
+      - name: Install the qualified Keycloak and Java archives
+        working-directory: identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime_root="$(mktemp -d "${RUNNER_TEMP}/rr-r0-native.XXXXXX")"
+          for name in java keycloak; do
+            url="$(jq -er --arg name "$name" '.[$name].archiveUrl' deploy/keycloak/runtime.json)"
+            digest="$(jq -er --arg name "$name" '.[$name].archiveSha256' deploy/keycloak/runtime.json)"
+            archive="${runtime_root}/${name}.tar.gz"
+            curl --fail --location --retry 3 --proto '=https' --proto-redir '=https' --tlsv1.2 --output "$archive" -- "$url"
+            printf '%s  %s\n' "$digest" "$archive" | sha256sum --check --strict
+            mkdir "${runtime_root}/${name}"
+            tar -xzf "$archive" -C "${runtime_root}/${name}" --strip-components=1
+          done
+          printf 'JAVA_HOME=%s/java\nKEYCLOAK_HOME=%s/keycloak\n' "$runtime_root" "$runtime_root" >> "$GITHUB_ENV"
+      - name: Materialize native contracts and lock, then run strict and joined browser checks
+        id: native
+        env:
+          RR_R0_IDENTITY_PNPM: ${{ steps.producer-pnpm.outputs.bin_dest }}/pnpm
+          RR_R0_CONSUMER_PNPM: ${{ steps.consumer-pnpm.outputs.bin_dest }}/pnpm
+          PRODUCER_POSTGRES_CONTAINER: ${{ job.services.producer-postgres.id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, subprocess, time
+          from pathlib import Path
+
+          root = Path("review-router").resolve()
+          fixture = root / "scripts/identity-r0-e2e"
+          producer = Path("identity").resolve()
+          temporary = Path(os.environ["RUNNER_TEMP"])
+          artifact = temporary / "rr-r0-native-artifact"
+          results = {"phases": [], "qualification": "pending", "ordinaryConsumerGates": "not-run"}
+          producer_pnpm = os.environ["RR_R0_IDENTITY_PNPM"]
+          consumer_pnpm = os.environ["RR_R0_CONSUMER_PNPM"]
+          producer_environment = dict(os.environ, PATH=str(Path(producer_pnpm).parent) + os.pathsep + os.environ["PATH"])
+          expected_cases = ["nonce-rejected", "state-rejected", "pkce-downgrade-rejected", "atomic-callback-rollback", "missing-email-resolved", "existing-cookie-not-reauthenticated", "absolute-session-expiry", "failed-logout-not-acknowledged", "live-local-logout"]
+
+          def save():
+              data = (json.dumps(results, indent=2) + "\n").encode()
+              assert len(data) <= 4_194_304
+              (artifact / "native-results.json").write_bytes(data)
+
+          def phase(name, command, directory, budget=600, private=False, environment=None):
+              raw = temporary / ("rr-r0-" + name + ".log")
+              before = time.monotonic()
+              with raw.open("wb") as output:
+                  result = subprocess.run(["timeout", "--kill-after=60s", str(budget), *command], cwd=directory, env=environment, stdout=output, stderr=subprocess.STDOUT)
+              size = raw.stat().st_size
+              item = {"name": name, "exitCode": result.returncode, "durationMs": round((time.monotonic() - before) * 1000), "logBytes": size}
+              if private:
+                  # The native launcher prints only bounded status JSON. Its
+                  # private service logs may contain real protocol material.
+                  statuses = []
+                  with raw.open("r", errors="replace") as output:
+                      for line in output:
+                          if len(line) > 16_384 or len(statuses) >= 4:
+                              continue
+                          try:
+                              value = json.loads(line)
+                          except ValueError:
+                              continue
+                          if isinstance(value, dict) and value.get("identityR0") in {"passed", "failed"}:
+                              if value["identityR0"] == "failed":
+                                  allowed = {"configuration", "source-provenance", "native-prerequisites", "isolated-schema", "keycloak-start", "identity-start", "next-start", "browser-cases", "native-cleanup", "source-custody"}
+                                  statuses.append({"identityR0": "failed", "stage": value.get("stage") if value.get("stage") in allowed else "unknown"})
+                              else:
+                                  statuses.append({"identityR0": "passed"})
+                  item["safeNativeStatuses"] = statuses
+              else:
+                  with raw.open("rb") as output:
+                      item["log"] = output.read(262_144).decode(errors="replace")
+                  item["logTruncated"] = size > 262_144
+              results["phases"].append(item)
+              save()
+              assert result.returncode == 0, "Native phase failed: " + name
+              if not private:
+                  assert size <= 262_144, "Native phase diagnostic exceeded its bound: " + name
+
+          def observe(command, directory, environment=None):
+              result = subprocess.run(["timeout", "30", *command], cwd=directory, env=environment, capture_output=True, text=True, check=True)
+              assert len(result.stdout) <= 8_192 and len(result.stderr) <= 8_192
+              return result.stdout.strip()
+
+          try:
+              versions = {
+                  "node": observe(["node", "--version"], root),
+                  "producerPnpm": observe([producer_pnpm, "--version"], producer, producer_environment),
+                  "consumerPnpm": observe([consumer_pnpm, "--version"], fixture),
+              }
+              assert versions == {"node": "v26.11.1", "producerPnpm": "11.20.0", "consumerPnpm": "11.28.7"}
+              results["toolVersions"] = versions
+              phase("producer-install", [producer_pnpm, "install", "--frozen-lockfile", "--ignore-scripts"], producer, environment=producer_environment)
+              phase("producer-build-and-pack", ["node", "scripts/identity-r0-e2e/prepare-contracts.ts"], root, 900, environment=producer_environment)
+              phase("native-compiler-install", [consumer_pnpm, "install", "--ignore-workspace", "--frozen-lockfile", "--ignore-scripts"], root / "scripts/local-checks/native")
+              phase("fixture-lock-generation", [consumer_pnpm, "install", "--ignore-workspace", "--ignore-scripts", "--lockfile-only", "--no-frozen-lockfile"], fixture)
+              lock_digest = hashlib.sha256((fixture / "pnpm-lock.yaml").read_bytes()).hexdigest()
+              phase("fixture-frozen-install", [consumer_pnpm, "install", "--ignore-workspace", "--ignore-scripts", "--frozen-lockfile"], fixture)
+              assert hashlib.sha256((fixture / "pnpm-lock.yaml").read_bytes()).hexdigest() == lock_digest
+              results["nativeLockSha256"] = lock_digest
+              package = json.loads((fixture / "package.json").read_bytes())
+              for name, expected in {**package["dependencies"], **package["devDependencies"]}.items():
+                  if expected.startswith("file:"):
+                      continue
+                  actual = json.loads((fixture / "node_modules" / name / "package.json").read_bytes())
+                  assert actual["version"] == expected
+                  versions[name] = actual["version"]
+              phase("strict-before-runtime", [consumer_pnpm, "run", "check"], fixture, 180)
+              phase("chromium-install", ["node", "node_modules/playwright-core/cli.js", "install", "--with-deps", "chromium"], fixture)
+              executable = observe(["node", "--input-type=module", "-e", "import { chromium } from 'playwright-core'; process.stdout.write(chromium.executablePath())"], fixture)
+              assert Path(executable).is_absolute() and Path(executable).is_file()
+              os.environ["RR_R0_BROWSER_EXECUTABLE"] = executable
+              phase("keycloak-database", ["docker", "exec", os.environ["PRODUCER_POSTGRES_CONTAINER"], "psql", "--no-psqlrc", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-c", "CREATE DATABASE keycloak_identity_r0_test"], root, 30)
+              phase("native-browser-e2e", [consumer_pnpm, "run", "e2e"], fixture, 900, private=True)
+              native = json.loads((root / "tmp/identity-r0/native-result.json").read_bytes())
+              assert native["identityR0"] == "passed" and native["cases"] == expected_cases
+              assert native["identityCommit"] == os.environ["PRODUCER_REVISION"]
+              assert native["reviewedManifestSha256"] == os.environ["REVIEWED_SHA256"]
+              assert native["upstreamBrokers"] == "not-qualified" and native["productionPolicy"] == "not-selected"
+              phase("strict-after-next-generated-types", [consumer_pnpm, "run", "check"], fixture, 180)
+              assert hashlib.sha256((fixture / "pnpm-lock.yaml").read_bytes()).hexdigest() == lock_digest
+              results["qualification"] = "passed"
+          except BaseException:
+              results["qualification"] = "failed"
+              raise
+          finally:
+              save()
+          PY
+      - name: Seal source custody and only bounded nonsecret native outputs
+        if: ${{ !cancelled() && steps.candidate.outcome == 'success' }}
+        env:
+          NATIVE_OUTCOME: ${{ steps.native.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, stat, subprocess
+          from pathlib import Path
+
+          artifact = Path(os.environ["RUNNER_TEMP"]) / "rr-r0-native-artifact"
+          root = Path("review-router").resolve()
+          producer = Path("identity").resolve()
+          inputs = json.loads((artifact / "source-inputs.json").read_bytes())
+          failures = []
+          try:
+              for name, directory in [("consumer", root), ("producer", producer)]:
+                  baseline = inputs[name]
+                  assert subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=directory, text=True).strip() == baseline["commit"]
+                  assert not subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=no"], cwd=directory)
+                  for path, expected in baseline["files"].items():
+                      target = directory / path
+                      assert not any(parent.is_symlink() for parent in [target, *target.parents])
+                      assert stat.S_IMODE(target.stat().st_mode) == int(expected["mode"][-3:], 8)
+                      assert hashlib.sha256(target.read_bytes()).hexdigest() == expected["sha256"], "Tracked source changed: " + path
+              for expected in inputs["submitted"]:
+                  target = root / expected["path"]
+                  assert not any(parent.is_symlink() for parent in [target, *target.parents])
+                  assert stat.S_IMODE(target.stat().st_mode) == 0o644
+                  assert hashlib.sha256(target.read_bytes()).hexdigest() == expected["sha256"], "Authored source changed: " + expected["path"]
+              allowed = {item["path"] for item in inputs["submitted"]} | {"scripts/identity-r0-e2e/pnpm-lock.yaml", "scripts/identity-r0-e2e/next-env.d.ts", "scripts/identity-r0-e2e/tsconfig.tsbuildinfo"}
+              untracked = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "-z"], cwd=root).decode().split("\0")
+              assert not {path for path in untracked if path} - allowed
+              assert not subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "-z"], cwd=producer)
+          except (AssertionError, OSError, subprocess.CalledProcessError):
+              failures.append("source-custody")
+
+          outputs = {
+              "tmp/identity-r0/identity-contracts.tgz": ("identity-contracts.tgz", 5_242_880),
+              "tmp/identity-r0/contracts-provenance.json": ("contracts-provenance.json", 65_536),
+              "scripts/identity-r0-e2e/pnpm-lock.yaml": ("pnpm-lock.yaml", 1_048_576),
+              "scripts/identity-r0-e2e/next-env.d.ts": ("next-env.d.ts", 8_192),
+              "tmp/identity-r0/native-result.json": ("native-result.json", 16_384),
+          }
+          for path, (name, limit) in outputs.items():
+              target = root / path
+              if not target.exists():
+                  continue
+              if target.is_symlink() or target.stat().st_size > limit:
+                  failures.append("output-bound:" + name)
+                  continue
+              (artifact / name).write_bytes(target.read_bytes())
+          # Build and pack logs are compile-time diagnostics. Real auth/service
+          # logs under run-* are never copied or uploaded.
+          for directory in (root / "tmp/identity-r0").glob("package-*"):
+              for name in ["build.log", "pack.log"]:
+                  target = directory / name
+                  if target.is_file() and not target.is_symlink():
+                      with target.open("rb") as log:
+                          (artifact / ("producer-" + name)).write_bytes(log.read(262_144))
+          result_path = artifact / "native-results.json"
+          results = json.loads(result_path.read_bytes()) if result_path.exists() else {"qualification": "not-run", "phases": []}
+          qualified = not failures and os.environ["NATIVE_OUTCOME"] == "success" and results["qualification"] == "passed"
+          if qualified:
+              assert all((artifact / name).is_file() for name, _limit in outputs.values())
+          manifest = {
+              "helperCommit": os.environ["GITHUB_SHA"],
+              "consumerCommit": os.environ["SOURCE_REVISION"],
+              "producerCommit": os.environ["PRODUCER_REVISION"],
+              "reviewedManifestSha256": os.environ["REVIEWED_SHA256"],
+              "sourceCustody": "passed" if not failures else "failed",
+              "qualification": "passed" if qualified else "failed",
+              "failures": failures,
+              "ordinaryConsumerGates": "not-run",
+              "outputs": [],
+          }
+          for target in sorted(artifact.iterdir()):
+              assert target.is_file() and not target.is_symlink()
+              data = target.read_bytes()
+              manifest["outputs"].append({"path": target.name, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+          assert sum(item["bytes"] for item in manifest["outputs"]) <= 16_777_216
+          (artifact / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+          assert qualified, "R0 native qualification failed; bounded evidence is retained"
+          PY
+      - name: Retain the exact native qualification evidence
+        if: ${{ !cancelled() && steps.candidate.outcome == 'success' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: rr-r0-native-${{ github.sha }}
+          path: ${{ runner.temp }}/rr-r0-native-artifact/
+          if-no-files-found: error
+          retention-days: 7
