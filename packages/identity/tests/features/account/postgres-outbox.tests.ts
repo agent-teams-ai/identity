@@ -110,7 +110,7 @@ function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixt
       authorityIncarnation: opened.status.account.authorityIncarnation,
       closureRevision: BigInt(owned.closure_revision),
       participantGeneration: BigInt(owned.participant_generation),
-      outcome: "retained-by-policy" as const,
+      outcome: "erased" as const,
     };
     const gettok = createPostgresOutboxDelivery(pool, "gettok");
     const other = createPostgresOutboxDelivery(replica, "other-product");
@@ -128,11 +128,12 @@ function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixt
       false,
       "Wrong participant generation cannot settle",
     );
+    assert.equal(await gettok.reportClosure({ ...report, outcome: "retained-by-policy" }), false);
     assert.equal(await gettok.reportClosure(report), true);
     const retry = createPostgresOutboxDelivery(replica, "gettok");
     assert.equal(await retry.reportClosure(report), true, "Lost-response replay is idempotent");
     assert.equal(
-      await retry.reportClosure({ ...report, outcome: "erased" }),
+      await retry.reportClosure({ ...report, outcome: "not-provisioned" }),
       false,
       "A conflicting terminal outcome cannot overwrite the receipt",
     );
@@ -145,7 +146,7 @@ function registerClaimsAndClosure({ pool, replica, accounts, human }: OutboxFixt
       "SELECT consumer_id, status FROM identity_closure_participants ORDER BY consumer_id",
     );
     assert.deepEqual(status.rows, [
-      { consumer_id: "gettok", status: "retained-by-policy" },
+      { consumer_id: "gettok", status: "erased" },
       { consumer_id: "other-product", status: "pending" },
     ]);
     assert.equal(

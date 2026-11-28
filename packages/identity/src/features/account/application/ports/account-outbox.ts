@@ -54,6 +54,9 @@ export interface AccountOutboxDelivery {
     limit: number,
     afterAccountId?: string,
   ) => Promise<readonly ClosureManifestItem[]>;
-  /** Accepts an exact result or its identical replay; never overwrites a different outcome. */
+  /**
+   * Accepts an exact admitted result or its identical replay; never overwrites a different outcome.
+   * Retained-by-policy is reserved until the retention evidence contract is qualified.
+   */
   readonly reportClosure: (report: ClosureReport) => Promise<boolean>;
 }

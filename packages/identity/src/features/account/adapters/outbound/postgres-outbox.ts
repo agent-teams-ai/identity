@@ -160,6 +160,10 @@ export function createPostgresOutboxDelivery(
       if (!allowed.includes(report.outcome)) {
         throw new TypeError("Invalid closure outcome");
       }
+      // No retention policy, obligation and owner evidence has been qualified yet.
+      if (report.outcome === "retained-by-policy") {
+        return false;
+      }
       if (report.closureRevision <= 0n || report.participantGeneration <= 0n) {
         return false;
       }
