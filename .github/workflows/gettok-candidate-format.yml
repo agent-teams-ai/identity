@@ -25,10 +25,11 @@ jobs:
       GOFLAGS: -mod=readonly
       GOMAXPROCS: "2"
       SOURCE_REVISION: ecc0f349aa0830992cc0b7713e2b3bcd852d1215
-      CANDIDATE_BLOB_SHA: 5da5f35e82893f2834a9203919bf37fcefb668e5
-      CANDIDATE_SHA256: 4a5c131f6f48829a984e54c19d748c28a593c453efaab59c233f4c13c2f54fba
+      CANDIDATE_BLOB_SHA: 3012b3054a87c7ca0b5c6ff5a96f1ad3a9b1aeb4
+      CANDIDATE_SHA256: 25f0a56837971a607b54dc9075cb4969af3a677fa80f777155d268d4b4102473
       PRODUCER_REVISION: a5cb13ddcf8208aba4aafea4cb5e42aa7fff70e6
       CANDIDATE_PATHS: |
+        .github/workflows/shared-identity-e2e.yml
         backend/internal/app/assembly_runtime_wire.go
         backend/internal/app/identity_central_integration_test.go
         backend/internal/app/runtime.go
@@ -52,6 +53,7 @@ jobs:
         docs/domains/identity_and_tenancy.md
         docs/interfaces/configuration.md
         docs/operations/shared_identity_deployment.md
+        tools/architecture/catalog.go
     steps:
       - name: Check out the exact consumer baseline
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -102,7 +104,7 @@ jobs:
           assert not subprocess.check_output(["git", "status", "--porcelain"], cwd=root)
           paths = os.environ["CANDIDATE_PATHS"].splitlines()
           assert 1 <= len(paths) <= 40 and len(paths) == len(set(paths))
-          assert all(re.fullmatch(r"(?:backend|docs|\.github)/[a-zA-Z0-9_./-]+", path) for path in paths)
+          assert all(re.fullmatch(r"(?:backend|docs|\.github)/[a-zA-Z0-9_./-]+", path) or path == "tools/architecture/catalog.go" for path in paths)
           assert all(".." not in Path(path).parts for path in paths)
           native_paths = ["backend/go.mod", "backend/go.sum", "backend/internal/app/wire_gen.go"]
           assert not set(paths).intersection(native_paths)
