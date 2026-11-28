@@ -259,6 +259,8 @@ boundaries:
     entrypoints:
       - packages/identity/tests/features/account/keycloak-authentication.test.ts
       - packages/identity/tests/features/account/keycloak-browser-fixture.ts
+      - packages/identity/tests/features/account/keycloak-rotation.native.ts
+      - packages/identity/tests/features/account/postgres-recovery.native.ts
     dependencyMode: development
     allow:
       boundaries:
@@ -277,6 +279,7 @@ boundaries:
         - node:assert/strict
         - node:test
         - node:crypto
+        - node:timers/promises
         - node:fs/promises
         - node:path
         - node:url
@@ -327,6 +330,7 @@ boundaries:
         - node:child_process
         - node:test
         - node:http
+        - node:net
         - node:crypto
         - node:fs/promises
         - node:os
@@ -341,6 +345,7 @@ boundaries:
     entrypoints:
       - tools/build-evidence.ts
       - tools/check-feature-modules.ts
+      - tools/check-postgresql-recovery.ts
       - tools/clean-build.ts
       - tools/project-topology.ts
       - tools/record-build-evidence.ts

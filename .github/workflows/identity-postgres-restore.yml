@@ -1,0 +1,93 @@
+name: Identity PostgreSQL Recovery Drill
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/identity-postgres-restore.yml"
+      - ".node-version"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig*.json"
+      - "packages/**"
+      - "apps/**"
+      - "tools/**"
+      - "architecture/foundation/**"
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    name: PostgreSQL 18.7 isolated backup and restore
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:18.7-bookworm@sha256:e742a2668255221388004f3a42b6150a2103f5054ab3a4a93ae9e4f01e551c35
+        env:
+          POSTGRES_USER: identity_test
+          POSTGRES_PASSWORD: identity_test
+          POSTGRES_DB: identity_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U identity_test -d identity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1; fixed bootstrap
+        with:
+          version: 11.20.0
+          run_install: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install and compile the exact source graph
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm build
+      - name: Restore closed-world disposable Identity state
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="postgres:18.7-bookworm@sha256:e742a2668255221388004f3a42b6150a2103f5054ab3a4a93ae9e4f01e551c35"
+          db() {
+            local database="$1"
+            shift
+            docker run --rm -i --network host -e PGPASSWORD=identity_test "$image" \
+              psql --host=127.0.0.1 --user=identity_test --no-psqlrc \
+              --set=ON_ERROR_STOP=1 --dbname="$database" "$@"
+          }
+          db identity_test < packages/identity/src/features/account/adapters/outbound/migrations/0001_accounts.sql
+          IDENTITY_RECOVERY_DATABASE_URL=postgres://identity_test:identity_test@127.0.0.1:5432/identity_test \
+            pnpm test:postgresql-recovery seed
+          snapshot_dir="$(mktemp -d "$RUNNER_TEMP/identity-pg-restore.XXXXXX")"
+          trap 'rm -rf "$snapshot_dir"' EXIT
+          docker run --rm --network host -e PGPASSWORD=identity_test "$image" \
+            pg_dump --host=127.0.0.1 --user=identity_test --dbname=identity_test \
+              --format=custom --no-owner --no-acl > "$snapshot_dir/state.dump"
+          test -s "$snapshot_dir/state.dump"
+          test "$(stat -c%s "$snapshot_dir/state.dump")" -lt 10485760
+          db postgres --command='CREATE DATABASE identity_restore_test'
+          docker run --rm -i --network host -e PGPASSWORD=identity_test "$image" \
+            pg_restore --host=127.0.0.1 --user=identity_test --dbname=identity_restore_test \
+              --no-owner --no-privileges --exit-on-error < "$snapshot_dir/state.dump"
+          IDENTITY_RECOVERY_DATABASE_URL=postgres://identity_test:identity_test@127.0.0.1:5432/identity_restore_test \
+            pnpm test:postgresql-recovery verify
+          state="$(db identity_restore_test --tuples-only --no-align \
+            --command="SELECT (SELECT max(version) FROM identity_schema_migrations)::text || '|' ||
+              (SELECT string_agg(eligibility, ',' ORDER BY eligibility) FROM identity_accounts) || '|' ||
+              (SELECT count(*) FROM identity_accounts WHERE revision = 2 AND security_epoch = 2)::text || '|' ||
+              (SELECT count(*) FROM identity_resolution_receipts WHERE security_epoch = 1)::text || '|' ||
+              (SELECT count(*) FROM identity_outbox WHERE published_at_ms IS NULL)::text || '|' ||
+              (SELECT count(*) FROM identity_consumer_attachments)::text || '|' ||
+              (SELECT count(*) FROM identity_authority_bindings)::text || '|' ||
+              (SELECT count(*) FROM identity_closure_participants WHERE status = 'pending')::text || '|' ||
+              (SELECT count(*) FROM identity_security_audit)::text")"
+          test "$state" = "1|active,closed,suspended|3|3|6|3|3|1|6"
+          printf '%s\n' '{"postgres18Restore":"passed","accountApiFences":"passed","oldReceipts":"retained-and-denied","outbox":"retained","productionRecovery":"not-qualified"}'

@@ -110,6 +110,11 @@
         "oversized requests never reach account use cases and readiness failure is visible"
       ],
       "kind": "test"
+    },
+    {
+      "file": ".test-build/apps/server/tests/features/http/connect-http.test.js",
+      "names": ["incomplete HTTP bodies release sockets through one shared shutdown"],
+      "kind": "test"
     }
   ],
   "exceptions": []

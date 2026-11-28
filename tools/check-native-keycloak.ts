@@ -91,6 +91,8 @@ const environment = {
   ...process.env,
   IDENTITY_TEST_SECOND_CLIENT_SECRET: randomBytes(32).toString("hex"),
   IDENTITY_TEST_SECOND_WORKLOAD_SECRET: randomBytes(32).toString("hex"),
+  KC_BOOTSTRAP_ADMIN_CLIENT_ID: "identity-disposable-native-admin",
+  KC_BOOTSTRAP_ADMIN_CLIENT_SECRET: randomBytes(32).toString("hex"),
   JAVA_OPTS:
     "-Xms64m -Xmx256m -XX:MaxMetaspaceSize=192m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=32m -XX:-UseBASE64Intrinsics -XX:+UseSerialGC",
   KC_DB: "postgres",
@@ -352,6 +354,9 @@ try {
     await awaitReady(provider);
     for (const entry of [
       "packages/identity/tests/features/account/keycloak-profile.native.js",
+      ...(!withGetTok
+        ? ["packages/identity/tests/features/account/keycloak-rotation.native.js"]
+        : []),
       "apps/server/tests/features/http/keycloak-service.native.js",
       ...(withGetTok ? ["apps/server/tests/features/http/gettok-consumer.native.js"] : []),
     ]) {
@@ -361,7 +366,11 @@ try {
         entry.endsWith("gettok-consumer.native.js") && gettokBinary !== undefined
           ? { PRIVATE_GETTOK_NATIVE_TEST_BINARY: gettokBinary, GOTOOLCHAIN: "local", GOWORK: "off" }
           : {},
-        entry.endsWith("gettok-consumer.native.js") ? 360_000 : 180_000,
+        entry.endsWith("gettok-consumer.native.js")
+          ? 360_000
+          : entry.endsWith("keycloak-rotation.native.js")
+            ? 60_000
+            : 180_000,
       );
       process.stdout.write(result.stdout);
       assert.ok(providerRunning(provider), "Provider exited during native qualification");
