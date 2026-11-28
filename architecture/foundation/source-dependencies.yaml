@@ -327,6 +327,7 @@ boundaries:
         - node:child_process
         - node:test
         - node:http
+        - node:net
         - node:crypto
         - node:fs/promises
         - node:os

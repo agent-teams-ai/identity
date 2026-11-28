@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { connect, type Socket } from "node:net";
 import { test } from "node:test";
 import { Code, ConnectError, createClient } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-node";
@@ -214,3 +215,89 @@ await test("oversized requests never reach account use cases and readiness failu
     },
   );
 });
+
+await test(
+  "incomplete HTTP bodies release sockets through one shared shutdown",
+  { timeout: 5_000 },
+  async (context) => {
+    let calls = 0;
+    const server = await createFastifyHost({
+      ...options,
+      accounts: {
+        ...options.accounts,
+        resolveSelf: async () => {
+          calls += 1;
+          return options.accounts.resolveSelf(human, "incomplete-request-invalid");
+        },
+      },
+    });
+    const sockets: Socket[] = [];
+    try {
+      const address = new URL(await server.listen({ host: "127.0.0.1", port: 0 }));
+      const endpoint = {
+        host: address.hostname,
+        port: Number(address.port),
+        signal: context.signal,
+      };
+      const socket = connect(endpoint);
+      sockets.push(socket);
+      socket.setEncoding("utf8");
+      const closed = new Promise<void>((resolve) => {
+        socket.once("close", () => {
+          resolve();
+        });
+      });
+      const accepted = new Promise<void>((resolve, reject) => {
+        let response = "";
+        const receive = (chunk: string): void => {
+          response += chunk;
+          if (response.length > 1_024) {
+            reject(new Error("Unexpected oversized response to incomplete request"));
+          } else if (response.includes("\r\n\r\n")) {
+            socket.off("data", receive);
+            if (response.startsWith("HTTP/1.1 100 Continue\r\n")) {
+              resolve();
+            } else {
+              reject(new Error("Server did not admit the incomplete request headers"));
+            }
+          }
+        };
+        socket.on("data", receive);
+        socket.once("error", reject);
+        socket.once("close", () => {
+          reject(new Error("Connection closed before the incomplete request was accepted"));
+        });
+      });
+      socket.write(
+        "POST /identity.v1.IdentityService/ResolveSelf HTTP/1.1\r\n" +
+          `Host: ${address.host}\r\n` +
+          "Content-Type: application/json\r\n" +
+          "Authorization: Bearer human\r\n" +
+          "Content-Length: 128\r\n" +
+          "Expect: 100-continue\r\n\r\n{",
+      );
+      await accepted;
+      assert.equal(calls, 0, "Incomplete input has not reached the account boundary");
+      const first = server.close();
+      const second = server.close();
+      assert.equal(first, second, "Concurrent callers retain the original cleanup flight");
+      await Promise.all([first, second, closed]);
+      assert.equal(socket.destroyed, true, "Shutdown physically released the pending socket");
+      assert.equal(calls, 0, "Shutdown cannot complete an incomplete account request");
+      const probe = connect(endpoint);
+      sockets.push(probe);
+      const failure = await new Promise<NodeJS.ErrnoException>((resolve, reject) => {
+        probe.once("error", resolve);
+        probe.once("connect", () => {
+          reject(new Error("HTTP listener still accepts connections after shutdown"));
+        });
+      });
+      assert.equal(failure.code, "ECONNREFUSED", "The listener is physically closed");
+    } finally {
+      for (const socket of sockets) {
+        socket.destroy();
+      }
+      await server.close();
+    }
+  },
+);
